@@ -10,6 +10,12 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
+        if (app()->isProduction()) {
+            throw new \RuntimeException(
+                'AdminUserSeeder contains development-only accounts and cannot run in production.'
+            );
+        }
+
         User::firstOrCreate(
             ['email' => 'admin@eventmanager.com'],
             [

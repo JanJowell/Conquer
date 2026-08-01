@@ -14,6 +14,12 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        if (app()->isProduction()) {
+            throw new \RuntimeException(
+                'DatabaseSeeder contains development-only data and cannot run in production.'
+            );
+        }
+
         $this->call(AdminUserSeeder::class);
 
         $eventManager = User::updateOrCreate(
