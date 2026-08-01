@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AdminActivityLog;
 use App\Models\BannedIP;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Validation\ValidationException;
 
 class SecurityController extends Controller
 {
@@ -58,14 +60,14 @@ class SecurityController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        $logs = $query->latest()->paginate(50);
+        $logs = $query->latest()->paginate(50)->withQueryString();
 
         return view('admin.security.activity-logs', compact('logs'));
     }
 
     public function bannedIPs()
     {
-        $bannedIPs = BannedIP::latest()->paginate(20);
+        $bannedIPs = BannedIP::latest()->paginate(20)->withQueryString();
 
         return view('admin.security.banned-ips', compact('bannedIPs'));
     }
@@ -79,7 +81,22 @@ class SecurityController extends Controller
             'expires_at' => 'nullable|date|after:now',
         ]);
 
-        BannedIP::create($validated);
+        $permanent = $request->boolean('permanent');
+
+        if (! $permanent && empty($validated['expires_at'])) {
+            throw ValidationException::withMessages([
+                'expires_at' => 'An expiration date is required for temporary bans.',
+            ]);
+        }
+
+        BannedIP::updateOrCreate(
+            ['ip_address' => $validated['ip_address']],
+            [
+                'reason' => $validated['reason'],
+                'permanent' => $permanent,
+                'expires_at' => $permanent ? null : $validated['expires_at'],
+            ]
+        );
 
         return redirect()->route('admin.security.banned-ips')
             ->with('success', 'IP address banned successfully.');
@@ -108,7 +125,7 @@ class SecurityController extends Controller
 
     public function enforce2FA()
     {
-        $users = \App\Models\User::whereIn('role', \App\Models\User::storedAdminRoles())->get();
+        $users = User::whereIn('role', User::storedAdminRoles())->get();
 
         foreach ($users as $user) {
             $user->update(['two_factor_required' => true]);
@@ -125,7 +142,8 @@ class SecurityController extends Controller
             ->orWhere('action', 'like', '%download%')
             ->with('user')
             ->latest()
-            ->paginate(50);
+            ->paginate(50)
+            ->withQueryString();
 
         return view('admin.security.data-access-logs', compact('dataAccessLogs'));
     }

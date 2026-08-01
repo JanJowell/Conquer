@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - Conquer</title>
+    <title>Sign Up - Racetech</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -90,7 +90,7 @@
             <div class="inline-flex items-center justify-center w-20 h-20 bg-white rounded-2xl shadow-xl mb-4">
                 <i class="fas fa-running text-3xl text-purple-600"></i>
             </div>
-            <h1 class="text-3xl font-bold text-white mb-2">Conquer</h1>
+            <h1 class="text-3xl font-bold text-white mb-2">Racetech</h1>
             <p class="text-purple-100">Event Management System</p>
         </div>
 
@@ -224,7 +224,7 @@
         <!-- Footer -->
         <div class="text-center mt-8">
             <p class="text-purple-100 text-sm">
-                © 2026 Conquer. All rights reserved.
+                © 2026 Racetech. All rights reserved.
             </p>
         </div>
     </div>

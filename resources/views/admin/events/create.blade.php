@@ -7,7 +7,7 @@
         <div>
             <p class="text-sm font-medium uppercase tracking-[0.24em] text-[#7a8495]">Event Operations</p>
             <h1 class="mt-2 text-3xl font-semibold tracking-tight text-[#151b26]">Create Event</h1>
-            <p class="mt-2 text-sm text-[#6d7685]">Set up a new race event with schedule, location, and registration details.</p>
+            <p class="mt-2 text-sm text-[#6d7685]">Set up a new race event as a draft, then open registration after the setup is complete.</p>
         </div>
 
         @if ($errors->any())
@@ -16,7 +16,7 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('admin.events.store') }}" class="rounded-3xl border border-[#d9dee7] bg-white p-6 shadow-sm">
+        <form method="POST" action="{{ route('admin.events.store') }}" enctype="multipart/form-data" class="rounded-3xl border border-[#d9dee7] bg-white p-6 shadow-sm">
             @csrf
             @include('admin.events.partials.form', ['event' => null])
         </form>

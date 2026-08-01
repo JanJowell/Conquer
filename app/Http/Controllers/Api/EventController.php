@@ -8,16 +8,37 @@ use App\Http\Resources\Api\RegistrationResource;
 use App\Models\Category;
 use App\Models\Event;
 use App\Models\Registration;
+use App\Models\User;
+use App\Services\MobileRecommendationContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class EventController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $events = Event::with(['categories' => fn ($query) => $query->withCount('registrations')])
-            ->withCount('registrations')
+        $recommendations = app(MobileRecommendationContext::class);
+        $user = $recommendations->userFromBearerToken($request);
+        $publicStatuses = ['upcoming', 'ongoing', 'completed'];
+        $recommendedInterests = $request->boolean('recommended')
+            ? $recommendations->userInterests($user)
+            : [];
+
+        $events = Event::with([
+            'categories' => fn ($query) => $query
+                ->where('status', 'open')
+                ->withCount(['registrations' => fn ($registrationQuery) => $registrationQuery->where('status', '!=', 'rejected')]),
+        ])
+            ->withCount(['registrations' => fn ($query) => $query->where('status', '!=', 'rejected')])
+            ->when($user, function ($query) use ($user) {
+                $query->with([
+                    'currentUserRegistration' => fn ($registrationQuery) => $registrationQuery
+                        ->where('user_id', $user->id)
+                        ->with(['category', 'latestPayment']),
+                ]);
+            })
             ->when($request->filled('search'), function ($query) use ($request) {
                 $search = $request->string('search');
 
@@ -29,29 +50,69 @@ class EventController extends Controller
                         ->orWhereHas('categories', fn ($categoryQuery) => $categoryQuery->where('name', 'like', "%{$search}%"));
                 });
             })
-            ->when($request->filled('interest'), function ($query) use ($request) {
-                $interest = $request->string('interest');
+            ->when($request->filled('interest'), function ($query) use ($recommendations, $request) {
+                $interests = $recommendations->normalizeInterests($request->input('interest'));
 
-                $query->where(function ($inner) use ($interest) {
-                    $inner->where('interest_type', 'like', "%{$interest}%")
-                        ->orWhereHas('categories', fn ($categoryQuery) => $categoryQuery->where('name', 'like', "%{$interest}%"));
+                $query->where(function ($inner) use ($interests, $request) {
+                    if ($interests !== []) {
+                        $inner->whereIn('interest_type', $interests);
+                    } else {
+                        $interest = $request->string('interest');
+
+                        $inner->where('interest_type', 'like', "%{$interest}%")
+                            ->orWhereHas('categories', fn ($categoryQuery) => $categoryQuery->where('name', 'like', "%{$interest}%"));
+                    }
                 });
             })
-            ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')))
             ->latest()
             ->get();
 
+        $events = $events
+            ->filter(fn (Event $event) => in_array($event->effective_status, $publicStatuses, true))
+            ->when(
+                $request->filled('status') && in_array($request->string('status')->value(), $publicStatuses, true),
+                fn ($collection) => $collection->filter(fn (Event $event) => $event->effective_status === $request->string('status')->value())
+            )
+            ->when($recommendedInterests !== [] && ! $request->filled('interest'), function ($collection) use ($recommendedInterests) {
+                return $collection
+                    ->sortBy(fn (Event $event) => in_array($event->interest_type, $recommendedInterests, true) ? 0 : 1)
+                    ->values();
+            })
+            ->values();
+
         return response()->json([
             'data' => EventResource::collection($events),
+            'meta' => [
+                'recommended' => $request->boolean('recommended') && $recommendedInterests !== [],
+                'matched_interests' => $recommendedInterests,
+            ],
         ]);
     }
 
-    public function show(Event $event): JsonResponse
+    public function show(Request $request, Event $event): JsonResponse
     {
+        $user = app(MobileRecommendationContext::class)->userFromBearerToken($request);
+
         $event->load([
-            'categories' => fn ($query) => $query->withCount('registrations'),
-            'announcements' => fn ($query) => $query->where('is_published', true)->latest(),
-        ])->loadCount('registrations');
+            'categories' => fn ($query) => $query
+                ->where('status', 'open')
+                ->withCount(['registrations' => fn ($registrationQuery) => $registrationQuery->where('status', '!=', 'rejected')]),
+            'announcements' => fn ($query) => $query->active()->latest(),
+        ])->loadCount(['registrations' => fn ($query) => $query->where('status', '!=', 'rejected')]);
+
+        if (! in_array($event->effective_status, ['upcoming', 'ongoing', 'completed'], true)) {
+            return response()->json([
+                'message' => 'Event is not available in the mobile app yet.',
+            ], 404);
+        }
+
+        if ($user) {
+            $event->load([
+                'currentUserRegistration' => fn ($query) => $query
+                    ->where('user_id', $user->id)
+                    ->with(['category', 'latestPayment']),
+            ]);
+        }
 
         return response()->json([
             'data' => new EventResource($event),
@@ -60,11 +121,6 @@ class EventController extends Controller
 
     public function register(Request $request, Event $event, Category $category): JsonResponse
     {
-        $validated = $request->validate([
-            'shirt_size' => ['nullable', 'string', Rule::in(['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', 'Small', 'Medium', 'Large', 'Extra Large'])],
-            'medical_conditions' => ['nullable', 'string', 'max:2000'],
-        ]);
-
         if ($category->event_id !== $event->id) {
             return response()->json([
                 'message' => 'Invalid category for this event.',
@@ -89,32 +145,83 @@ class EventController extends Controller
             ], 422);
         }
 
-        if ($category->slot_limit !== null && $category->registrations()->count() >= $category->slot_limit) {
+        if ($category->slot_limit !== null
+            && $category->registrations()->where('status', '!=', 'rejected')->count() >= $category->slot_limit) {
             return response()->json([
                 'message' => 'This category is already full.',
             ], 422);
         }
 
-        if ($request->user()->registrations()->where('event_id', $event->id)->where('category_id', $category->id)->exists()) {
+        $existingRegistration = $request->user()
+            ->registrations()
+            ->where('event_id', $event->id)
+            ->first();
+
+        if ($existingRegistration && $existingRegistration->status !== 'rejected') {
             return response()->json([
-                'message' => 'You are already registered for this category.',
+                'message' => 'You are already registered for this event.',
             ], 422);
         }
 
-        $registration = Registration::create([
-            'user_id' => $request->user()->id,
-            'event_id' => $event->id,
-            'category_id' => $category->id,
-            'bib_number' => 'BIB-'.strtoupper(uniqid()),
-            'shirt_size' => $validated['shirt_size'] ?? 'M',
-            'medical_conditions' => $validated['medical_conditions'] ?? null,
-            'status' => 'registered',
-            'registered_at' => now(),
+        $validated = $request->validate([
+            'shirt_size' => ['nullable', 'string', Rule::in(['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', 'Small', 'Medium', 'Large', 'Extra Large'])],
+            'medical_conditions' => ['nullable', 'string', 'max:2000'],
+            'medical_certificate' => [
+                $category->requiresMedicalCertificate() ? 'required' : 'nullable',
+                'file',
+                'mimes:jpg,jpeg,png,webp,pdf',
+                'max:5120',
+            ],
+            'first_aid_kit_confirmed' => ['accepted'],
+            'waiver_accepted' => ['accepted'],
+            'waiver_name' => ['nullable', 'string', 'max:255'],
         ]);
 
+        $registration = $existingRegistration ?? new Registration([
+            'user_id' => $request->user()->id,
+            'event_id' => $event->id,
+        ]);
+
+        $medicalCertificatePath = $registration->medical_certificate_path;
+        $medicalCertificateSubmittedAt = $registration->medical_certificate_submitted_at;
+
+        if ($request->hasFile('medical_certificate')) {
+            $medicalCertificatePath = $request->file('medical_certificate')
+                ->store('medical-certificates', 'public');
+            $medicalCertificateSubmittedAt = now();
+        }
+
+        $waiverAcceptedAt = $registration->waiver_accepted ? $registration->waiver_accepted_at : now();
+
+        $registration->fill([
+            'category_id' => $category->id,
+            'bib_number' => null,
+            'shirt_size' => $validated['shirt_size'] ?? 'M',
+            'medical_conditions' => $validated['medical_conditions'] ?? null,
+            'medical_certificate_path' => $medicalCertificatePath,
+            'medical_certificate_submitted_at' => $medicalCertificateSubmittedAt,
+            'first_aid_kit_confirmed' => true,
+            'waiver_accepted' => true,
+            'waiver_accepted_at' => $waiverAcceptedAt,
+            'waiver_name' => $validated['waiver_name'] ?? $request->user()->name,
+            'waiver_ip' => $request->ip(),
+            'waiver_user_agent' => Str::limit((string) $request->userAgent(), 512, ''),
+            'kit_waiver_signed_at' => null,
+            'kit_released_at' => null,
+            'status' => 'pending',
+            'rejection_reason' => null,
+            'payment_required' => (int) ($category->price_cents ?? 0) > 0,
+            'payment_status' => (int) ($category->price_cents ?? 0) > 0 ? 'unpaid' : 'waived',
+            'payment_amount_cents' => (int) ($category->price_cents ?? 0),
+            'payment_currency' => $category->price_currency ?? 'PHP',
+            'paid_at' => null,
+            'registered_at' => now(),
+        ])->save();
+
         return response()->json([
-            'message' => 'Successfully registered.',
-            'data' => new RegistrationResource($registration->load(['event', 'category'])),
-        ], 201);
+            'message' => $existingRegistration ? 'Registration submitted again for review.' : 'Successfully registered.',
+            'data' => new RegistrationResource($registration->load(['event', 'category', 'latestPayment'])),
+        ], $existingRegistration ? 200 : 201);
     }
+
 }

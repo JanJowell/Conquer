@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('race_results', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('registration_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('registration_id')->unique()->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('event_id')->constrained()->cascadeOnDelete();
             $table->foreignId('category_id')->constrained()->cascadeOnDelete();

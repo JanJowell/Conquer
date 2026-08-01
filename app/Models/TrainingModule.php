@@ -14,6 +14,7 @@ class TrainingModule extends Model
         'description',
         'content',
         'type',
+        'interest_type',
         'duration',
         'difficulty_level',
         'is_published',

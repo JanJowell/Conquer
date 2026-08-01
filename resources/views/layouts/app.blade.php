@@ -39,8 +39,7 @@
             [
                 'label' => 'Analytics',
                 'items' => [
-                    ['label' => 'Reports', 'href' => '/admin/analytics', 'active' => request()->is('admin/analytics'), 'icon' => 'fa-chart-line'],
-                    ['label' => 'Statistics', 'href' => '/admin/analytics', 'active' => false, 'icon' => 'fa-chart-column'],
+                    ['label' => 'Analytics', 'href' => '/admin/analytics', 'active' => request()->is('admin/analytics'), 'icon' => 'fa-chart-column'],
                 ],
             ],
         ];
@@ -61,7 +60,7 @@
                                 <i class="fas fa-flag-checkered"></i>
                             </div>
                             <div>
-                                <p class="text-xs font-semibold uppercase tracking-[0.34em] text-cyan-300/80">Conquer</p>
+                                <p class="text-xs font-semibold uppercase tracking-[0.34em] text-cyan-300/80">Racetech</p>
                                 <h1 class="mt-1 text-2xl font-bold text-white">Admin</h1>
                                 <p class="text-sm text-slate-400">Operations command center</p>
                             </div>
@@ -103,7 +102,7 @@
 
                                 <div class="min-w-0">
                                     <p class="truncate text-sm font-semibold text-white">
-                                        {{ $user->name ?? 'Conquer Admin' }}
+                                        {{ $user->name ?? 'Racetech Admin' }}
                                     </p>
                                     <p class="truncate text-xs uppercase tracking-[0.24em] text-slate-400">
                                         {{ $user ? str_replace('_', ' ', $user->role) : 'Administrator' }}
@@ -135,7 +134,7 @@
 
             <header class="sticky top-0 z-30 flex items-center justify-between border-b border-white/10 bg-slate-950/95 px-4 py-4 backdrop-blur lg:hidden">
                 <div>
-                    <p class="text-xs font-semibold uppercase tracking-[0.32em] text-cyan-300/80">Conquer</p>
+                    <p class="text-xs font-semibold uppercase tracking-[0.32em] text-cyan-300/80">Racetech</p>
                     <h1 class="text-lg font-bold text-white">Admin</h1>
                 </div>
 

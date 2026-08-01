@@ -16,8 +16,19 @@ class CategoryResource extends JsonResource
             'event_id' => $this->event_id,
             'name' => $this->name,
             'distance_km' => $this->distance_km !== null ? (float) $this->distance_km : null,
+            'requires_medical_certificate' => $this->requiresMedicalCertificate(),
             'description' => $this->description,
             'slot_limit' => $this->slot_limit,
+            'price_cents' => $this->price_cents,
+            'price_amount' => number_format(($this->price_cents ?? 0) / 100, 2, '.', ''),
+            'price_currency' => $this->price_currency ?? 'PHP',
+            'is_free' => (int) ($this->price_cents ?? 0) === 0,
+            'payment_instructions' => (int) ($this->price_cents ?? 0) > 0 ? [
+                'provider' => $this->payment_provider,
+                'account_name' => $this->payment_account_name,
+                'account_number' => $this->payment_account_number,
+                'instructions' => $this->payment_instructions,
+            ] : null,
             'registered_count' => $registeredCount,
             'slots_remaining' => is_int($registeredCount) && $this->slot_limit !== null
                 ? max($this->slot_limit - $registeredCount, 0)

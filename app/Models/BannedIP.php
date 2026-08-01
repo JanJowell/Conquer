@@ -26,4 +26,20 @@ class BannedIP extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    public static function isActiveFor(?string $ipAddress): bool
+    {
+        if (! $ipAddress) {
+            return false;
+        }
+
+        return static::query()
+            ->where('ip_address', $ipAddress)
+            ->where(function ($query) {
+                $query->where('permanent', true)
+                    ->orWhereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
+            ->exists();
+    }
 }

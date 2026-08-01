@@ -76,6 +76,11 @@ class User extends Authenticatable
         return $this->hasMany(RaceResult::class);
     }
 
+    public function issuedEBadges()
+    {
+        return $this->hasMany(IssuedEBadge::class);
+    }
+
     public function managedEvents()
     {
         return $this->hasMany(Event::class, 'manager_id');
@@ -98,6 +103,11 @@ class User extends Authenticatable
     public function communityPosts()
     {
         return $this->hasMany(CommunityPost::class);
+    }
+
+    public function deviceTokens()
+    {
+        return $this->hasMany(UserDeviceToken::class);
     }
 
     public function isAdmin()
@@ -222,5 +232,11 @@ class User extends Authenticatable
     public function isBanned()
     {
         return $this->banned_at !== null;
+    }
+
+    public function isMobileActive(): bool
+    {
+        return $this->api_token !== null
+            && ($this->api_token_expires_at === null || $this->api_token_expires_at->isFuture());
     }
 }

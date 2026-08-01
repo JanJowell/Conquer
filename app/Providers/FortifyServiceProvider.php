@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
+use App\Models\BannedIP;
 use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -27,6 +28,12 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
 
         Fortify::authenticateUsing(function (Request $request) {
+            if (BannedIP::isActiveFor($request->ip())) {
+                throw ValidationException::withMessages([
+                    Fortify::username() => 'This IP address has been blocked.',
+                ]);
+            }
+
             $user = User::where('email', $request->email)->first();
 
             if (! $user || ! Hash::check($request->password, $user->password)) {
@@ -66,6 +73,18 @@ class FortifyServiceProvider extends ServiceProvider
             ]);
         });
 
+        Fortify::verifyEmailView(function () {
+            return view('pages.auth.verify-email');
+        });
+
+        Fortify::confirmPasswordView(function () {
+            return view('pages.auth.confirm-password');
+        });
+
+        Fortify::twoFactorChallengeView(function () {
+            return view('pages.auth.two-factor-challenge');
+        });
+
         $this->configureRateLimiting();
     }
 
@@ -80,5 +99,27 @@ class FortifyServiceProvider extends ServiceProvider
         RateLimiter::for('two-factor', function (Request $request) {
             return Limit::perMinute(5)->by($request->session()->get('login.id'));
         });
+
+        RateLimiter::for('mobile-login', function (Request $request) {
+            $identifier = (string) ($request->input('email')
+                ?? $request->input('username')
+                ?? $request->input('identifier'));
+
+            return Limit::perMinute(5)->by(Str::transliterate(Str::lower($identifier)).'|'.$request->ip());
+        });
+
+        RateLimiter::for('mobile-registration', fn (Request $request) => Limit::perMinute(5)->by($request->ip()));
+
+        RateLimiter::for('mobile-verification', function (Request $request) {
+            $email = Str::transliterate(Str::lower((string) $request->input('email')));
+
+            return Limit::perMinute(5)->by($email.'|'.$request->ip());
+        });
+
+        RateLimiter::for('mobile-api', fn (Request $request) => Limit::perMinute(120)->by(
+            $request->user()?->getAuthIdentifier() ?: $request->ip()
+        ));
+
+        RateLimiter::for('payment-webhook', fn (Request $request) => Limit::perMinute(120)->by($request->ip()));
     }
 }

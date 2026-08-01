@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CommunityPost;
+use App\Models\CommunityPostComment;
 use App\Models\TrainingModule;
 use App\Models\Checkpoint;
 use App\Models\Event;
@@ -13,15 +14,61 @@ use Illuminate\Validation\Rule;
 class ContentController extends Controller
 {
     // Community Posts Management
+    public function pendingReview()
+    {
+        $flaggedPosts = CommunityPost::with(['user', 'event', 'moderator'])
+            ->where('is_flagged', true)
+            ->latest('moderated_at')
+            ->latest()
+            ->take(10)
+            ->get();
+
+        $deletedPosts = CommunityPost::onlyTrashed()
+            ->with(['user', 'event', 'moderator'])
+            ->latest('deleted_at')
+            ->take(10)
+            ->get();
+
+        $flaggedComments = CommunityPostComment::with(['user', 'post.event', 'moderator'])
+            ->where('is_flagged', true)
+            ->latest('moderated_at')
+            ->latest()
+            ->take(10)
+            ->get();
+
+        $deletedComments = CommunityPostComment::onlyTrashed()
+            ->with(['user', 'post.event', 'moderator'])
+            ->latest('deleted_at')
+            ->take(10)
+            ->get();
+
+        $trainingDrafts = TrainingModule::where('is_published', false)
+            ->latest()
+            ->take(10)
+            ->get();
+
+        return view('admin.content.pending-review', compact(
+            'flaggedPosts',
+            'deletedPosts',
+            'flaggedComments',
+            'deletedComments',
+            'trainingDrafts'
+        ));
+    }
+
     public function communityPosts(Request $request)
     {
         $query = CommunityPost::query();
 
-        if ($request->search) {
-            $query->where('content', 'like', '%' . $request->search . '%')
-                  ->orWhereHas('user', function ($q) use ($request) {
-                      $q->where('name', 'like', '%' . $request->search . '%');
-                  });
+        if ($request->filled('search')) {
+            $search = $request->string('search');
+
+            $query->where(function ($searchQuery) use ($search) {
+                $searchQuery->where('content', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($userQuery) use ($search) {
+                        $userQuery->where('name', 'like', "%{$search}%");
+                    });
+            });
         }
 
         if ($request->status === 'flagged') {
@@ -32,55 +79,153 @@ class ContentController extends Controller
 
         $posts = $query->with(['user', 'event'])
             ->latest()
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
         return view('admin.content.community-posts', compact('posts'));
     }
 
-    public function deleteCommunityPost(CommunityPost $post)
+    public function showCommunityPost($id)
     {
+        $post = CommunityPost::withTrashed()
+            ->with([
+                'user',
+                'event',
+                'comments' => fn ($query) => $query->withTrashed()->with(['user', 'moderator']),
+                'moderator',
+            ])
+            ->withCount(['likes', 'comments'])
+            ->findOrFail($id);
+
+        return view('admin.content.community-posts-show', compact('post'));
+    }
+
+    public function deleteCommunityPost(Request $request, CommunityPost $post)
+    {
+        $post->update($this->moderationData($request));
         $post->delete();
 
         return redirect()->back()
             ->with('success', 'Post deleted successfully.');
     }
 
-    public function restoreCommunityPost($id)
+    public function restoreCommunityPost(Request $request, $id)
     {
-        $post = CommunityPost::withTrashed()->find($id);
+        $post = CommunityPost::withTrashed()->findOrFail($id);
         $post->restore();
+        $post->update($this->moderationData($request));
 
         return redirect()->back()
             ->with('success', 'Post restored successfully.');
     }
 
-    public function flagCommunityPost(CommunityPost $post)
+    public function flagCommunityPost(Request $request, CommunityPost $post)
     {
-        $post->update(['is_flagged' => true]);
+        $post->update([
+            'is_flagged' => true,
+            ...$this->moderationData($request),
+        ]);
 
         return redirect()->back()
             ->with('success', 'Post flagged successfully.');
     }
 
-    public function unflagCommunityPost(CommunityPost $post)
+    public function unflagCommunityPost(Request $request, CommunityPost $post)
     {
-        $post->update(['is_flagged' => false]);
+        $post->update([
+            'is_flagged' => false,
+            ...$this->moderationData($request),
+        ]);
 
         return redirect()->back()
             ->with('success', 'Post unflagged successfully.');
     }
 
-    // Training Modules Management
-    public function trainingModules()
+    public function flagCommunityComment(Request $request, CommunityPostComment $comment)
     {
-        $modules = TrainingModule::latest()->paginate(10);
+        $comment->update([
+            'is_flagged' => true,
+            ...$this->moderationData($request),
+        ]);
 
-        return view('admin.content.training-modules', compact('modules'));
+        return redirect()->back()
+            ->with('success', 'Comment flagged successfully.');
+    }
+
+    public function unflagCommunityComment(Request $request, CommunityPostComment $comment)
+    {
+        $comment->update([
+            'is_flagged' => false,
+            ...$this->moderationData($request),
+        ]);
+
+        return redirect()->back()
+            ->with('success', 'Comment unflagged successfully.');
+    }
+
+    public function deleteCommunityComment(Request $request, CommunityPostComment $comment)
+    {
+        $comment->update($this->moderationData($request));
+        $comment->delete();
+
+        return redirect()->back()
+            ->with('success', 'Comment deleted successfully.');
+    }
+
+    public function restoreCommunityComment(Request $request, $id)
+    {
+        $comment = CommunityPostComment::withTrashed()->findOrFail($id);
+        $comment->restore();
+        $comment->update($this->moderationData($request));
+
+        return redirect()->back()
+            ->with('success', 'Comment restored successfully.');
+    }
+
+    // Training Modules Management
+    public function trainingModules(Request $request)
+    {
+        $interestTypes = $this->trainingInterestTypes();
+
+        $modules = TrainingModule::query()
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $search = $request->string('search')->trim()->value();
+
+                $query->where(function ($searchQuery) use ($search) {
+                    $searchQuery->where('title', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%")
+                        ->orWhere('content', 'like', "%{$search}%")
+                        ->orWhere('interest_type', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->filled('interest_type'), function ($query) use ($request) {
+                if ($request->input('interest_type') === 'general') {
+                    $query->whereNull('interest_type');
+                } else {
+                    $query->where('interest_type', $request->input('interest_type'));
+                }
+            })
+            ->when(in_array($request->input('status'), ['published', 'draft'], true), function ($query) use ($request) {
+                $query->where('is_published', $request->input('status') === 'published');
+            })
+            ->when(in_array($request->input('type'), ['warmup', 'safety', 'guideline', 'program'], true), function ($query) use ($request) {
+                $query->where('type', $request->input('type'));
+            })
+            ->when(in_array($request->input('difficulty'), ['beginner', 'intermediate', 'advanced'], true), function ($query) use ($request) {
+                $query->where('difficulty_level', $request->input('difficulty'));
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('admin.content.training-modules', compact('interestTypes', 'modules'));
     }
 
     public function createTrainingModule()
     {
-        return view('admin.content.training-modules-create');
+        $interestTypes = $this->trainingInterestTypes();
+
+        return view('admin.content.training-modules-create', compact('interestTypes'));
     }
 
     public function storeTrainingModule(Request $request)
@@ -90,6 +235,7 @@ class ContentController extends Controller
             'description' => 'required|string',
             'content' => 'required|string',
             'type' => 'required|in:warmup,safety,guideline,program',
+            'interest_type' => ['nullable', Rule::in($this->trainingInterestTypes())],
             'duration' => 'nullable|integer|min:1',
             'difficulty_level' => 'required|in:beginner,intermediate,advanced',
             'is_published' => 'boolean',
@@ -103,7 +249,14 @@ class ContentController extends Controller
 
     public function editTrainingModule(TrainingModule $module)
     {
-        return view('admin.content.training-modules-edit', compact('module'));
+        $interestTypes = $this->trainingInterestTypes();
+
+        return view('admin.content.training-modules-edit', compact('interestTypes', 'module'));
+    }
+
+    public function showTrainingModule(TrainingModule $module)
+    {
+        return view('admin.content.training-modules-show', compact('module'));
     }
 
     public function updateTrainingModule(Request $request, TrainingModule $module)
@@ -113,6 +266,7 @@ class ContentController extends Controller
             'description' => 'required|string',
             'content' => 'required|string',
             'type' => 'required|in:warmup,safety,guideline,program',
+            'interest_type' => ['nullable', Rule::in($this->trainingInterestTypes())],
             'duration' => 'nullable|integer|min:1',
             'difficulty_level' => 'required|in:beginner,intermediate,advanced',
             'is_published' => 'boolean',
@@ -133,9 +287,15 @@ class ContentController extends Controller
     }
 
     // Checkpoint Management
-    public function checkpoints()
+    public function checkpoints(Request $request)
     {
         $user = auth()->user();
+        $events = Event::query()
+            ->when($user->managesAssignedEventsOnly(), function ($query) use ($user) {
+                $query->where('manager_id', $user->id);
+            })
+            ->orderBy('event_date')
+            ->get(['id', 'title', 'event_date']);
 
         $checkpoints = Checkpoint::with('event')
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($user) {
@@ -143,10 +303,32 @@ class ContentController extends Controller
                     $eventQuery->where('manager_id', $user->id);
                 });
             })
-            ->latest()
-            ->paginate(10);
+            ->when($request->filled('event_id'), function ($query) use ($request, $events) {
+                $eventId = $request->integer('event_id');
 
-        return view('admin.content.checkpoints', compact('checkpoints'));
+                if ($events->pluck('id')->contains($eventId)) {
+                    $query->where('event_id', $eventId);
+                }
+            })
+            ->when(in_array($request->input('type'), ['hydration', 'medical', 'checkpoint', 'finish'], true), function ($query) use ($request) {
+                $query->where('type', $request->input('type'));
+            })
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $search = $request->string('search')->trim()->value();
+
+                $query->where(function ($searchQuery) use ($search) {
+                    $searchQuery->where('name', 'like', "%{$search}%")
+                        ->orWhere('location', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('event_id')
+            ->orderBy('order')
+            ->orderBy('name')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('admin.content.checkpoints', compact('checkpoints', 'events'));
     }
 
     public function createCheckpoint()
@@ -170,8 +352,8 @@ class ContentController extends Controller
             'event_id' => ['required', Rule::in($accessibleEventIds)],
             'name' => 'required|string|max:255',
             'location' => 'required|string|max:255',
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
             'type' => 'required|in:hydration,medical,checkpoint,finish',
             'description' => 'nullable|string',
             'order' => 'required|integer|min:1',
@@ -207,8 +389,8 @@ class ContentController extends Controller
             'event_id' => ['required', Rule::in($accessibleEventIds)],
             'name' => 'required|string|max:255',
             'location' => 'required|string|max:255',
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
             'type' => 'required|in:hydration,medical,checkpoint,finish',
             'description' => 'nullable|string',
             'order' => 'required|integer|min:1',
@@ -241,8 +423,26 @@ class ContentController extends Controller
         return $user->managedEventIds();
     }
 
+    private function trainingInterestTypes(): array
+    {
+        return config('conquer.event_interest_types', []);
+    }
+
     private function canAccessCheckpoint(Checkpoint $checkpoint): bool
     {
         return $checkpoint->event && auth()->user()->canManageEvent($checkpoint->event);
+    }
+
+    private function moderationData(Request $request): array
+    {
+        $validated = $request->validate([
+            'moderation_note' => ['required', 'string', 'max:1000'],
+        ]);
+
+        return [
+            'moderation_note' => $validated['moderation_note'],
+            'moderated_by' => $request->user()->id,
+            'moderated_at' => now(),
+        ];
     }
 }

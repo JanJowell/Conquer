@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forgot Password - Conquer</title>
+    <title>Forgot Password - Racetech</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,7 +27,7 @@
                     <i class="fas fa-flag-checkered text-xl"></i>
                 </div>
                 <div>
-                    <p class="text-2xl font-bold tracking-tight text-[#111827]">Conquer</p>
+                    <p class="text-2xl font-bold tracking-tight text-[#111827]">Racetech</p>
                     <p class="mt-1 text-sm text-[#6d7685]">Password recovery for admin access</p>
                 </div>
             </a>
@@ -40,7 +40,7 @@
                         Account Recovery
                     </span>
                     <h1 class="mt-6 max-w-3xl text-5xl font-semibold leading-[1.03] tracking-tight text-[#111827] sm:text-6xl">
-                        Reset your admin password without leaving the Conquer workflow.
+                        Reset your admin password without leaving the Racetech workflow.
                     </h1>
                     <p class="mt-6 max-w-2xl text-lg leading-8 text-[#556070]">
                         Enter your admin email and we will send a secure reset link so you can get back to managing events, users, and platform operations.
@@ -90,7 +90,7 @@
                                 name="email"
                                 value="{{ old('email') }}"
                                 class="w-full rounded-xl border border-[#d9dee7] bg-white px-4 py-3 text-[#111827] outline-none transition placeholder:text-[#9aa3af] focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]"
-                                placeholder="admin@conquer.com"
+                                placeholder="admin@racetech.com"
                                 required
                                 autofocus
                                 autocomplete="email"

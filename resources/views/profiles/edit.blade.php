@@ -36,6 +36,11 @@
     $fileInputClasses = $isAdminView
         ? 'block w-full rounded-xl border border-[#d9dee7] bg-white px-4 py-3 text-sm text-[#4f5968] file:mr-4 file:rounded-lg file:border-0 file:bg-[#111827] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-[#1f2937]'
         : 'block w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-3 text-sm text-zinc-300 file:mr-4 file:rounded-lg file:border-0 file:bg-white file:px-4 file:py-2 file:text-sm file:font-semibold file:text-black hover:file:bg-zinc-200';
+    $avatarUrl = $user->avatar_path ? asset('storage/'.$user->avatar_path) : null;
+    $twoFactorFeatureEnabled = \Laravel\Fortify\Features::enabled(\Laravel\Fortify\Features::twoFactorAuthentication());
+    $twoFactorPending = $twoFactorFeatureEnabled && $user->two_factor_secret && ! $user->two_factor_confirmed_at;
+    $twoFactorEnabled = $twoFactorFeatureEnabled && $user->two_factor_secret && $user->two_factor_confirmed_at;
+    $confirmTwoFactorError = $errors->getBag('confirmTwoFactorAuthentication')->first('code');
 @endphp
 
 <div class="{{ $containerClasses }}">
@@ -58,6 +63,30 @@
         </div>
     @endif
 
+    @if (session('status') === 'two-factor-authentication-enabled')
+        <div class="{{ $passwordBannerClasses }}">
+            Two-factor authentication started. Scan the QR code and enter the 6-digit code to finish setup.
+        </div>
+    @endif
+
+    @if (session('status') === 'two-factor-authentication-confirmed')
+        <div class="{{ $bannerClasses }}">
+            Two-factor authentication enabled successfully.
+        </div>
+    @endif
+
+    @if (session('status') === 'two-factor-authentication-disabled')
+        <div class="{{ $passwordBannerClasses }}">
+            Two-factor authentication disabled.
+        </div>
+    @endif
+
+    @if (session('status') === 'recovery-codes-generated')
+        <div class="{{ $bannerClasses }}">
+            New recovery codes generated.
+        </div>
+    @endif
+
     <div class="grid gap-6 xl:grid-cols-3">
         <div class="xl:col-span-1">
             <div class="{{ $cardClasses }}">
@@ -67,12 +96,19 @@
                 </p>
 
                 <div class="mt-6 flex flex-col items-center text-center">
-                    @if ($user->avatar_path)
-                        <img
-                            src="{{ asset('storage/'.$user->avatar_path) }}"
-                            alt="{{ $user->name }}"
-                            class="h-24 w-24 rounded-2xl border {{ $isAdminView ? 'border-[#d9dee7]' : 'border-white/10' }} object-cover"
+                    @if ($avatarUrl)
+                        <button
+                            type="button"
+                            class="group rounded-2xl focus:outline-none focus:ring-2 focus:ring-offset-2 {{ $isAdminView ? 'focus:ring-[#111827] focus:ring-offset-white' : 'focus:ring-white focus:ring-offset-zinc-900' }}"
+                            aria-label="View {{ $user->name }} profile photo larger"
+                            onclick="document.getElementById('profile-photo-preview').showModal()"
                         >
+                            <img
+                                src="{{ $avatarUrl }}"
+                                alt="{{ $user->name }}"
+                                class="h-24 w-24 rounded-2xl border {{ $isAdminView ? 'border-[#d9dee7]' : 'border-white/10' }} object-cover transition group-hover:scale-105 group-hover:shadow-lg"
+                            >
+                        </button>
                     @else
                         <div class="{{ $avatarBoxClasses }}">
                             {{ auth()->user() ? strtoupper(substr(auth()->user()->name, 0, 2)) : 'RA' }}
@@ -97,7 +133,7 @@
                             id="avatar"
                             type="file"
                             name="avatar"
-                            accept="image/*"
+                            accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                             class="{{ $fileInputClasses }}"
                         >
 
@@ -324,7 +360,160 @@
                     </div>
                 </form>
             </div>
+
+            @if ($twoFactorFeatureEnabled)
+                <div class="{{ $cardClasses }}">
+                    <div class="mb-5 flex flex-wrap items-start justify-between gap-4">
+                        <div>
+                            <h2 class="{{ $isAdminView ? 'text-xl font-semibold tracking-tight text-[#111827]' : 'text-lg font-semibold text-white' }}">Two-Factor Authentication</h2>
+                            <p class="{{ $mutedTextClasses }}">
+                                Add an authenticator app code when signing in to protect admin access.
+                            </p>
+                        </div>
+
+                        @if ($twoFactorEnabled)
+                            <span class="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">Enabled</span>
+                        @elseif ($twoFactorPending)
+                            <span class="inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">Confirmation needed</span>
+                        @else
+                            <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">Disabled</span>
+                        @endif
+                    </div>
+
+                    @if ($user->two_factor_required && ! $twoFactorEnabled)
+                        <div class="{{ $isAdminView ? 'mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800' : 'mb-5 rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-300' }}">
+                            Two-factor authentication is required for your admin account.
+                        </div>
+                    @endif
+
+                    @if (! $user->two_factor_secret)
+                        <form method="POST" action="{{ route('two-factor.enable') }}">
+                            @csrf
+
+                            <button type="submit" class="{{ $primaryButtonClasses }}">
+                                Enable 2FA
+                            </button>
+                        </form>
+                    @else
+                        @if ($twoFactorPending)
+                            <div class="grid gap-6 lg:grid-cols-[auto,1fr]">
+                                <div class="{{ $isAdminView ? 'rounded-2xl border border-[#d9dee7] bg-white p-4' : 'rounded-2xl border border-white/10 bg-white p-4' }}">
+                                    {!! $user->twoFactorQrCodeSvg() !!}
+                                </div>
+
+                                <div>
+                                    <p class="{{ $mutedTextClasses }}">
+                                        Scan this QR code with Google Authenticator, Microsoft Authenticator, Authy, 1Password, or another authenticator app. Then enter the current 6-digit code.
+                                    </p>
+
+                                    <form method="POST" action="{{ route('two-factor.confirm') }}" class="mt-5 space-y-4">
+                                        @csrf
+
+                                        <div>
+                                            <label for="code" class="{{ $labelClasses }}">Authentication Code</label>
+                                            <input
+                                                id="code"
+                                                type="text"
+                                                name="code"
+                                                inputmode="numeric"
+                                                autocomplete="one-time-code"
+                                                maxlength="6"
+                                                class="{{ $inputClasses }}"
+                                            >
+
+                                            @if ($confirmTwoFactorError)
+                                                <p class="{{ $errorClasses }}">{{ $confirmTwoFactorError }}</p>
+                                            @endif
+                                        </div>
+
+                                        <div class="flex flex-wrap gap-3">
+                                            <button type="submit" class="{{ $primaryButtonClasses }}">
+                                                Confirm 2FA
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if ($twoFactorEnabled)
+                            <div class="space-y-5">
+                                <div>
+                                    <h3 class="{{ $isAdminView ? 'text-sm font-semibold uppercase tracking-[0.18em] text-[#7a8392]' : 'text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500' }}">Recovery Codes</h3>
+                                    <p class="{{ $mutedTextClasses }}">
+                                        Store these somewhere safe. Each code can be used once if the authenticator app is unavailable.
+                                    </p>
+
+                                    <div class="{{ $isAdminView ? 'mt-4 grid gap-2 rounded-2xl border border-[#d9dee7] bg-[#fbfcfd] p-4 text-sm font-mono text-[#111827] sm:grid-cols-2' : 'mt-4 grid gap-2 rounded-2xl border border-white/10 bg-zinc-950 p-4 text-sm font-mono text-white sm:grid-cols-2' }}">
+                                        @foreach ($user->recoveryCodes() as $recoveryCode)
+                                            <div>{{ $recoveryCode }}</div>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-wrap gap-3">
+                                    <form method="POST" action="{{ route('two-factor.regenerate-recovery-codes') }}">
+                                        @csrf
+
+                                        <button type="submit" class="{{ $isAdminView ? 'rounded-xl border border-[#d9dee7] bg-white px-5 py-3 text-sm font-semibold text-[#202733] transition hover:bg-[#f8f9fb]' : 'rounded-xl border border-white/10 bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800' }}">
+                                            Regenerate Recovery Codes
+                                        </button>
+                                    </form>
+
+                                    <form method="POST" action="{{ route('two-factor.disable') }}" onsubmit="return confirm('Disable two-factor authentication for this account?')">
+                                        @csrf
+                                        @method('DELETE')
+
+                                        <button type="submit" class="rounded-xl border border-rose-200 px-5 py-3 text-sm font-semibold text-rose-700 transition hover:bg-rose-50">
+                                            Disable 2FA
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        @else
+                            <form method="POST" action="{{ route('two-factor.disable') }}" class="mt-5">
+                                @csrf
+                                @method('DELETE')
+
+                                <button type="submit" class="{{ $isAdminView ? 'rounded-xl border border-[#d9dee7] bg-white px-5 py-3 text-sm font-semibold text-[#202733] transition hover:bg-[#f8f9fb]' : 'rounded-xl border border-white/10 bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800' }}">
+                                    Cancel Setup
+                                </button>
+                            </form>
+                        @endif
+                    @endif
+                </div>
+            @endif
         </div>
     </div>
 </div>
+
+@if ($avatarUrl)
+    <dialog
+        id="profile-photo-preview"
+        class="w-[min(92vw,42rem)] rounded-2xl border-0 bg-transparent p-0 backdrop:bg-black/75"
+        onclick="if (event.target === this) this.close()"
+    >
+        <div class="{{ $isAdminView ? 'bg-white text-[#111827]' : 'bg-zinc-950 text-white' }} overflow-hidden rounded-2xl shadow-2xl">
+            <div class="flex items-center justify-between gap-4 border-b px-4 py-3 {{ $isAdminView ? 'border-[#d9dee7]' : 'border-white/10' }}">
+                <p class="min-w-0 truncate text-sm font-semibold">{{ $user->name }}</p>
+                <form method="dialog">
+                    <button
+                        type="submit"
+                        class="{{ $isAdminView ? 'hover:bg-[#eef1f5]' : 'hover:bg-white/10' }} flex h-9 w-9 items-center justify-center rounded-full text-xl leading-none transition"
+                        aria-label="Close larger profile photo"
+                    >
+                        &times;
+                    </button>
+                </form>
+            </div>
+            <div class="{{ $isAdminView ? 'bg-[#f5f6f8]' : 'bg-black' }} flex max-h-[78vh] items-center justify-center p-4">
+                <img
+                    src="{{ $avatarUrl }}"
+                    alt="{{ $user->name }} profile photo"
+                    class="max-h-[72vh] w-auto max-w-full rounded-xl object-contain"
+                >
+            </div>
+        </div>
+    </dialog>
+@endif
 @endsection

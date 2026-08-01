@@ -13,12 +13,13 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('event_id')->constrained()->cascadeOnDelete();
             $table->foreignId('category_id')->constrained()->cascadeOnDelete();
-            $table->string('bib_number')->nullable()->unique();
+            $table->string('bib_number')->nullable();
             $table->string('shirt_size')->nullable();
             $table->text('medical_conditions')->nullable();
-            $table->string('status')->default('registered');
+            $table->string('status')->default('pending');
             $table->timestamp('registered_at')->nullable();
             $table->timestamps();
+            $table->unique(['event_id', 'bib_number']);
         });
     }
 

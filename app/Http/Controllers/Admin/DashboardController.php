@@ -14,6 +14,7 @@ use App\Models\AdminActivityLog;
 use App\Models\BannedIP;
 use App\Models\Checkpoint;
 use App\Models\CommunityPost;
+use App\Models\CommunityPostComment;
 use App\Models\TrainingModule;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -75,20 +76,29 @@ class DashboardController extends Controller
             'registrations' => (clone $registrationQuery)->count(),
             'results' => (clone $resultQuery)->count(),
             'announcements' => (clone $announcementQuery)->count(),
+            'published_announcements' => (clone $announcementQuery)->where('is_published', true)->count(),
             'training_modules' => TrainingModule::whereBetween('created_at', [$startDate, $endDate])->count(),
+            'training_drafts' => TrainingModule::where('is_published', false)->count(),
+            'flagged_comments' => CommunityPostComment::where('is_flagged', true)->count(),
+            'deleted_comments' => CommunityPostComment::onlyTrashed()->count(),
             'checkpoints' => (clone $checkpointQuery)->count(),
             'security_alerts' => BannedIP::whereBetween('created_at', [$startDate, $endDate])->count(),
             'active_users_in_range' => User::whereBetween('last_login_at', [$startDate, $endDate])->count(),
             'upcoming_events' => (clone $eventQuery)->whereDate('event_date', '>=', now()->toDateString())->count(),
             'pending_registrations' => (clone $registrationQuery)->where('status', 'pending')->count(),
+            'ready_for_check_in' => (clone $registrationQuery)->where('status', 'approved')->count(),
+            'checked_in_registrations' => (clone $registrationQuery)->where('status', 'checked_in')->count(),
         ];
 
+        $eventStatusCounts = (clone $eventQuery)
+            ->get(['status', 'event_date', 'start_time', 'end_time'])
+            ->countBy(fn (Event $event) => $event->effective_status);
+
         $eventStatusCounts = [
-            'draft' => (clone $eventQuery)->where('status', 'draft')->count(),
-            'published' => (clone $eventQuery)->where('status', 'published')->count(),
-            'ongoing' => (clone $eventQuery)->where('status', 'ongoing')->count(),
-            'completed' => (clone $eventQuery)->where('status', 'completed')->count(),
-            'upcoming' => (clone $eventQuery)->where('status', 'upcoming')->count(),
+            'draft' => $eventStatusCounts->get('draft', 0),
+            'upcoming' => $eventStatusCounts->get('upcoming', 0),
+            'ongoing' => $eventStatusCounts->get('ongoing', 0),
+            'completed' => $eventStatusCounts->get('completed', 0),
         ];
 
         $recentActivities = AdminActivityLog::with('user')
@@ -115,6 +125,17 @@ class DashboardController extends Controller
             ->pluck('count', 'date');
 
         $registrationSeries = $this->buildSeries($growthStart, $overviewDays, $registrationGrowth);
+
+        $contentActivityGrowth = CommunityPost::selectRaw('DATE(created_at) as date, COUNT(*) as count')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->when($user->managesAssignedEventsOnly(), function ($query) use ($managedEventIds) {
+                $query->whereIn('event_id', $managedEventIds);
+            })
+            ->groupBy('date')
+            ->orderBy('date')
+            ->pluck('count', 'date');
+
+        $contentActivitySeries = $this->buildSeries($growthStart, $overviewDays, $contentActivityGrowth);
 
         $roleBreakdown = User::selectRaw('role, COUNT(*) as count')
             ->whereBetween('created_at', [$startDate, $endDate])
@@ -157,11 +178,31 @@ class DashboardController extends Controller
             1
         );
 
+        $eventHealth = collect();
+
+        if ($dashboardRole === User::ROLE_EXECUTIVE) {
+            $eventHealth = Event::withCount([
+                    'categories',
+                    'registrations',
+                    'raceResults',
+                    'checkpoints',
+                    'announcements as published_announcements_count' => fn ($query) => $query->where('is_published', true),
+                    'registrations as checked_in_registrations_count' => fn ($query) => $query->whereIn('status', ['checked_in', 'completed']),
+                ])
+                ->whereDate('event_date', '>=', now()->toDateString())
+                ->orderBy('event_date')
+                ->take(8)
+                ->get();
+        }
+
         $recentFeedback = CommunityPost::with(['user', 'event'])
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($managedEventIds) {
                 $query->whereIn('event_id', $managedEventIds);
             })
             ->whereBetween('created_at', [$startDate, $endDate])
+            ->when($dashboardRole === User::ROLE_CONTENT_MODERATOR, function ($query) {
+                $query->orderByDesc('is_flagged');
+            })
             ->latest()
             ->take(6)
             ->get();
@@ -188,9 +229,11 @@ class DashboardController extends Controller
             'moderationActivities',
             'overviewSeries',
             'registrationSeries',
+            'contentActivitySeries',
             'roleBreakdown',
             'recentEvents',
             'eventPerformance',
+            'eventHealth',
             'completionAverage',
             'recentFeedback',
             'feedbackInsights',
@@ -274,25 +317,9 @@ class DashboardController extends Controller
                 $query->whereBetween('created_at', [$startDate, $endDate]);
             });
 
-        $posts = (clone $postQuery)->latest()->take(150)->get();
-
         $complaintKeywords = ['late', 'delay', 'confusing', 'issue', 'problem', 'crowded', 'spam'];
         $suggestionKeywords = ['improve', 'suggest', 'better', 'please add', 'would like', 'more'];
         $positiveKeywords = ['good', 'great', 'smooth', 'excellent', 'love', 'organized'];
-
-        $countMatches = function ($keywords) use ($posts) {
-            return $posts->filter(function ($post) use ($keywords) {
-                $content = str($post->content)->lower()->value();
-
-                foreach ($keywords as $keyword) {
-                    if (str_contains($content, $keyword)) {
-                        return true;
-                    }
-                }
-
-                return false;
-            })->count();
-        };
 
         return [
             'total_feedback' => (clone $postQuery)->count(),
@@ -305,24 +332,55 @@ class DashboardController extends Controller
                     $query->whereBetween('deleted_at', [$startDate, $endDate]);
                 })
                 ->count(),
+            'flagged_comments' => CommunityPostComment::where('is_flagged', true)->count(),
+            'deleted_comments' => CommunityPostComment::onlyTrashed()->count(),
             'feedback_events' => (clone $postQuery)->whereNotNull('event_id')->distinct('event_id')->count('event_id'),
-            'complaints' => $countMatches($complaintKeywords),
-            'suggestions' => $countMatches($suggestionKeywords),
-            'positive_mentions' => $countMatches($positiveKeywords),
+            'complaints' => $this->countKeywordMatches($postQuery, $complaintKeywords),
+            'suggestions' => $this->countKeywordMatches($postQuery, $suggestionKeywords),
+            'positive_mentions' => $this->countKeywordMatches($postQuery, $positiveKeywords),
             'ratings_available' => false,
         ];
+    }
+
+    private function countKeywordMatches($query, array $keywords): int
+    {
+        return (clone $query)
+            ->where(function ($keywordQuery) use ($keywords) {
+                foreach ($keywords as $keyword) {
+                    $keywordQuery->orWhere('content', 'like', '%' . $keyword . '%');
+                }
+            })
+            ->count();
     }
 
     private function analyticsData(string $pageTitle): array
     {
         $user = auth()->user();
         $managedEventIds = $user->managedEventIds();
+        $canViewUserAnalytics = $user->hasAdminRole([User::ROLE_SUPER_ADMIN, User::ROLE_EXECUTIVE]);
 
-        $userGrowth = User::selectRaw('DATE(created_at) as date, COUNT(*) as count')
-            ->where('created_at', '>=', now()->subDays(90))
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get();
+        $userGrowth = collect();
+        $dailyActiveUsers = collect();
+
+        if ($canViewUserAnalytics) {
+            $userGrowthStart = now()->subDays(89)->startOfDay();
+            $userGrowthSource = User::selectRaw('DATE(created_at) as date, COUNT(*) as count')
+                ->where('created_at', '>=', $userGrowthStart)
+                ->groupBy('date')
+                ->orderBy('date')
+                ->pluck('count', 'date');
+
+            $userGrowth = $this->buildSeries($userGrowthStart, 90, $userGrowthSource);
+
+            $activeUserStart = now()->subDays(29)->startOfDay();
+            $dailyActiveUserSource = User::selectRaw('DATE(last_login_at) as date, COUNT(*) as count')
+                ->where('last_login_at', '>=', $activeUserStart)
+                ->groupBy('date')
+                ->orderBy('date')
+                ->pluck('count', 'date');
+
+            $dailyActiveUsers = $this->buildSeries($activeUserStart, 30, $dailyActiveUserSource);
+        }
 
         $eventPerformance = Event::withCount(['registrations', 'raceResults'])
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($managedEventIds) {
@@ -340,13 +398,7 @@ class DashboardController extends Controller
                 ];
             });
 
-        $dailyActiveUsers = User::selectRaw('DATE(last_login_at) as date, COUNT(*) as count')
-            ->where('last_login_at', '>=', now()->subDays(30))
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get();
-
-        return compact('userGrowth', 'eventPerformance', 'dailyActiveUsers', 'pageTitle');
+        return compact('userGrowth', 'eventPerformance', 'dailyActiveUsers', 'pageTitle', 'canViewUserAnalytics');
     }
 
     private function writeUsersExport($handle): void
@@ -380,7 +432,7 @@ class DashboardController extends Controller
                     $event->title,
                     optional($event->event_date)->format('Y-m-d'),
                     $event->venue,
-                    $event->status,
+                    $event->effective_status,
                     $event->manager?->name,
                     $event->registrations_count,
                     $event->race_results_count,

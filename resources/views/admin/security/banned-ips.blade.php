@@ -47,6 +47,7 @@
                 value="{{ old('expires_at') }}"
                 class="w-full rounded-xl border border-[#d9dee7] bg-white px-4 py-3 text-sm text-[#111827] outline-none transition focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]"
             >
+            <p class="mt-2 text-xs text-[#7a8392]">Required for temporary bans. Leave blank only when permanent ban is checked.</p>
             @error('expires_at')
                 <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
             @enderror

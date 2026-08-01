@@ -11,226 +11,253 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --surface: #f7f8fa;
-            --card: #ffffff;
-            --border: #d9dee7;
-            --text: #151b26;
-            --muted: #6d7685;
-            --soft: #eef1f5;
-            --brand: #1d4ed8;
-            --brand-dark: #111827;
+            --surface: #eaf2f9;
+            --ink: #111827;
+            --muted: #64748b;
+            --line: rgba(255, 255, 255, 0.62);
         }
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background:
-                radial-gradient(circle at top left, rgba(29, 78, 216, 0.08), transparent 26%),
-                radial-gradient(circle at 85% 12%, rgba(148, 163, 184, 0.16), transparent 18%),
-                var(--surface);
-            color: var(--text);
+                linear-gradient(135deg, #eaf2f9 0%, #f8fbff 48%, #e6f7f2 100%);
+            color: var(--ink);
+        }
+
+        .glass {
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.42);
+            box-shadow: 0 24px 70px rgba(15, 23, 42, 0.10);
+            backdrop-filter: blur(22px);
         }
     </style>
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen antialiased">
     @php
         $featureCards = [
             [
                 'eyebrow' => 'Operations',
                 'title' => 'Event Posting',
-                'description' => 'Create race pages, organize venue details, and keep schedules visible for runners and organizers.',
+                'description' => 'Build race pages, organize venues, and keep schedules ready for runners and staff.',
                 'icon' => 'fa-calendar-days',
+                'tone' => 'text-sky-700 bg-sky-100/80 border-sky-200/70',
             ],
             [
                 'eyebrow' => 'Participants',
                 'title' => 'Registration Tracking',
-                'description' => 'Monitor signups, categories, and participant progress through a cleaner registration workflow.',
+                'description' => 'Follow signups, categories, payments, and race-day progress in one workspace.',
                 'icon' => 'fa-id-card',
+                'tone' => 'text-emerald-700 bg-emerald-100/80 border-emerald-200/70',
             ],
             [
                 'eyebrow' => 'Communication',
                 'title' => 'Announcements',
-                'description' => 'Share reminders, updates, and race-day notices from one centralized event workspace.',
+                'description' => 'Publish notices, reminders, and updates directly from event operations.',
                 'icon' => 'fa-bullhorn',
+                'tone' => 'text-amber-700 bg-amber-100/80 border-amber-200/70',
             ],
             [
-                'eyebrow' => 'Platform',
-                'title' => 'Mobile Ready',
-                'description' => 'Support a web-first workflow today while staying ready for mobile event access and coordination.',
+                'eyebrow' => 'Mobile',
+                'title' => 'Runner Ready',
+                'description' => 'Keep participant-facing content organized for mobile access and coordination.',
                 'icon' => 'fa-mobile-screen-button',
+                'tone' => 'text-violet-700 bg-violet-100/80 border-violet-200/70',
             ],
         ];
     @endphp
 
-    <header class="sticky top-0 z-30 border-b border-[#d9dee7] bg-white/90 backdrop-blur">
+    <header class="sticky top-0 z-30 border-b border-white/60 bg-white/45 backdrop-blur-2xl">
         <div class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-4 sm:px-6 lg:px-8">
             <div class="flex items-center gap-4">
-                <div class="flex h-14 w-14 items-center justify-center rounded-sm border border-[#cfd5de] bg-[#f4f5f7] text-[#6b7280]">
+                <div class="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/70 bg-white/60 text-[#151b26] shadow-sm">
                     <i class="fas fa-flag-checkered text-xl"></i>
                 </div>
                 <div>
-                    <p class="text-2xl font-bold tracking-tight text-[#111827]">Conquer</p>
-                    <p class="mt-1 text-sm text-[#6d7685]">Running and recreational event management</p>
+                    <p class="text-2xl font-bold tracking-[0] text-[#111827]">Conquer</p>
+                    <p class="mt-1 text-sm text-[#64748b]">Running and recreational event management</p>
                 </div>
             </div>
 
-            <div class="flex items-center gap-3">
-                <a href="{{ route('login') }}" class="rounded-xl border border-[#d9dee7] bg-white px-5 py-2.5 text-sm font-medium text-[#202733] transition hover:bg-[#f8f9fb]">
-                    Login
-                </a>
-            </div>
+            <a href="{{ route('login') }}" class="inline-flex h-12 items-center justify-center rounded-2xl border border-white/70 bg-white/55 px-6 text-sm font-semibold text-[#202733] shadow-sm backdrop-blur-xl transition hover:bg-white/80">
+                Login
+            </a>
         </div>
     </header>
 
-    <section class="relative overflow-hidden border-b border-[#d9dee7] bg-[linear-gradient(135deg,#f8fafc_0%,#eff4fb_48%,#e8eef8_100%)]">
-        <div class="absolute inset-0">
-            <div class="absolute left-[-5rem] top-[-4rem] h-56 w-56 rounded-full bg-blue-200/35 blur-3xl"></div>
-            <div class="absolute right-[-4rem] top-10 h-64 w-64 rounded-full bg-slate-300/30 blur-3xl"></div>
-        </div>
-
-        <div class="relative mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:py-20 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] lg:px-8">
+    <section class="relative overflow-hidden">
+        <div class="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 md:py-16 lg:grid-cols-[minmax(0,0.95fr)_minmax(360px,1.05fr)] lg:px-8">
             <div class="self-center">
-                <span class="inline-flex rounded-full border border-[#bfd1f8] bg-white px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.28em] text-[#315fa8] shadow-sm">
+                <span class="inline-flex rounded-full border border-white/70 bg-white/55 px-5 py-2 text-xs font-bold uppercase tracking-[0.28em] text-[#315fa8] shadow-sm backdrop-blur-xl">
                     Conquer Platform
                 </span>
 
-                <h1 class="mt-6 max-w-4xl text-5xl font-semibold leading-[1.02] tracking-tight text-[#111827] sm:text-6xl">
-                    Manage races, registrations, events, and announcements with one clear control system.
+                <h1 class="mt-7 max-w-3xl text-6xl font-extrabold leading-[1.02] tracking-[0] text-[#111827] sm:text-7xl">
+                    Conquer
                 </h1>
 
-                <p class="mt-6 max-w-2xl text-lg leading-8 text-[#556070]">
-                    Conquer gives organizers and participants a cleaner way to handle event publishing, category management, announcements, and race coordination without jumping across disconnected tools.
+                <p class="mt-6 max-w-2xl text-xl leading-9 text-[#475569]">
+                    A cleaner control system for race publishing, registration tracking, announcements, payments, and event-day operations.
                 </p>
 
                 <div class="mt-8 flex flex-wrap gap-3">
-                    <a href="{{ route('login') }}" class="rounded-xl bg-[#111827] px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-[#1f2937]">
+                    <a href="{{ route('login') }}" class="inline-flex h-13 items-center justify-center rounded-2xl bg-[#151b26] px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-slate-300/40 transition hover:bg-[#232b39]">
                         Admin Login
+                    </a>
+                    <a href="#events" class="inline-flex h-13 items-center justify-center rounded-2xl border border-white/70 bg-white/55 px-6 py-3.5 text-sm font-semibold text-[#202733] shadow-sm backdrop-blur-xl transition hover:bg-white/80">
+                        View Events
                     </a>
                 </div>
 
-                <div class="mt-6 rounded-2xl border border-[#d9dee7] bg-white/90 px-5 py-4 shadow-sm">
-                    <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[#7a8392]">Access Notice</p>
-                    <p class="mt-2 text-sm leading-6 text-[#5a6473]">
-                        The web platform is reserved for admin operations. Runner access is planned for the mobile application.
-                    </p>
-                </div>
-
-                <div class="mt-10 grid gap-4 sm:grid-cols-3">
-                    <div class="rounded-2xl border border-[#d9dee7] bg-white/90 p-5 shadow-sm">
-                        <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[#7a8392]">Events</p>
-                        <p class="mt-2 text-3xl font-semibold tracking-tight text-[#111827]">{{ $events->count() }}</p>
-                        <p class="mt-2 text-sm text-[#6d7685]">Latest events highlighted on the platform</p>
+                <div class="mt-8 grid max-w-2xl gap-3 sm:grid-cols-3">
+                    <div class="glass rounded-2xl p-4">
+                        <p class="text-xs font-bold uppercase tracking-[0.22em] text-[#64748b]">Events</p>
+                        <p class="mt-2 text-3xl font-bold tracking-[0] text-[#111827]">{{ $events->count() }}</p>
                     </div>
-                    <div class="rounded-2xl border border-[#d9dee7] bg-white/90 p-5 shadow-sm">
-                        <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[#7a8392]">Announcements</p>
-                        <p class="mt-2 text-3xl font-semibold tracking-tight text-[#111827]">{{ $announcements->count() }}</p>
-                        <p class="mt-2 text-sm text-[#6d7685]">Published updates and race notices</p>
+                    <div class="glass rounded-2xl p-4">
+                        <p class="text-xs font-bold uppercase tracking-[0.22em] text-[#64748b]">Updates</p>
+                        <p class="mt-2 text-3xl font-bold tracking-[0] text-[#111827]">{{ $announcements->count() }}</p>
                     </div>
-                    <div class="rounded-2xl border border-[#d9dee7] bg-white/90 p-5 shadow-sm">
-                        <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[#7a8392]">Access</p>
-                        <p class="mt-2 text-3xl font-semibold tracking-tight text-[#111827]">Web</p>
-                        <p class="mt-2 text-sm text-[#6d7685]">Built for fast organizer and participant workflows</p>
+                    <div class="glass rounded-2xl p-4">
+                        <p class="text-xs font-bold uppercase tracking-[0.22em] text-[#64748b]">Access</p>
+                        <p class="mt-2 text-3xl font-bold tracking-[0] text-[#111827]">Web</p>
                     </div>
                 </div>
             </div>
 
-            <div class="grid gap-4 self-center sm:grid-cols-2">
-                @foreach ($featureCards as $card)
-                    <article class="rounded-3xl border border-[#d9dee7] bg-white/90 p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg">
-                        <div class="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#d9dee7] bg-[#f8f9fb] text-[#4f5968]">
-                            <i class="fas {{ $card['icon'] }}"></i>
+            <div class="glass relative min-h-[520px] overflow-hidden rounded-[2rem] p-5">
+                <div class="rounded-[1.5rem] border border-white/70 bg-white/50 p-5 shadow-sm backdrop-blur-xl">
+                    <div class="flex items-center justify-between gap-4">
+                        <div>
+                            <p class="text-xs font-bold uppercase tracking-[0.22em] text-[#64748b]">Operations Board</p>
+                            <h2 class="mt-2 text-2xl font-bold tracking-[0] text-[#111827]">Race Control</h2>
                         </div>
-                        <p class="mt-5 text-xs font-semibold uppercase tracking-[0.24em] text-[#7a8392]">{{ $card['eyebrow'] }}</p>
-                        <h2 class="mt-2 text-2xl font-semibold tracking-tight text-[#111827]">{{ $card['title'] }}</h2>
-                        <p class="mt-3 text-sm leading-7 text-[#5a6473]">{{ $card['description'] }}</p>
-                    </article>
-                @endforeach
+                        <span class="inline-flex rounded-full border border-emerald-200 bg-emerald-100/80 px-3 py-1 text-xs font-bold text-emerald-700">
+                            Live
+                        </span>
+                    </div>
+
+                    <div class="mt-6 grid gap-3 sm:grid-cols-3">
+                        <div class="rounded-2xl border border-white/70 bg-white/60 p-4">
+                            <p class="text-xs font-semibold text-[#64748b]">Registrations</p>
+                            <p class="mt-2 text-2xl font-bold tracking-[0]">248</p>
+                        </div>
+                        <div class="rounded-2xl border border-white/70 bg-white/60 p-4">
+                            <p class="text-xs font-semibold text-[#64748b]">Payments</p>
+                            <p class="mt-2 text-2xl font-bold tracking-[0]">92%</p>
+                        </div>
+                        <div class="rounded-2xl border border-white/70 bg-white/60 p-4">
+                            <p class="text-xs font-semibold text-[#64748b]">Check-ins</p>
+                            <p class="mt-2 text-2xl font-bold tracking-[0]">36</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 space-y-3">
+                        @foreach (['Event details verified', 'Categories open for registration', 'Announcement queued for mobile', 'Results workspace ready'] as $index => $item)
+                            <div class="flex items-center gap-3 rounded-2xl border border-white/70 bg-white/55 p-4">
+                                <span class="flex h-9 w-9 items-center justify-center rounded-xl {{ $index === 2 ? 'border border-amber-200 bg-amber-100 text-amber-700' : 'border border-emerald-200 bg-emerald-100 text-emerald-700' }}">
+                                    <i class="fas {{ $index === 2 ? 'fa-bell' : 'fa-check' }} text-xs"></i>
+                                </span>
+                                <p class="text-sm font-semibold text-[#202733]">{{ $item }}</p>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="mt-5 grid gap-4 sm:grid-cols-2">
+                    @foreach ($featureCards as $card)
+                        <article class="rounded-3xl border border-white/70 bg-white/50 p-5 shadow-sm backdrop-blur-xl transition hover:-translate-y-1 hover:bg-white/70">
+                            <div class="flex h-12 w-12 items-center justify-center rounded-2xl border {{ $card['tone'] }}">
+                                <i class="fas {{ $card['icon'] }}"></i>
+                            </div>
+                            <p class="mt-5 text-xs font-bold uppercase tracking-[0.22em] text-[#64748b]">{{ $card['eyebrow'] }}</p>
+                            <h3 class="mt-2 text-xl font-bold tracking-[0] text-[#111827]">{{ $card['title'] }}</h3>
+                            <p class="mt-3 text-sm leading-7 text-[#475569]">{{ $card['description'] }}</p>
+                        </article>
+                    @endforeach
+                </div>
             </div>
         </div>
     </section>
 
-    <main class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <section>
+    <main id="events" class="mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:px-8">
+        <section class="glass rounded-[2rem] p-5 sm:p-6">
             <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                    <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[#7a8392]">Live Schedule</p>
-                    <h2 class="mt-2 text-4xl font-semibold tracking-tight text-[#111827]">Upcoming Events</h2>
-                    <p class="mt-2 text-sm leading-6 text-[#6d7685]">Browse the latest event listings currently highlighted in Conquer.</p>
+                    <p class="text-xs font-bold uppercase tracking-[0.24em] text-[#64748b]">Live Schedule</p>
+                    <h2 class="mt-2 text-4xl font-bold tracking-[0] text-[#111827]">Upcoming Events</h2>
+                    <p class="mt-2 text-sm leading-6 text-[#64748b]">Browse the latest event listings highlighted in Conquer.</p>
                 </div>
             </div>
 
-            <div class="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+            <div class="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
                 @forelse($events as $event)
-                    <article class="rounded-3xl border border-[#d9dee7] bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg">
+                    <article class="rounded-3xl border border-white/70 bg-white/55 p-6 shadow-sm backdrop-blur-xl transition hover:-translate-y-1 hover:bg-white/75">
                         <div class="flex items-start justify-between gap-4">
                             <div>
-                                <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[#7a8392]">Event</p>
-                                <h3 class="mt-3 text-3xl font-semibold leading-tight tracking-tight text-[#111827]">{{ $event->title }}</h3>
+                                <p class="text-xs font-bold uppercase tracking-[0.22em] text-[#64748b]">Event</p>
+                                <h3 class="mt-3 text-2xl font-bold leading-tight tracking-[0] text-[#111827]">{{ $event->title }}</h3>
                             </div>
-                            <span class="rounded-full bg-[#eef2ff] px-3 py-1 text-xs font-semibold text-[#315fa8]">
+                            <span class="rounded-full border border-sky-200 bg-sky-100/80 px-3 py-1 text-xs font-bold text-sky-700">
                                 Upcoming
                             </span>
                         </div>
 
-                        <div class="mt-6 space-y-3 text-sm text-[#556070]">
+                        <div class="mt-6 space-y-3 text-sm text-[#475569]">
                             <div class="flex items-center gap-3">
-                                <span class="flex h-10 w-10 items-center justify-center rounded-xl border border-[#d9dee7] bg-[#f8f9fb] text-[#5e6878]">
+                                <span class="flex h-10 w-10 items-center justify-center rounded-xl border border-white/70 bg-white/60 text-[#64748b]">
                                     <i class="fas fa-location-dot"></i>
                                 </span>
                                 <div>
-                                    <p class="text-xs uppercase tracking-[0.18em] text-[#8a93a1]">Venue</p>
-                                    <p class="font-medium text-[#202733]">{{ $event->venue }}</p>
+                                    <p class="text-xs uppercase tracking-[0.18em] text-[#64748b]">Venue</p>
+                                    <p class="font-semibold text-[#202733]">{{ $event->venue }}</p>
                                 </div>
                             </div>
 
                             <div class="flex items-center gap-3">
-                                <span class="flex h-10 w-10 items-center justify-center rounded-xl border border-[#d9dee7] bg-[#f8f9fb] text-[#5e6878]">
+                                <span class="flex h-10 w-10 items-center justify-center rounded-xl border border-white/70 bg-white/60 text-[#64748b]">
                                     <i class="fas fa-calendar-days"></i>
                                 </span>
                                 <div>
-                                    <p class="text-xs uppercase tracking-[0.18em] text-[#8a93a1]">Date</p>
-                                    <p class="font-medium text-[#202733]">{{ $event->event_date->format('F d, Y') }}</p>
+                                    <p class="text-xs uppercase tracking-[0.18em] text-[#64748b]">Date</p>
+                                    <p class="font-semibold text-[#202733]">{{ $event->event_date->format('F d, Y') }}</p>
                                 </div>
                             </div>
                         </div>
 
-                        <p class="mt-6 text-sm leading-7 text-[#5a6473]">
-                            {{ $event->description }}
-                        </p>
+                        <p class="mt-6 text-sm leading-7 text-[#475569]">{{ $event->description }}</p>
                     </article>
                 @empty
-                    <div class="rounded-3xl border border-[#d9dee7] bg-white p-6 shadow-sm lg:col-span-2 xl:col-span-3">
-                        <p class="text-sm text-[#6d7685]">No events available right now.</p>
+                    <div class="rounded-3xl border border-white/70 bg-white/55 p-6 shadow-sm backdrop-blur-xl lg:col-span-2 xl:col-span-3">
+                        <p class="text-sm text-[#64748b]">No events available right now.</p>
                     </div>
                 @endforelse
             </div>
         </section>
 
-        <section class="mt-14">
+        <section class="mt-8 glass rounded-[2rem] p-5 sm:p-6">
             <div class="mb-6">
-                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[#7a8392]">Updates</p>
-                <h2 class="mt-2 text-4xl font-semibold tracking-tight text-[#111827]">Announcements</h2>
-                <p class="mt-2 text-sm leading-6 text-[#6d7685]">Stay informed with the latest organizer updates, reminders, and notices.</p>
+                <p class="text-xs font-bold uppercase tracking-[0.24em] text-[#64748b]">Updates</p>
+                <h2 class="mt-2 text-4xl font-bold tracking-[0] text-[#111827]">Announcements</h2>
+                <p class="mt-2 text-sm leading-6 text-[#64748b]">Stay informed with organizer updates, reminders, and notices.</p>
             </div>
 
-            <div class="grid gap-6 lg:grid-cols-2">
+            <div class="grid gap-5 lg:grid-cols-2">
                 @forelse($announcements as $announcement)
-                    <article class="rounded-3xl border border-[#d9dee7] bg-white p-6 shadow-sm">
+                    <article class="rounded-3xl border border-white/70 bg-white/55 p-6 shadow-sm backdrop-blur-xl">
                         <div class="flex items-start gap-4">
-                            <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#d9dee7] bg-[#f8f9fb] text-[#5e6878]">
+                            <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-amber-200 bg-amber-100/80 text-amber-700">
                                 <i class="fas fa-bullhorn"></i>
                             </span>
                             <div>
-                                <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[#7a8392]">Announcement</p>
-                                <h3 class="mt-2 text-2xl font-semibold tracking-tight text-[#111827]">{{ $announcement->title }}</h3>
-                                <p class="mt-4 text-sm leading-7 text-[#5a6473]">
-                                    {{ $announcement->content }}
-                                </p>
+                                <p class="text-xs font-bold uppercase tracking-[0.22em] text-[#64748b]">Announcement</p>
+                                <h3 class="mt-2 text-2xl font-bold tracking-[0] text-[#111827]">{{ $announcement->title }}</h3>
+                                <p class="mt-4 text-sm leading-7 text-[#475569]">{{ $announcement->content }}</p>
                             </div>
                         </div>
                     </article>
                 @empty
-                    <div class="rounded-3xl border border-[#d9dee7] bg-white p-6 shadow-sm lg:col-span-2">
-                        <p class="text-sm text-[#6d7685]">No announcements yet.</p>
+                    <div class="rounded-3xl border border-white/70 bg-white/55 p-6 shadow-sm backdrop-blur-xl lg:col-span-2">
+                        <p class="text-sm text-[#64748b]">No announcements yet.</p>
                     </div>
                 @endforelse
             </div>

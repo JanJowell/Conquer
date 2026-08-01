@@ -35,10 +35,9 @@
                     <label for="type" class="block text-sm font-medium text-gray-700">Type</label>
                     <select name="type" id="type" required
                             class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        <option value="payment">Payment</option>
-                        <option value="reminder">Reminder</option>
-                        <option value="announcement">Announcement</option>
-                        <option value="emergency">Emergency</option>
+                        @foreach($typeOptions as $value => $label)
+                            <option value="{{ $value }}" @selected(old('type') === $value)>{{ $label }}</option>
+                        @endforeach
                     </select>
                     @error('type')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -49,9 +48,9 @@
                     <label for="target_audience" class="block text-sm font-medium text-gray-700">Target Audience</label>
                     <select name="target_audience" id="target_audience" required
                             class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        <option value="all">All Users</option>
-                        <option value="participants">Event Participants</option>
-                        <option value="admins">Admin Users</option>
+                        @foreach($audienceOptions as $value => $label)
+                            <option value="{{ $value }}" @selected(old('target_audience') === $value)>{{ $label }}</option>
+                        @endforeach
                     </select>
                     @error('target_audience')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>

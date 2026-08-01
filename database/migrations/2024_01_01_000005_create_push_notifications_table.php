@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('title');
             $table->text('message');
             $table->enum('type', ['payment', 'reminder', 'announcement', 'emergency']);
-            $table->enum('target_audience', ['all', 'participants', 'admins']);
+            $table->enum('target_audience', ['all', 'runners', 'participants', 'admins']);
             $table->dateTime('scheduled_at')->nullable();
             $table->dateTime('sent_at')->nullable();
             $table->boolean('is_active')->default(true);

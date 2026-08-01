@@ -35,4 +35,26 @@ return [
         ],
     ],
 
+    'firebase' => [
+        'project_id' => env('FIREBASE_PROJECT_ID'),
+        'credentials' => env('FIREBASE_CREDENTIALS'),
+        'credentials_json' => env('FIREBASE_CREDENTIALS_JSON'),
+        'credentials_base64' => env('FIREBASE_CREDENTIALS_BASE64'),
+        'client_email' => env('FIREBASE_CLIENT_EMAIL'),
+        'private_key' => env('FIREBASE_PRIVATE_KEY'),
+    ],
+
+    'paymongo' => [
+        'secret_key' => env('PAYMONGO_SECRET_KEY'),
+        'public_key' => env('PAYMONGO_PUBLIC_KEY'),
+        'webhook_secret' => env('PAYMONGO_WEBHOOK_SECRET'),
+        'base_url' => env('PAYMONGO_BASE_URL', 'https://api.paymongo.com'),
+        'success_url' => env('PAYMONGO_SUCCESS_URL', env('APP_URL').'/payments/success'),
+        'cancel_url' => env('PAYMONGO_CANCEL_URL', env('APP_URL').'/payments/cancelled'),
+        'payment_methods' => array_values(array_filter(array_map(
+            'trim',
+            explode(',', env('PAYMONGO_PAYMENT_METHODS', 'gcash,paymaya,card'))
+        ))),
+    ],
+
 ];

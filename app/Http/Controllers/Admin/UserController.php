@@ -31,9 +31,25 @@ class UserController extends Controller
         }
 
         if ($request->status === 'active') {
-            $query->whereNotNull('email_verified_at');
+            $query->whereNotNull('api_token')
+                ->whereNull('suspended_at')
+                ->whereNull('banned_at')
+                ->where(function ($q) {
+                    $q->whereNull('api_token_expires_at')
+                        ->orWhere('api_token_expires_at', '>', now());
+                });
         } elseif ($request->status === 'inactive') {
-            $query->whereNull('email_verified_at');
+            $query->whereNull('suspended_at')
+                ->whereNull('banned_at')
+                ->where(function ($q) {
+                    $q->whereNull('api_token')
+                        ->orWhere('api_token_expires_at', '<=', now());
+                });
+        } elseif ($request->status === 'suspended') {
+            $query->whereNotNull('suspended_at')
+                ->whereNull('banned_at');
+        } elseif ($request->status === 'banned') {
+            $query->whereNotNull('banned_at');
         }
 
         $users = $query->latest()->paginate(10);
@@ -109,6 +125,14 @@ class UserController extends Controller
 
         if (($validated['role'] ?? null) !== User::ROLE_RUNNER) {
             $validated['medical_conditions'] = null;
+        }
+
+        if ($user->id === auth()->id()
+            && $user->isSuperAdmin()
+            && $validated['role'] !== User::ROLE_SUPER_ADMIN) {
+            return back()
+                ->withInput()
+                ->with('error', 'You cannot remove your own Super Admin access.');
         }
 
         $user->update($validated);

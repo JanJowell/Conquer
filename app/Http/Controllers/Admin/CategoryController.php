@@ -5,10 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Event;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
+use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
 class CategoryController extends Controller
 {
@@ -16,8 +16,10 @@ class CategoryController extends Controller
     {
         $user = $request->user();
         $accessibleEventIds = $user->managedEventIds();
+        $paymentMethods = Category::paymentMethods();
 
         $categories = Category::with('event')
+            ->withCount(['registrations', 'raceResults'])
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($accessibleEventIds) {
                 $query->whereIn('event_id', $accessibleEventIds);
             })
@@ -35,12 +37,13 @@ class CategoryController extends Controller
             ->orderBy('event_date')
             ->get(['id', 'title']);
 
-        return view('admin.categories.index', compact('categories', 'events'));
+        return view('admin.categories.index', compact('categories', 'events', 'paymentMethods'));
     }
 
     public function create(): View
     {
         $user = auth()->user();
+        $paymentMethods = Category::paymentMethods();
         $events = Event::query()
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($user) {
                 $query->where('manager_id', $user->id);
@@ -48,7 +51,7 @@ class CategoryController extends Controller
             ->orderBy('event_date')
             ->get();
 
-        return view('admin.categories.create', compact('events'));
+        return view('admin.categories.create', compact('events', 'paymentMethods'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -57,25 +60,121 @@ class CategoryController extends Controller
 
         $validated = $request->validate([
             'event_id' => ['required', Rule::in($accessibleEventIds)],
-            'name' => ['required', 'string', 'max:255'],
-            'distance_km' => ['required', 'numeric', 'min:0'],
+            'category_type' => ['required', Rule::in(array_keys($this->categoryTypes()))],
+            'custom_category_name' => ['nullable', 'required_if:category_type,custom', 'string', 'max:255'],
+            'distance_option' => ['required', Rule::in(array_keys($this->distanceOptions()))],
+            'custom_distance_km' => ['nullable', 'required_if:distance_option,custom', 'numeric', 'min:0.01'],
             'description' => ['nullable', 'string'],
             'slot_limit' => ['nullable', 'integer', 'min:1'],
+            'price_amount' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
+            'price_currency' => ['required', 'string', 'size:3'],
+            'payment_provider' => ['nullable', Rule::in(array_keys(Category::paymentMethods()))],
+            'payment_account_name' => ['nullable', 'string', 'max:255'],
+            'payment_account_number' => ['nullable', 'string', 'max:255'],
+            'payment_instructions' => ['nullable', 'string', 'max:5000'],
             'status' => ['required', 'in:open,closed,draft'],
         ]);
 
-        Category::create($validated);
+        if ($errors = $this->paymentReadinessErrors($validated)) {
+            return back()->withErrors($errors)->withInput();
+        }
 
-        return redirect()->route('admin.categories.index')->with('success', 'Category created successfully.');
+        $validated['distance_km'] = $this->distanceValue($validated);
+        $validated['name'] = $this->nameWithDistance($this->categoryTypeName($validated), (float) $validated['distance_km']);
+        $this->applyPriceFields($validated);
+        unset($validated['category_type'], $validated['custom_category_name'], $validated['distance_option'], $validated['custom_distance_km']);
+
+        $category = Category::create($validated);
+        $category->event?->refreshAutomaticStatus();
+
+        return redirect()
+            ->route('admin.categories.index', ['event_id' => $validated['event_id']])
+            ->with('success', 'Category created successfully. The event status will update automatically when setup is ready.');
     }
 
-    public function destroy(Category $category): RedirectResponse
+    public function edit(Category $category): View
     {
         abort_unless($this->canAccessCategory($category), 403);
 
-        $category->delete();
+        $category->load('event')->loadCount(['registrations', 'raceResults']);
+        $categoryInUse = $category->registrations_count > 0 || $category->race_results_count > 0;
+        $categoryType = $this->categoryTypeFromName($category);
+        $distanceOption = $this->distanceOptionFromValue((float) $category->distance_km);
+        $paymentMethods = Category::paymentMethods();
 
-        return back()->with('success', 'Category deleted successfully.');
+        return view('admin.categories.edit', compact('category', 'categoryInUse', 'categoryType', 'distanceOption', 'paymentMethods'));
+    }
+
+    public function update(Request $request, Category $category): RedirectResponse
+    {
+        abort_unless($this->canAccessCategory($category), 403);
+
+        $category->loadCount(['registrations', 'raceResults']);
+        $categoryInUse = $category->registrations_count > 0 || $category->race_results_count > 0;
+
+        $rules = [
+            'description' => ['nullable', 'string'],
+            'slot_limit' => ['nullable', 'integer', 'min:1'],
+            'price_amount' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
+            'price_currency' => ['required', 'string', 'size:3'],
+            'payment_provider' => ['nullable', Rule::in(array_keys(Category::paymentMethods()))],
+            'payment_account_name' => ['nullable', 'string', 'max:255'],
+            'payment_account_number' => ['nullable', 'string', 'max:255'],
+            'payment_instructions' => ['nullable', 'string', 'max:5000'],
+            'status' => ['required', 'in:open,closed,draft'],
+        ];
+
+        if (! $categoryInUse) {
+            $rules = [
+                'category_type' => ['required', Rule::in(array_keys($this->categoryTypes()))],
+                'custom_category_name' => ['nullable', 'required_if:category_type,custom', 'string', 'max:255'],
+                'distance_option' => ['required', Rule::in(array_keys($this->distanceOptions()))],
+                'custom_distance_km' => ['nullable', 'required_if:distance_option,custom', 'numeric', 'min:0.01'],
+                ...$rules,
+            ];
+        }
+
+        $validated = $request->validate($rules);
+
+        if ($errors = $this->paymentReadinessErrors($validated)) {
+            return back()->withErrors($errors)->withInput();
+        }
+
+        if (! $categoryInUse) {
+            $validated['distance_km'] = $this->distanceValue($validated);
+            $validated['name'] = $this->nameWithDistance($this->categoryTypeName($validated), (float) $validated['distance_km']);
+            unset($validated['category_type'], $validated['custom_category_name'], $validated['distance_option'], $validated['custom_distance_km']);
+        }
+
+        $this->applyPriceFields($validated);
+
+        $category->update($validated);
+        $category->event?->refreshAutomaticStatus();
+
+        return redirect()
+            ->route('admin.categories.index', ['event_id' => $category->event_id])
+            ->with('success', 'Category updated successfully.');
+    }
+
+    public function destroy(Request $request, Category $category): RedirectResponse
+    {
+        abort_unless($this->canAccessCategory($category), 403);
+
+        $category->loadCount(['registrations', 'raceResults']);
+        $hasRecords = $category->registrations_count > 0 || $category->race_results_count > 0;
+
+        if ($hasRecords && ! $request->boolean('delete_with_records')) {
+            return back()->with('error', 'This category has registrations or results. Confirm the warning before deleting it.');
+        }
+
+        $event = $category->event;
+
+        $category->delete();
+        $event?->refreshAutomaticStatus();
+
+        return back()->with('success', $hasRecords
+            ? 'Category and its related registrations/results were deleted successfully.'
+            : 'Category deleted successfully.');
     }
 
     private function accessibleEventIds(Request $request): array
@@ -94,5 +193,127 @@ class CategoryController extends Controller
         $event = $category->event;
 
         return $event && auth()->user()->canManageEvent($event);
+    }
+
+    private function categoryTypes(): array
+    {
+        return [
+            'open' => 'Open',
+            'male' => 'Male',
+            'female' => 'Female',
+            'elite' => 'Elite',
+            'beginner' => 'Beginner',
+            'kids' => 'Kids',
+            'senior' => 'Senior',
+            'custom' => 'Custom',
+        ];
+    }
+
+    private function categoryTypeName(array $data): string
+    {
+        if ($data['category_type'] === 'custom') {
+            return trim($data['custom_category_name']);
+        }
+
+        return $this->categoryTypes()[$data['category_type']];
+    }
+
+    private function distanceOptions(): array
+    {
+        return [
+            '1' => '1K',
+            '3' => '3K',
+            '5' => '5K',
+            '10' => '10K',
+            '21' => '21K',
+            '42' => '42K',
+            'custom' => 'Custom',
+        ];
+    }
+
+    private function distanceValue(array $data): float
+    {
+        if ($data['distance_option'] === 'custom') {
+            return (float) $data['custom_distance_km'];
+        }
+
+        return (float) $data['distance_option'];
+    }
+
+    private function categoryTypeFromName(Category $category): array
+    {
+        $typeName = trim(preg_replace('/^'.preg_quote($this->distanceLabel((float) $category->distance_km) ?? '', '/').'\s*/i', '', $category->name));
+        $matchedKey = collect($this->categoryTypes())
+            ->filter(fn ($label, $key) => $key !== 'custom' && strtolower($label) === strtolower($typeName))
+            ->keys()
+            ->first();
+
+        return [
+            'key' => $matchedKey ?: 'custom',
+            'custom' => $matchedKey ? null : $typeName,
+        ];
+    }
+
+    private function distanceOptionFromValue(float $distanceKm): string
+    {
+        $distance = rtrim(rtrim(number_format($distanceKm, 2, '.', ''), '0'), '.');
+
+        return array_key_exists($distance, $this->distanceOptions()) ? $distance : 'custom';
+    }
+
+    private function nameWithDistance(string $name, float $distanceKm): string
+    {
+        $name = trim($name);
+        $distanceLabel = $this->distanceLabel($distanceKm);
+
+        if ($distanceLabel === null || str_contains(strtolower($name), strtolower($distanceLabel))) {
+            return $name;
+        }
+
+        return trim($distanceLabel.' '.$name);
+    }
+
+    private function distanceLabel(float $distanceKm): ?string
+    {
+        if ($distanceKm <= 0) {
+            return null;
+        }
+
+        $distance = rtrim(rtrim(number_format($distanceKm, 2, '.', ''), '0'), '.');
+
+        return $distance.'K';
+    }
+
+    private function applyPriceFields(array &$data): void
+    {
+        $priceAmount = (float) ($data['price_amount'] ?? 0);
+
+        $data['price_cents'] = (int) round($priceAmount * 100);
+        $data['price_currency'] = strtoupper($data['price_currency'] ?? 'PHP');
+
+        unset($data['price_amount']);
+    }
+
+    private function paymentReadinessErrors(array $data): array
+    {
+        if ((float) ($data['price_amount'] ?? 0) <= 0) {
+            return [];
+        }
+
+        $errors = [];
+
+        if (blank($data['payment_provider'] ?? null)) {
+            $errors['payment_provider'] = 'Paid categories require a payment method.';
+        }
+
+        if (blank($data['payment_account_name'] ?? null)) {
+            $errors['payment_account_name'] = 'Paid categories require a payment account name.';
+        }
+
+        if (blank($data['payment_account_number'] ?? null) && blank($data['payment_instructions'] ?? null)) {
+            $errors['payment_account_number'] = 'Paid categories require an account number or clear payment instructions.';
+        }
+
+        return $errors;
     }
 }

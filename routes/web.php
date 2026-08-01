@@ -8,10 +8,23 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 
 Route::get('/', function () {
     $events = Event::latest()->take(3)->get();
-    $announcements = Announcement::where('is_published', true)->latest()->take(5)->get();
+    $announcements = Announcement::active()->with('event')->latest()->take(5)->get();
 
     return view('welcome', compact('events', 'announcements'));
 })->name('home');
+
+Route::get('/announcements', function () {
+    $announcements = Announcement::active()
+        ->with('event')
+        ->latest('published_at')
+        ->latest()
+        ->get();
+
+    return view('pages.announcements', compact('announcements'));
+})->name('announcements.index');
+
+Route::view('/payments/success', 'pages.payments.success')->name('payments.success');
+Route::view('/payments/cancelled', 'pages.payments.cancelled')->name('payments.cancelled');
 
 Route::post('/admin/password/email', [ForgotPasswordController::class, 'store'])
     ->middleware('guest')
@@ -52,6 +65,15 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::patch('/participants/{registration}', [\App\Http\Controllers\Admin\EventOperationsController::class, 'updateParticipant'])
         ->middleware('role:super_admin,event_manager')
         ->name('participants.update');
+    Route::get('/payments', [\App\Http\Controllers\Admin\PaymentController::class, 'index'])
+        ->middleware('role:super_admin,event_manager')
+        ->name('payments.index');
+    Route::get('/payments/export', [\App\Http\Controllers\Admin\PaymentController::class, 'export'])
+        ->middleware('role:super_admin,event_manager')
+        ->name('payments.export');
+    Route::patch('/payments/registrations/{registration}', [\App\Http\Controllers\Admin\PaymentController::class, 'update'])
+        ->middleware('role:super_admin,event_manager')
+        ->name('payments.update');
     Route::get('/check-in', [\App\Http\Controllers\Admin\EventOperationsController::class, 'checkIn'])
         ->middleware('role:super_admin,event_manager')
         ->name('check-in.index');
@@ -67,6 +89,24 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::patch('/results/{result}', [\App\Http\Controllers\Admin\EventOperationsController::class, 'updateResult'])
         ->middleware('role:super_admin,event_manager')
         ->name('results.update');
+    Route::get('/e-badges', [\App\Http\Controllers\Admin\EBadgeController::class, 'index'])
+        ->middleware('role:super_admin,event_manager')
+        ->name('e-badges.index');
+    Route::post('/e-badges', [\App\Http\Controllers\Admin\EBadgeController::class, 'store'])
+        ->middleware('role:super_admin,event_manager')
+        ->name('e-badges.store');
+    Route::patch('/e-badges/{badge}', [\App\Http\Controllers\Admin\EBadgeController::class, 'update'])
+        ->middleware('role:super_admin,event_manager')
+        ->name('e-badges.update');
+    Route::delete('/e-badges/{badge}', [\App\Http\Controllers\Admin\EBadgeController::class, 'destroy'])
+        ->middleware('role:super_admin,event_manager')
+        ->name('e-badges.destroy');
+    Route::post('/registrations/{registration}/e-badges', [\App\Http\Controllers\Admin\EBadgeController::class, 'issue'])
+        ->middleware('role:super_admin,event_manager')
+        ->name('e-badges.issue');
+    Route::delete('/issued-e-badges/{issuedBadge}', [\App\Http\Controllers\Admin\EBadgeController::class, 'revoke'])
+        ->middleware('role:super_admin,event_manager')
+        ->name('e-badges.revoke');
     
     // User Management
     Route::get('/users', [\App\Http\Controllers\Admin\UserController::class, 'index'])
@@ -85,26 +125,42 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         ->middleware('role:super_admin,executive,event_manager')
         ->name('events.index');
     Route::resource('events', \App\Http\Controllers\Admin\EventController::class)
-        ->except(['index'])
+        ->except(['index', 'show'])
         ->middleware('role:super_admin,event_manager');
+    Route::get('/events/{event}', [\App\Http\Controllers\Admin\EventController::class, 'show'])
+        ->middleware('role:super_admin,executive,event_manager')
+        ->name('events.show');
     Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class)
         ->middleware('role:super_admin,event_manager')
-        ->except(['show', 'edit', 'update']);
+        ->except(['show']);
     Route::resource('announcements', \App\Http\Controllers\Admin\AnnouncementController::class)
         ->middleware('role:super_admin,content_moderator,event_manager')
-        ->except(['show', 'edit', 'update']);
+        ->except(['show']);
+    Route::patch('/announcements/{announcement}/publish', [\App\Http\Controllers\Admin\AnnouncementController::class, 'publish'])
+        ->middleware('role:super_admin,content_moderator,event_manager')
+        ->name('announcements.publish');
+    Route::patch('/announcements/{announcement}/unpublish', [\App\Http\Controllers\Admin\AnnouncementController::class, 'unpublish'])
+        ->middleware('role:super_admin,content_moderator,event_manager')
+        ->name('announcements.unpublish');
     
     // Content Management
     Route::prefix('content')->name('content.')->group(function () {
+        Route::get('/pending-review', [\App\Http\Controllers\Admin\ContentController::class, 'pendingReview'])->middleware('role:super_admin,content_moderator')->name('pending-review');
         Route::get('/community-posts', [\App\Http\Controllers\Admin\ContentController::class, 'communityPosts'])->middleware('role:super_admin,content_moderator')->name('community-posts');
+        Route::get('/community-posts/{post}', [\App\Http\Controllers\Admin\ContentController::class, 'showCommunityPost'])->middleware('role:super_admin,content_moderator')->name('community-posts.show');
         Route::delete('/community-posts/{post}', [\App\Http\Controllers\Admin\ContentController::class, 'deleteCommunityPost'])->middleware('role:super_admin,content_moderator')->name('community-posts.delete');
         Route::post('/community-posts/{post}/restore', [\App\Http\Controllers\Admin\ContentController::class, 'restoreCommunityPost'])->middleware('role:super_admin,content_moderator')->name('community-posts.restore');
         Route::post('/community-posts/{post}/flag', [\App\Http\Controllers\Admin\ContentController::class, 'flagCommunityPost'])->middleware('role:super_admin,content_moderator')->name('community-posts.flag');
         Route::post('/community-posts/{post}/unflag', [\App\Http\Controllers\Admin\ContentController::class, 'unflagCommunityPost'])->middleware('role:super_admin,content_moderator')->name('community-posts.unflag');
+        Route::delete('/community-comments/{comment}', [\App\Http\Controllers\Admin\ContentController::class, 'deleteCommunityComment'])->middleware('role:super_admin,content_moderator')->name('community-comments.delete');
+        Route::post('/community-comments/{comment}/restore', [\App\Http\Controllers\Admin\ContentController::class, 'restoreCommunityComment'])->middleware('role:super_admin,content_moderator')->name('community-comments.restore');
+        Route::post('/community-comments/{comment}/flag', [\App\Http\Controllers\Admin\ContentController::class, 'flagCommunityComment'])->middleware('role:super_admin,content_moderator')->name('community-comments.flag');
+        Route::post('/community-comments/{comment}/unflag', [\App\Http\Controllers\Admin\ContentController::class, 'unflagCommunityComment'])->middleware('role:super_admin,content_moderator')->name('community-comments.unflag');
         
         Route::get('/training-modules', [\App\Http\Controllers\Admin\ContentController::class, 'trainingModules'])->middleware('role:super_admin,content_moderator')->name('training-modules');
         Route::get('/training-modules/create', [\App\Http\Controllers\Admin\ContentController::class, 'createTrainingModule'])->middleware('role:super_admin,content_moderator')->name('training-modules.create');
         Route::post('/training-modules', [\App\Http\Controllers\Admin\ContentController::class, 'storeTrainingModule'])->middleware('role:super_admin,content_moderator')->name('training-modules.store');
+        Route::get('/training-modules/{module}', [\App\Http\Controllers\Admin\ContentController::class, 'showTrainingModule'])->middleware('role:super_admin,content_moderator')->name('training-modules.show');
         Route::get('/training-modules/{module}/edit', [\App\Http\Controllers\Admin\ContentController::class, 'editTrainingModule'])->middleware('role:super_admin,content_moderator')->name('training-modules.edit');
         Route::put('/training-modules/{module}', [\App\Http\Controllers\Admin\ContentController::class, 'updateTrainingModule'])->middleware('role:super_admin,content_moderator')->name('training-modules.update');
         Route::delete('/training-modules/{module}', [\App\Http\Controllers\Admin\ContentController::class, 'destroyTrainingModule'])->middleware('role:super_admin,content_moderator')->name('training-modules.destroy');

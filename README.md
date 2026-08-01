@@ -1,5 +1,12 @@
 # Admin Web Interface - Features and Limitations
 
+## Developer Docs
+
+- [Mobile API](docs/mobile-api.md)
+- [PayMongo Setup](docs/paymongo-setup.md)
+- [Production Deployment](docs/deployment.md)
+- [Railway Staging](docs/railway-staging.md)
+
 ## Overview
 This document outlines the complete scope and limitations of the admin web interface for the event management system, including both standard admin features and super admin capabilities.
 

@@ -11,7 +11,7 @@
     @forelse($announcements as $announcement)
         <div style="background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
             <h3>{{ $announcement->title }}</h3>
-            <p>{{ $announcement->content }}</p>
+            <p>{!! nl2br(e($announcement->content)) !!}</p>
             <small>
                 Published:
                 {{ $announcement->published_at ? $announcement->published_at->format('F d, Y h:i A') : 'N/A' }}

@@ -63,7 +63,13 @@ class ProfileController extends Controller
     public function updateAvatar(Request $request): RedirectResponse
     {
         $request->validate([
-            'avatar' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'avatar' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
+        ], [
+            'avatar.required' => 'Please choose a profile photo to upload.',
+            'avatar.image' => 'The avatar must be a valid image file.',
+            'avatar.mimes' => 'The avatar must be a JPG, PNG, or WebP image.',
+            'avatar.max' => 'The avatar must not be larger than 10 MB.',
+            'avatar.uploaded' => 'The avatar could not be uploaded. Make sure it is a JPG, PNG, or WebP image under 10 MB.',
         ]);
 
         $user = $request->user();

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - Conquer</title>
+    <title>Admin Login - Racetech</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,7 +27,7 @@
                     <i class="fas fa-flag-checkered text-xl"></i>
                 </div>
                 <div>
-                    <p class="text-2xl font-bold tracking-tight text-[#111827]">Conquer</p>
+                    <p class="text-2xl font-bold tracking-tight text-[#111827]">Racetech</p>
                     <p class="mt-1 text-sm text-[#6d7685]">Admin operations access</p>
                 </div>
             </a>
@@ -64,7 +64,7 @@
                     <div>
                         <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[#7a8392]">Admin Login</p>
                         <h2 class="mt-3 text-3xl font-semibold tracking-tight text-[#111827]">Welcome back</h2>
-                        <p class="mt-2 text-sm leading-6 text-[#6d7685]">Use your admin credentials to continue into Conquer.</p>
+                        <p class="mt-2 text-sm leading-6 text-[#6d7685]">Use your admin credentials to continue into Racetech.</p>
                     </div>
 
                     @if (session('status'))
@@ -90,7 +90,7 @@
                                 name="email"
                                 value="{{ old('email') }}"
                                 class="w-full rounded-xl border border-[#d9dee7] bg-white px-4 py-3 text-[#111827] outline-none transition placeholder:text-[#9aa3af] focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]"
-                                placeholder="admin@conquer.com"
+                                placeholder="admin@racetech.com"
                                 required
                                 autofocus
                                 autocomplete="email"

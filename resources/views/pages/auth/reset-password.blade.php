@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reset Password - Conquer</title>
+    <title>Reset Password - Racetech</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,7 +27,7 @@
                     <i class="fas fa-flag-checkered text-xl"></i>
                 </div>
                 <div>
-                    <p class="text-2xl font-bold tracking-tight text-[#111827]">Conquer</p>
+                    <p class="text-2xl font-bold tracking-tight text-[#111827]">Racetech</p>
                     <p class="mt-1 text-sm text-[#6d7685]">Secure password reset for admin access</p>
                 </div>
             </a>
@@ -40,7 +40,7 @@
                         Password Reset
                     </span>
                     <h1 class="mt-6 max-w-3xl text-5xl font-semibold leading-[1.03] tracking-tight text-[#111827] sm:text-6xl">
-                        Set a new admin password and return to Conquer securely.
+                        Set a new admin password and return to Racetech securely.
                     </h1>
                     <p class="mt-6 max-w-2xl text-lg leading-8 text-[#556070]">
                         Use a strong password for your admin account so you can get back to managing events, users, announcements, and operations with confidence.

@@ -15,6 +15,7 @@ class TrainingModuleResource extends JsonResource
             'description' => $this->description,
             'content' => $this->content,
             'type' => $this->type,
+            'interest_type' => $this->interest_type,
             'duration' => $this->duration,
             'difficulty_level' => $this->difficulty_level,
             'created_at' => optional($this->created_at)?->toISOString(),
