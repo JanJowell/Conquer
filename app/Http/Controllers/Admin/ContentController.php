@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Checkpoint;
 use App\Models\CommunityPost;
 use App\Models\CommunityPostComment;
-use App\Models\TrainingModule;
-use App\Models\Checkpoint;
 use App\Models\Event;
+use App\Models\TrainingModule;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -102,7 +102,10 @@ class ContentController extends Controller
 
     public function deleteCommunityPost(Request $request, CommunityPost $post)
     {
-        $post->update($this->moderationData($request));
+        $post->update([
+            ...$this->moderationData($request),
+            'deleted_by_user_id' => $request->user()->id,
+        ]);
         $post->delete();
 
         return redirect()->back()
@@ -113,7 +116,10 @@ class ContentController extends Controller
     {
         $post = CommunityPost::withTrashed()->findOrFail($id);
         $post->restore();
-        $post->update($this->moderationData($request));
+        $post->update([
+            ...$this->moderationData($request),
+            'deleted_by_user_id' => null,
+        ]);
 
         return redirect()->back()
             ->with('success', 'Post restored successfully.');

@@ -17,7 +17,6 @@ use App\Services\FirebaseCloudMessaging;
 use App\Services\MobileRecommendationContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class ContentController extends Controller
 {
@@ -82,14 +81,14 @@ class ContentController extends Controller
     public function communityPosts(): JsonResponse
     {
         $posts = CommunityPost::with([
-                    'user:id,name,avatar_path',
-                    'event:id,title',
-                    'comments' => fn ($query) => $query->where('is_flagged', false)->with('user:id,name,avatar_path'),
-                ])
-                ->withCount('likes')
-                ->where('is_flagged', false)
-                ->latest()
-                ->paginate(15);
+            'user:id,name,avatar_path',
+            'event:id,title',
+            'comments' => fn ($query) => $query->where('is_flagged', false)->with('user:id,name,avatar_path'),
+        ])
+            ->withCount('likes')
+            ->where('is_flagged', false)
+            ->latest()
+            ->paginate(15);
 
         return response()->json($this->paginatedPostsPayload($posts));
     }
@@ -99,18 +98,18 @@ class ContentController extends Controller
         $userId = $request->user()?->id;
 
         $posts = CommunityPost::with([
-                    'user:id,name,avatar_path',
-                    'event:id,title',
-                    'comments' => fn ($query) => $query->where('is_flagged', false)->with('user:id,name,avatar_path'),
-                ])
-                ->withCount('likes')
-                ->where('is_flagged', false)
-                ->when($userId, fn ($query) => $query->whereDoesntHave(
-                    'hides',
-                    fn ($hideQuery) => $hideQuery->where('user_id', $userId)
-                ))
-                ->latest()
-                ->paginate(15);
+            'user:id,name,avatar_path',
+            'event:id,title',
+            'comments' => fn ($query) => $query->where('is_flagged', false)->with('user:id,name,avatar_path'),
+        ])
+            ->withCount('likes')
+            ->where('is_flagged', false)
+            ->when($userId, fn ($query) => $query->whereDoesntHave(
+                'hides',
+                fn ($hideQuery) => $hideQuery->where('user_id', $userId)
+            ))
+            ->latest()
+            ->paginate(15);
 
         return response()->json($this->paginatedPostsPayload($posts, $userId));
     }
@@ -211,17 +210,17 @@ class ContentController extends Controller
     public function hiddenCommunityPosts(Request $request): JsonResponse
     {
         $hides = CommunityPostHidden::with([
-                'post.user:id,name,avatar_path',
-                'post.event:id,title',
-                'post.comments' => fn ($query) => $query->where('is_flagged', false)->with('user:id,name,avatar_path'),
-            ])
+            'post.user:id,name,avatar_path',
+            'post.event:id,title',
+            'post.comments' => fn ($query) => $query->where('is_flagged', false)->with('user:id,name,avatar_path'),
+        ])
             ->where('user_id', $request->user()->id)
             ->latest()
             ->get();
 
         $posts = $hides
             ->map(fn (CommunityPostHidden $hide) => $hide->post)
-            ->filter()
+            ->filter(fn (?CommunityPost $post) => $post && ! $post->trashed())
             ->each(fn (CommunityPost $post) => $post->loadCount('likes'))
             ->map(fn (CommunityPost $post) => $this->postPayload($post, $request->user()->id))
             ->values();
@@ -263,16 +262,16 @@ class ContentController extends Controller
     public function reportedCommunityPosts(Request $request): JsonResponse
     {
         $reports = CommunityPostReport::with([
-                'post.user:id,name,avatar_path',
-                'post.event:id,title',
-                'post.comments' => fn ($query) => $query->where('is_flagged', false)->with('user:id,name,avatar_path'),
-            ])
+            'post.user:id,name,avatar_path',
+            'post.event:id,title',
+            'post.comments' => fn ($query) => $query->where('is_flagged', false)->with('user:id,name,avatar_path'),
+        ])
             ->where('user_id', $request->user()->id)
             ->latest()
             ->get();
 
         $posts = $reports
-            ->filter(fn (CommunityPostReport $report) => $report->post !== null)
+            ->filter(fn (CommunityPostReport $report) => $report->post && ! $report->post->trashed())
             ->map(function (CommunityPostReport $report) use ($request) {
                 $post = $report->post;
                 $post->loadCount('likes');
@@ -359,18 +358,78 @@ class ContentController extends Controller
             ], 403);
         }
 
-        if ($post->image_path) {
-            Storage::disk('public')->delete($post->image_path);
-        }
-
-        if ($post->video_path) {
-            Storage::disk('public')->delete($post->video_path);
-        }
-
+        $post->forceFill(['deleted_by_user_id' => $request->user()->id])->save();
         $post->delete();
 
         return response()->json([
-            'message' => 'Post deleted successfully.',
+            'message' => 'Post moved to archive. It will be permanently deleted after 30 days.',
+        ]);
+    }
+
+    public function archivedCommunityPosts(Request $request): JsonResponse
+    {
+        $posts = CommunityPost::onlyTrashed()
+            ->where('user_id', $request->user()->id)
+            ->whereColumn('deleted_by_user_id', 'user_id')
+            ->where('deleted_at', '>', now()->subDays(30))
+            ->with([
+                'user:id,name,avatar_path',
+                'event:id,title',
+                'comments' => fn ($query) => $query->where('is_flagged', false)->with('user:id,name,avatar_path'),
+            ])
+            ->withCount('likes')
+            ->latest('deleted_at')
+            ->paginate(15);
+
+        return response()->json([
+            'data' => $posts->getCollection()
+                ->map(fn (CommunityPost $post) => [
+                    ...$this->postPayload($post, $request->user()->id),
+                    'deleted_at' => $post->deleted_at?->toISOString(),
+                    'permanently_deleted_at' => $post->deleted_at?->copy()->addDays(30)->toISOString(),
+                ])
+                ->values(),
+            'meta' => [
+                'current_page' => $posts->currentPage(),
+                'last_page' => $posts->lastPage(),
+                'per_page' => $posts->perPage(),
+                'total' => $posts->total(),
+            ],
+            'links' => [
+                'next' => $posts->nextPageUrl(),
+                'prev' => $posts->previousPageUrl(),
+            ],
+        ]);
+    }
+
+    public function restoreCommunityPost(Request $request, int $post): JsonResponse
+    {
+        $archivedPost = CommunityPost::onlyTrashed()->findOrFail($post);
+
+        if ((int) $archivedPost->user_id !== (int) $request->user()->id
+            || (int) $archivedPost->deleted_by_user_id !== (int) $request->user()->id) {
+            return response()->json([
+                'message' => 'You can only restore posts that you moved to archive.',
+            ], 403);
+        }
+
+        if ($archivedPost->deleted_at->lte(now()->subDays(30))) {
+            return response()->json([
+                'message' => 'This post can no longer be restored.',
+            ], 410);
+        }
+
+        $archivedPost->restore();
+        $archivedPost->forceFill(['deleted_by_user_id' => null])->save();
+        $archivedPost->load([
+            'user:id,name,avatar_path',
+            'event:id,title',
+            'comments' => fn ($query) => $query->where('is_flagged', false)->with('user:id,name,avatar_path'),
+        ])->loadCount('likes');
+
+        return response()->json([
+            'message' => 'Post restored successfully.',
+            'data' => $this->postPayload($archivedPost, $request->user()->id),
         ]);
     }
 

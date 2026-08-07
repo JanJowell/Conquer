@@ -54,6 +54,7 @@ Route::middleware(['mobile.auth', 'throttle:mobile-api'])->group(function () {
     Route::post('/registrations/{registration}/paymongo-checkout', [PaymentController::class, 'createPayMongoCheckout']);
     Route::post('/registrations/{registration}/payment-proof', [PaymentController::class, 'submitProof']);
     Route::get('/community-posts/feed', [ContentController::class, 'communityFeed']);
+    Route::get('/community-posts/archived', [ContentController::class, 'archivedCommunityPosts']);
     Route::get('/community-posts/hidden', [ContentController::class, 'hiddenCommunityPosts']);
     Route::get('/community-posts/reported', [ContentController::class, 'reportedCommunityPosts']);
     Route::get('/community-posts/{post}', [ContentController::class, 'showCommunityPost']);
@@ -65,4 +66,5 @@ Route::middleware(['mobile.auth', 'throttle:mobile-api'])->group(function () {
     Route::post('/community-posts/{post}/comments', [ContentController::class, 'storeCommunityPostComment']);
     Route::post('/community-posts/{post}/like', [ContentController::class, 'toggleCommunityPostLike']);
     Route::delete('/community-posts/{post}', [ContentController::class, 'destroyCommunityPost']);
+    Route::post('/community-posts/{post}/restore', [ContentController::class, 'restoreCommunityPost']);
 });

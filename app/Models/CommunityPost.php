@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class CommunityPost extends Model
 {
@@ -21,6 +22,7 @@ class CommunityPost extends Model
         'moderation_note',
         'moderated_by',
         'moderated_at',
+        'deleted_by_user_id',
         'created_at',
     ];
 
@@ -63,5 +65,24 @@ class CommunityPost extends Model
     public function moderator()
     {
         return $this->belongsTo(User::class, 'moderated_by');
+    }
+
+    public function deletedBy()
+    {
+        return $this->belongsTo(User::class, 'deleted_by_user_id');
+    }
+
+    protected static function booted(): void
+    {
+        static::forceDeleted(function (CommunityPost $post) {
+            $paths = array_values(array_filter([
+                $post->image_path,
+                $post->video_path,
+            ]));
+
+            if ($paths !== []) {
+                Storage::disk('public')->delete($paths);
+            }
+        });
     }
 }
