@@ -11,3 +11,6 @@ Artisan::command('inspire', function () {
 Schedule::command('notifications:send-scheduled')->everyMinute();
 Schedule::command('payments:expire-unpaid')->hourly();
 Schedule::command('payments:audit-statuses')->dailyAt('02:30');
+Schedule::command('users:prune-unverified --days=7')
+    ->dailyAt('03:15')
+    ->withoutOverlapping();
