@@ -7,6 +7,7 @@ use App\Models\CommunityPostReport;
 use App\Models\User;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 
 function archiveMobileUser(string $label): array
 {
@@ -180,11 +181,41 @@ test('expired archived posts and their media are permanently deleted', function 
     Storage::disk('public')->assertExists($recentPost->image_path);
 });
 
+test('only a temporary signed request can trigger cleanup on the web service', function () {
+    Storage::fake('public');
+    [$owner] = archiveMobileUser('signed-purge-owner');
+
+    Storage::disk('public')->put('community/images/signed-expired.jpg', 'expired');
+    $expiredPost = archiveCommunityPost($owner, [
+        'image_path' => 'community/images/signed-expired.jpg',
+    ]);
+    $expiredPost->forceFill(['deleted_by_user_id' => $owner->id])->save();
+    $expiredPost->delete();
+    CommunityPost::withTrashed()->whereKey($expiredPost->id)->update([
+        'deleted_at' => now()->subDays(31),
+    ]);
+
+    $this->postJson('/api/internal/community-posts/purge?days=30')->assertForbidden();
+
+    $signedUrl = URL::temporarySignedRoute(
+        'internal.community-posts.purge',
+        now()->addMinute(),
+        ['days' => 30],
+    );
+
+    $this->postJson($signedUrl)
+        ->assertOk()
+        ->assertJsonPath('message', 'Archived community post cleanup completed.');
+
+    $this->assertDatabaseMissing('community_posts', ['id' => $expiredPost->id]);
+    Storage::disk('public')->assertMissing('community/images/signed-expired.jpg');
+});
+
 test('archived community post cleanup is scheduled daily', function () {
     $event = collect(app(Schedule::class)->events())
         ->first(fn ($scheduledEvent) => str_contains(
             $scheduledEvent->command,
-            'community-posts:purge-archived --days=30'
+            'community-posts:request-purge --days=30'
         ));
 
     expect($event)->not->toBeNull()

@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\SystemController;
 use App\Http\Controllers\Api\UserActivityController;
+use App\Http\Controllers\Internal\CommunityPostPurgeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/health', [SystemController::class, 'health']);
@@ -29,6 +30,9 @@ Route::get('/announcements', [ContentController::class, 'announcements']);
 Route::get('/training-modules', [ContentController::class, 'trainingModules']);
 Route::get('/training-modules/{module}', [ContentController::class, 'showTrainingModule']);
 Route::get('/community-posts', [ContentController::class, 'communityPosts']);
+Route::post('/internal/community-posts/purge', CommunityPostPurgeController::class)
+    ->middleware(['signed', 'throttle:6,1'])
+    ->name('internal.community-posts.purge');
 Route::post('/paymongo/webhook', [PaymentController::class, 'payMongoWebhook'])
     ->middleware('throttle:payment-webhook');
 

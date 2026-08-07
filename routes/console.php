@@ -14,6 +14,6 @@ Schedule::command('payments:audit-statuses')->dailyAt('02:30');
 Schedule::command('users:prune-unverified --days=7')
     ->dailyAt('03:15')
     ->withoutOverlapping();
-Schedule::command('community-posts:purge-archived --days=30')
+Schedule::command('community-posts:request-purge --days=30')
     ->dailyAt('03:30')
     ->withoutOverlapping();
