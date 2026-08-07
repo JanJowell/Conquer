@@ -85,6 +85,7 @@ class AchievementController extends Controller
     {
         $users = User::query()
             ->whereIn('role', [User::ROLE_RUNNER, 'user'])
+            ->whereNotNull('email_verified_at')
             ->withCount(['registrations', 'communityPosts', 'raceResults', 'issuedEBadges'])
             ->get()
             ->map(function (User $user) {
