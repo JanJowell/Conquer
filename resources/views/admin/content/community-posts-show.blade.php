@@ -4,11 +4,14 @@
 
 @section('content')
 @php
+    $pendingReports = $post->reports->whereNull('reviewed_at');
     $status = $post->trashed()
         ? ['label' => 'Deleted', 'classes' => 'bg-rose-100 text-rose-800']
         : ($post->is_flagged
             ? ['label' => 'Flagged', 'classes' => 'bg-amber-100 text-amber-800']
-            : ['label' => 'Active', 'classes' => 'bg-emerald-100 text-emerald-800']);
+            : ($pendingReports->isNotEmpty()
+                ? ['label' => 'Reported — visible', 'classes' => 'bg-amber-100 text-amber-800']
+                : ['label' => 'Active', 'classes' => 'bg-emerald-100 text-emerald-800']));
 @endphp
 
 <div class="mx-auto max-w-6xl space-y-6">
@@ -20,6 +23,9 @@
                 <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold {{ $status['classes'] }}">{{ $status['label'] }}</span>
                 <span class="inline-flex rounded-full bg-[#eef2ff] px-3 py-1 text-xs font-semibold text-[#315fa8]">{{ number_format($post->likes_count) }} likes</span>
                 <span class="inline-flex rounded-full bg-[#f3f4f6] px-3 py-1 text-xs font-semibold text-[#4f5968]">{{ number_format($post->comments_count) }} comments</span>
+                @if ($post->reports_count > 0)
+                    <span class="inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">{{ number_format($pendingReports->count()) }} pending / {{ number_format($post->reports_count) }} total reports</span>
+                @endif
             </div>
         </div>
 
@@ -140,6 +146,17 @@
                             </button>
                         </form>
                     @else
+                        @if ($pendingReports->isNotEmpty())
+                            <form method="POST" action="{{ route('admin.content.community-posts.unflag', $post) }}" class="mt-4 space-y-3">
+                                @csrf
+                                <label for="keep_note" class="block text-sm font-medium text-[#202733]">Decision note</label>
+                                <textarea id="keep_note" name="moderation_note" rows="3" required class="w-full rounded-xl border border-[#d9dee7] px-3 py-2 text-sm text-[#111827] outline-none focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]"></textarea>
+                                <button type="submit" class="inline-flex w-full items-center justify-center rounded-xl border border-emerald-200 bg-white px-4 py-2.5 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50">
+                                    Keep Post and Resolve Reports
+                                </button>
+                            </form>
+                        @endif
+
                         <form method="POST" action="{{ route('admin.content.community-posts.flag', $post) }}" class="mt-4 space-y-3">
                             @csrf
                             <label for="flag_note" class="block text-sm font-medium text-[#202733]">Flag reason</label>
@@ -163,6 +180,31 @@
             </div>
         </aside>
     </section>
+
+    @if ($post->reports->isNotEmpty())
+        <section class="rounded-3xl border border-[#d9dee7] bg-white shadow-sm">
+            <div class="border-b border-[#eef1f4] px-6 py-4">
+                <h2 class="text-xl font-semibold tracking-tight text-[#111827]">User Reports</h2>
+                <p class="mt-1 text-sm text-[#6d7685]">Three unresolved reports from different verified users temporarily hide a post.</p>
+            </div>
+            <div class="divide-y divide-[#eef1f4]">
+                @foreach ($post->reports as $report)
+                    <div class="px-6 py-4">
+                        <div class="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                                <p class="text-sm font-semibold text-[#111827]">{{ $report->user?->name ?? 'Deleted user' }}</p>
+                                <p class="mt-2 whitespace-pre-line text-sm leading-6 text-[#4f5968]">{{ $report->reason }}</p>
+                                <p class="mt-2 text-xs text-[#7a8392]">Reported {{ $report->updated_at?->diffForHumans() }}</p>
+                            </div>
+                            <span class="rounded-full px-2.5 py-1 text-xs font-semibold {{ $report->reviewed_at ? 'bg-slate-100 text-slate-700' : 'bg-amber-100 text-amber-800' }}">
+                                {{ $report->reviewed_at ? 'Reviewed' : 'Pending' }}
+                            </span>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </section>
+    @endif
 
     <section class="rounded-3xl border border-[#d9dee7] bg-white shadow-sm">
         <div class="border-b border-[#eef1f4] px-6 py-4">

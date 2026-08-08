@@ -13,6 +13,12 @@ class CommunityPostReport extends Model
         'user_id',
         'community_post_id',
         'reason',
+        'reviewed_at',
+        'reviewed_by',
+    ];
+
+    protected $casts = [
+        'reviewed_at' => 'datetime',
     ];
 
     public function user()
@@ -23,5 +29,10 @@ class CommunityPostReport extends Model
     public function post()
     {
         return $this->belongsTo(CommunityPost::class, 'community_post_id')->withTrashed();
+    }
+
+    public function reviewer()
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
     }
 }

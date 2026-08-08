@@ -9,6 +9,7 @@ use App\Models\CommunityPostComment;
 use App\Models\Event;
 use App\Models\TrainingModule;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class ContentController extends Controller
@@ -17,9 +18,14 @@ class ContentController extends Controller
     public function pendingReview()
     {
         $flaggedPosts = CommunityPost::with(['user', 'event', 'moderator'])
-            ->where('is_flagged', true)
-            ->latest('moderated_at')
-            ->latest()
+            ->whereHas('reports', fn ($query) => $query
+                ->whereNull('reviewed_at')
+                ->whereHas('user', fn ($userQuery) => $userQuery->whereNotNull('email_verified_at')))
+            ->withCount(['reports as pending_reports_count' => fn ($query) => $query
+                ->whereNull('reviewed_at')
+                ->whereHas('user', fn ($userQuery) => $userQuery->whereNotNull('email_verified_at'))])
+            ->withMax(['reports as latest_reported_at' => fn ($query) => $query->whereNull('reviewed_at')], 'updated_at')
+            ->orderByDesc('latest_reported_at')
             ->take(10)
             ->get();
 
@@ -93,8 +99,9 @@ class ContentController extends Controller
                 'event',
                 'comments' => fn ($query) => $query->withTrashed()->with(['user', 'moderator']),
                 'moderator',
+                'reports' => fn ($query) => $query->with(['user', 'reviewer'])->latest('updated_at'),
             ])
-            ->withCount(['likes', 'comments'])
+            ->withCount(['likes', 'comments', 'reports'])
             ->findOrFail($id);
 
         return view('admin.content.community-posts-show', compact('post'));
@@ -102,11 +109,14 @@ class ContentController extends Controller
 
     public function deleteCommunityPost(Request $request, CommunityPost $post)
     {
-        $post->update([
-            ...$this->moderationData($request),
-            'deleted_by_user_id' => $request->user()->id,
-        ]);
-        $post->delete();
+        DB::transaction(function () use ($request, $post) {
+            $post->update([
+                ...$this->moderationData($request),
+                'deleted_by_user_id' => $request->user()->id,
+            ]);
+            $this->resolvePendingPostReports($post, $request->user()->id);
+            $post->delete();
+        });
 
         return redirect()->back()
             ->with('success', 'Post deleted successfully.');
@@ -127,10 +137,13 @@ class ContentController extends Controller
 
     public function flagCommunityPost(Request $request, CommunityPost $post)
     {
-        $post->update([
-            'is_flagged' => true,
-            ...$this->moderationData($request),
-        ]);
+        DB::transaction(function () use ($request, $post) {
+            $post->update([
+                'is_flagged' => true,
+                ...$this->moderationData($request),
+            ]);
+            $this->resolvePendingPostReports($post, $request->user()->id);
+        });
 
         return redirect()->back()
             ->with('success', 'Post flagged successfully.');
@@ -138,10 +151,13 @@ class ContentController extends Controller
 
     public function unflagCommunityPost(Request $request, CommunityPost $post)
     {
-        $post->update([
-            'is_flagged' => false,
-            ...$this->moderationData($request),
-        ]);
+        DB::transaction(function () use ($request, $post) {
+            $post->update([
+                'is_flagged' => false,
+                ...$this->moderationData($request),
+            ]);
+            $this->resolvePendingPostReports($post, $request->user()->id);
+        });
 
         return redirect()->back()
             ->with('success', 'Post unflagged successfully.');
@@ -450,5 +466,15 @@ class ContentController extends Controller
             'moderated_by' => $request->user()->id,
             'moderated_at' => now(),
         ];
+    }
+
+    private function resolvePendingPostReports(CommunityPost $post, int $reviewerId): void
+    {
+        $post->reports()
+            ->whereNull('reviewed_at')
+            ->update([
+                'reviewed_at' => now(),
+                'reviewed_by' => $reviewerId,
+            ]);
     }
 }

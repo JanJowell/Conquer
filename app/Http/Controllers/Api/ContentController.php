@@ -17,9 +17,12 @@ use App\Services\FirebaseCloudMessaging;
 use App\Services\MobileRecommendationContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ContentController extends Controller
 {
+    private const COMMUNITY_POST_REPORT_HIDE_THRESHOLD = 3;
+
     public function announcements(): JsonResponse
     {
         $announcements = Announcement::with('event:id,title')
@@ -292,6 +295,12 @@ class ContentController extends Controller
     {
         abort_if($post->is_flagged, 404);
 
+        if ($request->user()->email_verified_at === null) {
+            return response()->json([
+                'message' => 'Only verified users can report community posts.',
+            ], 403);
+        }
+
         if ((int) $post->user_id === (int) $request->user()->id) {
             return response()->json([
                 'message' => 'You cannot report your own post.',
@@ -302,25 +311,50 @@ class ContentController extends Controller
             'reason' => ['required', 'string', 'max:500'],
         ]);
 
-        CommunityPostReport::updateOrCreate(
-            [
-                'user_id' => $request->user()->id,
-                'community_post_id' => $post->id,
-            ],
-            [
-                'reason' => $validated['reason'],
-            ]
-        );
+        [$reportCount, $temporarilyHidden] = DB::transaction(function () use ($post, $request, $validated) {
+            $lockedPost = CommunityPost::whereKey($post->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        $post->update([
-            'is_flagged' => true,
-            'moderation_note' => 'Mobile report by user #'.$request->user()->id.': '.$validated['reason'],
-            'moderated_by' => null,
-            'moderated_at' => now(),
-        ]);
+            abort_if($lockedPost->is_flagged, 404);
+
+            CommunityPostReport::updateOrCreate(
+                [
+                    'user_id' => $request->user()->id,
+                    'community_post_id' => $lockedPost->id,
+                ],
+                [
+                    'reason' => $validated['reason'],
+                    'reviewed_at' => null,
+                    'reviewed_by' => null,
+                ]
+            );
+
+            $reportCount = $lockedPost->reports()
+                ->whereNull('reviewed_at')
+                ->whereHas('user', fn ($query) => $query->whereNotNull('email_verified_at'))
+                ->count();
+            $temporarilyHidden = $reportCount >= self::COMMUNITY_POST_REPORT_HIDE_THRESHOLD;
+
+            $lockedPost->update([
+                'is_flagged' => $temporarilyHidden,
+                'moderation_note' => $temporarilyHidden
+                    ? "Temporarily hidden after {$reportCount} unresolved reports from verified users."
+                    : "Received {$reportCount} unresolved report(s) from verified users; awaiting moderator review.",
+                'moderated_by' => null,
+                'moderated_at' => $temporarilyHidden ? now() : null,
+            ]);
+
+            return [$reportCount, $temporarilyHidden];
+        }, 3);
 
         return response()->json([
             'message' => 'Post reported for moderator review.',
+            'data' => [
+                'report_count' => $reportCount,
+                'temporarily_hidden' => $temporarilyHidden,
+                'hide_threshold' => self::COMMUNITY_POST_REPORT_HIDE_THRESHOLD,
+            ],
         ]);
     }
 

@@ -33,7 +33,7 @@
     <div>
         <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[#7a8392]">Moderation Queue</p>
         <h1 class="mt-2 text-3xl font-semibold tracking-tight text-[#111827]">Pending Review</h1>
-        <p class="mt-2 text-sm text-[#6d7685]">Work through flagged posts, moderated comments, deleted items, and draft training content.</p>
+        <p class="mt-2 text-sm text-[#6d7685]">Review reported posts, moderated comments, deleted items, and draft training content.</p>
     </div>
 
     <div class="rounded-2xl border border-[#d9dee7] bg-white px-5 py-3 text-sm font-semibold text-[#202733]">
@@ -43,7 +43,7 @@
 
 <div class="grid gap-4 md:grid-cols-5">
     <div class="rounded-2xl border border-[#d9dee7] bg-white p-5 shadow-sm">
-        <p class="text-sm text-[#6d7685]">Flagged Posts</p>
+        <p class="text-sm text-[#6d7685]">Reported Posts</p>
         <p class="mt-2 text-3xl font-semibold text-[#111827]">{{ number_format($flaggedPosts->count()) }}</p>
     </div>
     <div class="rounded-2xl border border-[#d9dee7] bg-white p-5 shadow-sm">
@@ -67,7 +67,7 @@
 <div class="mt-6 grid gap-6 xl:grid-cols-2">
     <section class="rounded-3xl border border-[#d9dee7] bg-white shadow-sm">
         <div class="border-b border-[#eef1f4] px-6 py-4">
-            <h2 class="text-xl font-semibold tracking-tight text-[#111827]">Flagged Posts</h2>
+            <h2 class="text-xl font-semibold tracking-tight text-[#111827]">Reported Posts</h2>
         </div>
         <div class="divide-y divide-[#eef1f4]">
             @forelse ($flaggedPosts as $post)
@@ -76,13 +76,17 @@
                         <div class="min-w-0 flex-1">
                             <p class="text-sm font-semibold text-[#111827]">{{ $post->user?->name ?? 'Deleted user' }}</p>
                             <p class="mt-2 text-sm leading-6 text-[#4f5968]">{{ \Illuminate\Support\Str::limit($post->content, 180) }}</p>
-                            <p class="mt-2 text-xs text-[#7a8392]">{{ $post->event?->title ?? 'No event linked' }} · {{ $post->moderated_at?->diffForHumans() ?? $post->created_at?->diffForHumans() }}</p>
+                            <div class="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                                <span class="rounded-full bg-amber-100 px-2.5 py-1 font-semibold text-amber-800">{{ $post->pending_reports_count }} verified {{ \Illuminate\Support\Str::plural('report', $post->pending_reports_count) }}</span>
+                                <span class="rounded-full px-2.5 py-1 font-semibold {{ $post->is_flagged ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800' }}">{{ $post->is_flagged ? 'Temporarily hidden' : 'Still visible' }}</span>
+                            </div>
+                            <p class="mt-2 text-xs text-[#7a8392]">{{ $post->event?->title ?? 'No event linked' }} · {{ $post->latest_reported_at ? \Illuminate\Support\Carbon::parse($post->latest_reported_at)->diffForHumans() : $post->created_at?->diffForHumans() }}</p>
                         </div>
                         <a href="{{ $flaggedPostLinks[$loop->index] }}" class="inline-flex items-center justify-center rounded-xl border border-[#d9dee7] px-4 py-2 text-sm font-semibold text-[#315fa8] transition hover:bg-[#f8f9fb]">Open</a>
                     </div>
                 </div>
             @empty
-                <div class="px-6 py-10 text-center text-sm text-[#6d7685]">No flagged posts.</div>
+                <div class="px-6 py-10 text-center text-sm text-[#6d7685]">No reported posts awaiting review.</div>
             @endforelse
         </div>
     </section>
