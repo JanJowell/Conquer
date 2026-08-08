@@ -73,7 +73,7 @@
                             <tr class="align-top">
                                 <td class="px-6 py-5 font-semibold text-[#151b26]">{{ $feedback->user?->name ?? 'Participant' }}</td>
                                 <td class="px-6 py-5">{{ $feedback->event?->title ?? 'General Feedback' }}</td>
-                                <td class="px-6 py-5 text-[#4f5968]">{{ \Illuminate\Support\Str::limit($feedback->content, 90) }}</td>
+                                <td class="px-6 py-5 text-[#4f5968]">{{ \Illuminate\Support\Str::limit($feedback->content ?: 'Media-only post', 90) }}</td>
                                 <td class="px-6 py-5">
                                     <span class="inline-flex rounded-full border px-3 py-1 text-xs font-semibold {{ $feedback->is_flagged ? 'border-amber-200 bg-amber-50 text-amber-700' : 'border-emerald-200 bg-emerald-50 text-emerald-700' }}">
                                         {{ $feedback->is_flagged ? 'Flagged' : 'Visible' }}

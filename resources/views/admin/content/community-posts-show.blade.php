@@ -48,7 +48,7 @@
             @if ($post->title)
                 <h2 class="mt-3 text-2xl font-semibold tracking-tight text-[#111827]">{{ $post->title }}</h2>
             @endif
-            <div class="mt-4 whitespace-pre-line rounded-2xl border border-[#eef1f4] bg-[#f8f9fb] p-4 text-sm leading-7 text-[#202733]">{{ $post->content }}</div>
+            <div class="mt-4 whitespace-pre-line rounded-2xl border border-[#eef1f4] bg-[#f8f9fb] p-4 text-sm leading-7 text-[#202733]">{{ $post->content ?: 'Media-only post' }}</div>
 
             @if ($post->image_path || $post->video_path)
                 <div class="mt-6 grid gap-4 md:grid-cols-2">

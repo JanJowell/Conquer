@@ -444,7 +444,7 @@
                                     </span>
                                 </div>
 
-                                <p class="mt-3 text-sm leading-6 text-slate-600">{{ \Illuminate\Support\Str::limit($feedback->content, 150) }}</p>
+                                <p class="mt-3 text-sm leading-6 text-slate-600">{{ \Illuminate\Support\Str::limit($feedback->content ?: 'Media-only post', 150) }}</p>
 
                                 <a href="{{ route('admin.content.community-posts.show', $feedback) }}" class="mt-3 inline-flex items-center text-sm font-bold text-sky-700 transition hover:text-sky-900">
                                     Open item

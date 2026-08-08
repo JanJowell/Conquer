@@ -75,7 +75,7 @@
                     <div class="flex flex-wrap items-start justify-between gap-4">
                         <div class="min-w-0 flex-1">
                             <p class="text-sm font-semibold text-[#111827]">{{ $post->user?->name ?? 'Deleted user' }}</p>
-                            <p class="mt-2 text-sm leading-6 text-[#4f5968]">{{ \Illuminate\Support\Str::limit($post->content, 180) }}</p>
+                            <p class="mt-2 text-sm leading-6 text-[#4f5968]">{{ \Illuminate\Support\Str::limit($post->content ?: 'Media-only post', 180) }}</p>
                             <div class="mt-3 flex flex-wrap items-center gap-2 text-xs">
                                 <span class="rounded-full bg-amber-100 px-2.5 py-1 font-semibold text-amber-800">{{ $post->pending_reports_count }} verified {{ \Illuminate\Support\Str::plural('report', $post->pending_reports_count) }}</span>
                                 <span class="rounded-full px-2.5 py-1 font-semibold {{ $post->is_flagged ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800' }}">{{ $post->is_flagged ? 'Temporarily hidden' : 'Still visible' }}</span>
@@ -132,7 +132,7 @@
                     <div class="flex flex-wrap items-start justify-between gap-4">
                         <div class="min-w-0 flex-1">
                             <p class="text-sm font-semibold text-[#111827]">{{ $post->user?->name ?? 'Deleted user' }}</p>
-                            <p class="mt-2 text-sm leading-6 text-[#4f5968]">{{ \Illuminate\Support\Str::limit($post->content, 180) }}</p>
+                            <p class="mt-2 text-sm leading-6 text-[#4f5968]">{{ \Illuminate\Support\Str::limit($post->content ?: 'Media-only post', 180) }}</p>
                             <p class="mt-2 text-xs text-[#7a8392]">Deleted {{ $post->deleted_at?->diffForHumans() }}</p>
                         </div>
                         <a href="{{ $deletedPostLinks[$loop->index] }}" class="inline-flex items-center justify-center rounded-xl border border-[#d9dee7] px-4 py-2 text-sm font-semibold text-[#315fa8] transition hover:bg-[#f8f9fb]">Open</a>

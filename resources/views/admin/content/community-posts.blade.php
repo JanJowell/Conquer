@@ -66,7 +66,7 @@
                     <tr class="align-top">
                         <td class="px-6 py-4">
                             <div class="max-w-md">
-                                <p class="text-sm leading-6 text-[#202733]">{{ \Illuminate\Support\Str::limit($post->content, 140) }}</p>
+                                <p class="text-sm leading-6 text-[#202733]">{{ \Illuminate\Support\Str::limit($post->content ?: 'Media-only post', 140) }}</p>
                             </div>
                         </td>
                         <td class="px-6 py-4">

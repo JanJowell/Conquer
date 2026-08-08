@@ -18,6 +18,7 @@ use App\Services\MobileRecommendationContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class ContentController extends Controller
 {
@@ -135,18 +136,18 @@ class ContentController extends Controller
     public function storeCommunityPost(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'title' => ['nullable', 'string', 'max:255'],
-            'content' => ['required', 'string', 'max:5000'],
+            'title' => ['required', 'string', 'max:255'],
+            'content' => ['nullable', 'string', 'max:5000', 'required_without_all:image,video'],
             'event_id' => ['nullable', 'exists:events,id'],
-            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
-            'video' => ['nullable', 'file', 'mimes:mp4,mov,webm', 'max:20480'],
+            'image' => ['nullable', 'image', 'max:10240', 'required_without_all:content,video'],
+            'video' => ['nullable', 'file', 'mimes:mp4,mov,webm,m4v', 'max:51200', 'required_without_all:content,image'],
         ]);
 
         $post = CommunityPost::create([
             'user_id' => $request->user()->id,
             'event_id' => $validated['event_id'] ?? null,
-            'title' => $validated['title'] ?? null,
-            'content' => $validated['content'],
+            'title' => $validated['title'],
+            'content' => $validated['content'] ?? null,
             'image_path' => isset($validated['image']) ? $validated['image']->store('community/images', 'public') : null,
             'video_path' => isset($validated['video']) ? $validated['video']->store('community/videos', 'public') : null,
         ])->load(['user:id,name,avatar_path', 'event:id,title', 'comments' => fn ($query) => $query->where('is_flagged', false)->with('user:id,name,avatar_path')]);
@@ -192,13 +193,23 @@ class ContentController extends Controller
         }
 
         $validated = $request->validate([
-            'title' => ['nullable', 'string', 'max:255'],
-            'content' => ['required', 'string', 'max:5000'],
+            'title' => ['required', 'string', 'max:255'],
+            'content' => ['nullable', 'string', 'max:5000'],
         ]);
 
+        $content = array_key_exists('content', $validated)
+            ? $validated['content']
+            : $post->content;
+
+        if (blank($content) && ! $post->image_path && ! $post->video_path) {
+            throw ValidationException::withMessages([
+                'content' => 'Content is required when the post has no image or video.',
+            ]);
+        }
+
         $post->update([
-            'title' => $validated['title'] ?? null,
-            'content' => $validated['content'],
+            'title' => $validated['title'],
+            'content' => $content,
         ]);
 
         $post->load(['user:id,name,avatar_path', 'event:id,title', 'comments' => fn ($query) => $query->where('is_flagged', false)->with('user:id,name,avatar_path')]);
