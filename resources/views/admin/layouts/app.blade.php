@@ -26,6 +26,43 @@
             color: var(--admin-text);
         }
 
+        body.admin-mobile-sidebar-open {
+            overflow: hidden;
+        }
+
+        #admin-sidebar {
+            transform: translateX(-100%);
+        }
+
+        #admin-sidebar[data-open="true"] {
+            transform: translateX(0);
+        }
+
+        #admin-sidebar-backdrop {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #admin-sidebar-backdrop[data-open="true"] {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        @media (min-width: 1024px) {
+            body.admin-mobile-sidebar-open {
+                overflow: auto;
+            }
+
+            #admin-sidebar {
+                position: sticky;
+                transform: none;
+            }
+
+            #admin-sidebar-backdrop {
+                display: none;
+            }
+        }
+
         .admin-shell-main {
             background:
                 radial-gradient(circle at 6% -8%, rgba(125, 211, 252, 0.36), transparent 32rem),
@@ -406,16 +443,40 @@
         }
     @endphp
 
+    <button
+        id="admin-sidebar-backdrop"
+        type="button"
+        data-open="false"
+        class="fixed inset-0 z-40 bg-slate-950/45 backdrop-blur-sm transition-opacity duration-200 lg:hidden"
+        aria-label="Close navigation menu"
+        tabindex="-1"
+    ></button>
+
     <div class="min-h-screen lg:grid lg:grid-cols-[240px_minmax(0,1fr)]">
-        <aside class="hidden border-r border-white/60 bg-white/35 shadow-[0_18px_55px_rgba(15,23,42,0.08)] backdrop-blur-2xl lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col">
+        <aside
+            id="admin-sidebar"
+            data-open="false"
+            class="fixed inset-y-0 left-0 z-50 flex h-dvh w-[min(20rem,88vw)] flex-col border-r border-white/60 bg-[#eaf2f9]/95 shadow-[0_18px_55px_rgba(15,23,42,0.18)] backdrop-blur-2xl transition-transform duration-200 lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:w-auto lg:bg-white/35 lg:shadow-[0_18px_55px_rgba(15,23,42,0.08)]"
+            aria-label="Admin navigation"
+        >
             <div class="border-b border-white/50 px-4 py-4">
-                <div class="flex items-center gap-3">
-                    <div class="flex h-16 w-16 items-center justify-center rounded-sm border border-[#cfd5de] bg-[#f4f5f7] text-[#98a1ae]">
-                        <i class="fas fa-flag-checkered text-xl"></i>
+                <div class="flex items-center justify-between gap-3">
+                    <div class="flex min-w-0 items-center gap-3">
+                        <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-sm border border-[#cfd5de] bg-[#f4f5f7] text-[#98a1ae]">
+                            <i class="fas fa-flag-checkered text-xl"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="truncate text-xl font-bold tracking-tight text-[var(--admin-text)]">Racetech</p>
+                        </div>
                     </div>
-                    <div>
-                        <p class="text-xl font-bold tracking-tight text-[var(--admin-text)]">Racetech</p>
-                    </div>
+                    <button
+                        type="button"
+                        data-admin-sidebar-close
+                        class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/60 bg-white/50 text-[#606978] shadow-sm lg:hidden"
+                        aria-label="Close navigation menu"
+                    >
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
             </div>
 
@@ -512,7 +573,14 @@
             <header class="border-b border-white/60 bg-white/35 backdrop-blur-2xl">
                 <div class="flex flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
                     <div class="flex min-w-0 flex-1 items-center gap-4">
-                        <button type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/60 bg-white/45 text-[#606978] shadow-sm backdrop-blur-xl lg:hidden">
+                        <button
+                            type="button"
+                            data-admin-sidebar-open
+                            class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/60 bg-white/45 text-[#606978] shadow-sm backdrop-blur-xl lg:hidden"
+                            aria-label="Open navigation menu"
+                            aria-controls="admin-sidebar"
+                            aria-expanded="false"
+                        >
                             <i class="fas fa-bars"></i>
                         </button>
 
@@ -560,6 +628,97 @@
             </main>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.getElementById('admin-sidebar');
+            const backdrop = document.getElementById('admin-sidebar-backdrop');
+            const openButton = document.querySelector('[data-admin-sidebar-open]');
+            const closeButton = document.querySelector('[data-admin-sidebar-close]');
+            const desktopQuery = window.matchMedia('(min-width: 1024px)');
+            let lastFocusedElement = null;
+
+            if (!sidebar || !backdrop || !openButton || !closeButton) {
+                return;
+            }
+
+            const isOpen = () => sidebar.dataset.open === 'true' && !desktopQuery.matches;
+
+            const syncSidebar = (open, restoreFocus = false) => {
+                const mobileOpen = Boolean(open) && !desktopQuery.matches;
+
+                sidebar.dataset.open = mobileOpen ? 'true' : 'false';
+                backdrop.dataset.open = mobileOpen ? 'true' : 'false';
+                openButton.setAttribute('aria-expanded', mobileOpen ? 'true' : 'false');
+                sidebar.setAttribute('aria-hidden', desktopQuery.matches || mobileOpen ? 'false' : 'true');
+                sidebar.inert = !desktopQuery.matches && !mobileOpen;
+                document.body.classList.toggle('admin-mobile-sidebar-open', mobileOpen);
+
+                if (mobileOpen) {
+                    window.requestAnimationFrame(() => closeButton.focus());
+                } else if (restoreFocus && lastFocusedElement) {
+                    lastFocusedElement.focus();
+                }
+            };
+
+            const openSidebar = () => {
+                lastFocusedElement = document.activeElement;
+                syncSidebar(true);
+            };
+
+            const closeSidebar = (restoreFocus = true) => syncSidebar(false, restoreFocus);
+
+            openButton.addEventListener('click', openSidebar);
+            closeButton.addEventListener('click', () => closeSidebar());
+            backdrop.addEventListener('click', () => closeSidebar());
+
+            sidebar.querySelectorAll('nav a').forEach((link) => {
+                link.addEventListener('click', () => {
+                    if (!desktopQuery.matches) {
+                        closeSidebar(false);
+                    }
+                });
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (!isOpen()) {
+                    return;
+                }
+
+                if (event.key === 'Escape') {
+                    event.preventDefault();
+                    closeSidebar();
+                    return;
+                }
+
+                if (event.key !== 'Tab') {
+                    return;
+                }
+
+                const focusableElements = Array.from(sidebar.querySelectorAll(
+                    'a[href], button:not([disabled]), summary, input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                )).filter((element) => !element.hidden && element.offsetParent !== null);
+
+                if (focusableElements.length === 0) {
+                    return;
+                }
+
+                const firstElement = focusableElements[0];
+                const lastElement = focusableElements[focusableElements.length - 1];
+
+                if (event.shiftKey && document.activeElement === firstElement) {
+                    event.preventDefault();
+                    lastElement.focus();
+                } else if (!event.shiftKey && document.activeElement === lastElement) {
+                    event.preventDefault();
+                    firstElement.focus();
+                }
+            });
+
+            desktopQuery.addEventListener('change', () => syncSidebar(false));
+            syncSidebar(false);
+        });
+    </script>
 
     @if (session('success'))
         <div id="admin-success-dialog" class="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto px-4 py-8 sm:px-6" role="dialog" aria-modal="true" aria-labelledby="admin-success-dialog-title">
