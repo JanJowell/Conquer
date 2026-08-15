@@ -76,3 +76,64 @@ test('past upcoming events already in storage display as completed', function ()
         Carbon::setTestNow();
     }
 });
+
+test('a same-day event remains ongoing between its start and end times', function () {
+    $previousTimezone = config('app.timezone');
+    config()->set('app.timezone', 'Asia/Manila');
+    Carbon::setTestNow(Carbon::parse('2026-08-16 00:11:00', 'Asia/Manila'));
+
+    try {
+        expect(Event::statusForDate('upcoming', '2026-08-16', '00:00', '17:00'))->toBe('ongoing');
+    } finally {
+        Carbon::setTestNow();
+        config()->set('app.timezone', $previousTimezone);
+    }
+});
+
+test('same-day event status respects start and end boundaries', function (string $now, string $expectedStatus) {
+    $previousTimezone = config('app.timezone');
+    config()->set('app.timezone', 'Asia/Manila');
+    Carbon::setTestNow(Carbon::parse($now, 'Asia/Manila'));
+
+    try {
+        expect(Event::statusForDate('upcoming', '2026-08-16', '05:00', '17:00'))->toBe($expectedStatus);
+    } finally {
+        Carbon::setTestNow();
+        config()->set('app.timezone', $previousTimezone);
+    }
+})->with([
+    'before start' => ['2026-08-16 04:59:59', 'upcoming'],
+    'exactly at start' => ['2026-08-16 05:00:00', 'ongoing'],
+    'during event' => ['2026-08-16 12:00:00', 'ongoing'],
+    'exactly at end' => ['2026-08-16 17:00:00', 'completed'],
+    'after end' => ['2026-08-16 17:00:01', 'completed'],
+]);
+
+test('calendar dates take priority over clock times', function (string $now, string $eventDate, string $expectedStatus) {
+    $previousTimezone = config('app.timezone');
+    config()->set('app.timezone', 'Asia/Manila');
+    Carbon::setTestNow(Carbon::parse($now, 'Asia/Manila'));
+
+    try {
+        expect(Event::statusForDate('upcoming', $eventDate, '05:00', '17:00'))->toBe($expectedStatus);
+    } finally {
+        Carbon::setTestNow();
+        config()->set('app.timezone', $previousTimezone);
+    }
+})->with([
+    'past calendar day' => ['2026-08-16 00:01:00', '2026-08-15', 'completed'],
+    'future calendar day' => ['2026-08-16 23:59:00', '2026-08-17', 'upcoming'],
+]);
+
+test('a same-day event without an end time stays ongoing after it starts', function () {
+    $previousTimezone = config('app.timezone');
+    config()->set('app.timezone', 'Asia/Manila');
+    Carbon::setTestNow(Carbon::parse('2026-08-16 23:59:59', 'Asia/Manila'));
+
+    try {
+        expect(Event::statusForDate('upcoming', '2026-08-16', '05:00'))->toBe('ongoing');
+    } finally {
+        Carbon::setTestNow();
+        config()->set('app.timezone', $previousTimezone);
+    }
+});

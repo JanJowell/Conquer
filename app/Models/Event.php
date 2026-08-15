@@ -71,13 +71,15 @@ class Event extends Model
             return $status ?: 'upcoming';
         }
 
-        $eventDay = Carbon::parse($eventDate)->startOfDay();
+        $timezone = config('app.timezone');
+        $eventDay = Carbon::parse($eventDate, $timezone)->startOfDay();
+        $today = now($timezone)->startOfDay();
 
-        if ($eventDay->isFuture()) {
+        if ($eventDay->gt($today)) {
             return 'upcoming';
         }
 
-        if ($eventDay->isPast()) {
+        if ($eventDay->lt($today)) {
             return 'completed';
         }
 
@@ -87,14 +89,14 @@ class Event extends Model
 
         $startAt = static::dateTimeForEvent($eventDay, $startTime);
 
-        if (now()->lt($startAt)) {
+        if (now($timezone)->lt($startAt)) {
             return 'upcoming';
         }
 
         if ($endTime) {
             $endAt = static::dateTimeForEvent($eventDay, $endTime);
 
-            if (now()->gt($endAt)) {
+            if (now($timezone)->gte($endAt)) {
                 return 'completed';
             }
         }
