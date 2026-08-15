@@ -35,9 +35,13 @@ class CategoryController extends Controller
                 $query->where('manager_id', $user->id);
             })
             ->orderBy('event_date')
-            ->get(['id', 'title']);
+            ->get(['id', 'title', 'interest_type']);
 
-        return view('admin.categories.index', compact('categories', 'events', 'paymentMethods'));
+        $selectedEvent = $request->filled('event_id')
+            ? $events->firstWhere('id', $request->integer('event_id'))
+            : null;
+
+        return view('admin.categories.index', compact('categories', 'events', 'paymentMethods', 'selectedEvent'));
     }
 
     public function create(): View

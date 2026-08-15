@@ -142,6 +142,7 @@ class EventController extends Controller
             'categories.*.payment_account_number' => ['nullable', 'string', 'max:255'],
             'categories.*.payment_instructions' => ['nullable', 'string', 'max:5000'],
             'categories.*.status' => ['required', 'in:open,closed,draft'],
+            ...$this->typeDetailValidationRules($request),
         ]);
 
         if ($errors = $this->categorySetupErrors($validated['categories'] ?? [])) {
@@ -150,6 +151,7 @@ class EventController extends Controller
 
         $categoryRows = $validated['categories'] ?? [];
         unset($validated['categories']);
+        $this->normalizeTypeDetails($validated, $request);
 
         $validated['status'] = 'draft';
 
@@ -239,6 +241,7 @@ class EventController extends Controller
             'categories.*.payment_account_number' => ['nullable', 'string', 'max:255'],
             'categories.*.payment_instructions' => ['nullable', 'string', 'max:5000'],
             'categories.*.status' => ['required', 'in:open,closed,draft'],
+            ...$this->typeDetailValidationRules($request),
         ]);
 
         if ($errors = $this->categorySetupErrors($validated['categories'] ?? [])) {
@@ -247,6 +250,7 @@ class EventController extends Controller
 
         $categoryRows = $validated['categories'] ?? [];
         unset($validated['categories']);
+        $this->normalizeTypeDetails($validated, $request, $event);
 
         if ($user->managesAssignedEventsOnly()) {
             $validated['manager_id'] = $user->id;
@@ -301,6 +305,63 @@ class EventController extends Controller
     private function eventInterestTypes(): array
     {
         return config('conquer.event_interest_types', []);
+    }
+
+    private function typeDetailValidationRules(Request $request): array
+    {
+        if (! $request->has('type_details')) {
+            return [];
+        }
+
+        $interestType = $request->input('interest_type');
+        $schema = Event::typeDetailSchema(is_string($interestType) ? $interestType : null);
+        $rules = [
+            'type_details' => ['required', 'array'],
+            "type_details.{$interestType}" => ['required', 'array'],
+        ];
+
+        foreach ($schema as $key => $definition) {
+            $fieldRules = $definition['rules'] ?? ['nullable'];
+
+            if (($definition['type'] ?? null) === 'select' && isset($definition['options'])) {
+                $fieldRules[] = Rule::in($definition['options']);
+            }
+
+            $rules["type_details.{$interestType}.{$key}"] = $fieldRules;
+        }
+
+        return $rules;
+    }
+
+    private function normalizeTypeDetails(array &$validated, Request $request, ?Event $event = null): void
+    {
+        if (! $request->has('type_details')) {
+            if ($event && $event->interest_type !== ($validated['interest_type'] ?? null)) {
+                $validated['type_details'] = collect(Event::typeDetailSchema($validated['interest_type'] ?? null))
+                    ->mapWithKeys(fn (array $definition, string $key) => [
+                        $key => ($definition['type'] ?? null) === 'boolean' ? false : null,
+                    ])
+                    ->all();
+            } else {
+                unset($validated['type_details']);
+            }
+
+            return;
+        }
+
+        $interestType = $validated['interest_type'];
+        $schema = Event::typeDetailSchema($interestType);
+        $submitted = data_get($validated, "type_details.{$interestType}", []);
+        $details = [];
+
+        foreach ($schema as $key => $definition) {
+            $value = $submitted[$key] ?? null;
+            $details[$key] = ($definition['type'] ?? null) === 'boolean'
+                ? filter_var($value, FILTER_VALIDATE_BOOLEAN)
+                : $value;
+        }
+
+        $validated['type_details'] = $details;
     }
 
     private function categoryTypes(): array

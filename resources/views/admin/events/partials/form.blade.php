@@ -63,6 +63,82 @@
     </div>
 
     @php
+        $selectedEventType = old('interest_type', $event?->interest_type);
+        $eventTypeDetailSchemas = config('conquer.event_type_details', []);
+        $categoryLabels = config('conquer.event_category_labels', []);
+    @endphp
+
+    <section class="md:col-span-2 rounded-3xl border border-[#d9dee7] bg-[#fafbfc] p-5">
+        <div>
+            <h2 class="text-lg font-semibold tracking-tight text-[#151b26]">Event Type Details</h2>
+            <p class="mt-1 text-sm leading-6 text-[#6d7685]">These details change with the selected event type and are shown to participants in the mobile app.</p>
+        </div>
+
+        <div class="mt-4 rounded-2xl border border-dashed border-[#d9dee7] bg-white p-4 text-sm text-[#6d7685] {{ $selectedEventType ? 'hidden' : '' }}" data-event-type-empty>
+            Select an event type to see its required details.
+        </div>
+
+        @foreach ($eventTypeDetailSchemas as $eventType => $detailSchema)
+            @php
+                $storedDetails = $event?->interest_type === $eventType && is_array($event?->type_details)
+                    ? $event->type_details
+                    : [];
+            @endphp
+            <div data-event-type-panel="{{ $eventType }}" class="mt-4 grid gap-4 md:grid-cols-2 {{ $selectedEventType === $eventType ? '' : 'hidden' }}">
+                @foreach ($detailSchema as $detailKey => $definition)
+                    @php
+                        $inputName = "type_details[{$eventType}][{$detailKey}]";
+                        $inputId = 'type-detail-'.str($eventType.'-'.$detailKey)->slug();
+                        $detailValue = old("type_details.{$eventType}.{$detailKey}", $storedDetails[$detailKey] ?? null);
+                        $fieldClasses = 'w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none transition focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]';
+                    @endphp
+                    <div class="{{ ($definition['type'] ?? null) === 'textarea' ? 'md:col-span-2' : '' }}">
+                        <label for="{{ $inputId }}" class="mb-2 block text-sm font-medium text-[#3d4757]">
+                            {{ $definition['label'] }}
+                            @if ($definition['required_for_publication'] ?? false)
+                                <span class="text-rose-500" aria-label="required for publication">*</span>
+                            @endif
+                        </label>
+
+                        @if (($definition['type'] ?? null) === 'select')
+                            <select id="{{ $inputId }}" name="{{ $inputName }}" class="h-12 {{ $fieldClasses }}">
+                                <option value="">Select {{ strtolower($definition['label']) }}</option>
+                                @foreach (($definition['options'] ?? []) as $option)
+                                    <option value="{{ $option }}" @selected($detailValue === $option)>{{ $option }}</option>
+                                @endforeach
+                            </select>
+                        @elseif (($definition['type'] ?? null) === 'textarea')
+                            <textarea id="{{ $inputId }}" name="{{ $inputName }}" rows="3" class="py-3 {{ $fieldClasses }}" placeholder="{{ $definition['placeholder'] ?? '' }}">{{ $detailValue }}</textarea>
+                        @elseif (($definition['type'] ?? null) === 'boolean')
+                            <input type="hidden" name="{{ $inputName }}" value="0">
+                            <label class="flex min-h-12 items-center gap-3 rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26]">
+                                <input id="{{ $inputId }}" name="{{ $inputName }}" type="checkbox" value="1" @checked((bool) $detailValue) class="h-4 w-4 rounded border-[#aeb7c3] text-[#151b26] focus:ring-[#aeb7c3]">
+                                Helmets are mandatory for participants
+                            </label>
+                        @else
+                            <div class="relative">
+                                <input id="{{ $inputId }}" name="{{ $inputName }}" type="{{ ($definition['type'] ?? null) === 'number' ? 'number' : 'text' }}"
+                                    @if (($definition['type'] ?? null) === 'number') min="0" step="0.01" @endif
+                                    value="{{ $detailValue }}" placeholder="{{ $definition['placeholder'] ?? '' }}"
+                                    class="h-12 {{ $fieldClasses }} {{ isset($definition['suffix']) ? 'pr-14' : '' }}">
+                                @if (isset($definition['suffix']))
+                                    <span class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-[#7a8495]">{{ $definition['suffix'] }}</span>
+                                @endif
+                            </div>
+                        @endif
+
+                        @error("type_details.{$eventType}.{$detailKey}")
+                            <p class="mt-2 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                @endforeach
+            </div>
+        @endforeach
+
+        <p class="mt-4 text-xs leading-5 text-[#6d7685]"><span class="text-rose-500">*</span> Required before the event can become visible for mobile registration.</p>
+    </section>
+
+    @php
         $categoryRows = old('categories');
         if ($categoryRows === null) {
             $categoryRows = $event ? [] : [[
@@ -86,7 +162,7 @@
     <div class="md:col-span-2 rounded-3xl border border-[#d9dee7] bg-[#fafbfc] p-5">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-                <h2 class="text-lg font-semibold tracking-tight text-[#151b26]">Race Categories</h2>
+                <h2 class="text-lg font-semibold tracking-tight text-[#151b26]" data-category-heading>{{ $categoryLabels[$selectedEventType] ?? 'Registration Categories' }}</h2>
                 <p class="mt-1 text-sm leading-6 text-[#6d7685]">Add the race distances and registration fees while setting up the event.</p>
             </div>
             <button type="button" data-add-category class="inline-flex h-11 items-center justify-center rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm font-semibold text-[#151b26] transition hover:bg-[#f7f8fa]">
@@ -396,6 +472,32 @@
 
 <script>
     (() => {
+        const eventTypeSelect = document.querySelector('#interest_type');
+        const eventTypePanels = document.querySelectorAll('[data-event-type-panel]');
+        const eventTypeEmpty = document.querySelector('[data-event-type-empty]');
+        const categoryHeading = document.querySelector('[data-category-heading]');
+        const categoryLabels = @json($categoryLabels);
+
+        const refreshEventTypeDetails = () => {
+            const selectedType = eventTypeSelect?.value || '';
+            eventTypeEmpty?.classList.toggle('hidden', Boolean(selectedType));
+
+            eventTypePanels.forEach((panel) => {
+                const active = panel.dataset.eventTypePanel === selectedType;
+                panel.classList.toggle('hidden', ! active);
+                panel.querySelectorAll('input, select, textarea').forEach((field) => {
+                    field.disabled = ! active;
+                });
+            });
+
+            if (categoryHeading) {
+                categoryHeading.textContent = categoryLabels[selectedType] || 'Registration Categories';
+            }
+        };
+
+        eventTypeSelect?.addEventListener('change', refreshEventTypeDetails);
+        refreshEventTypeDetails();
+
         const list = document.querySelector('[data-category-list]');
         const template = document.querySelector('[data-category-template]');
         const addButton = document.querySelector('[data-add-category]');

@@ -41,6 +41,9 @@ class EventResource extends JsonResource
             'banner_url' => $this->banner_image ? asset('storage/'.$this->banner_image) : null,
             'organized_by' => $this->organized_by,
             'interest_type' => $this->interest_type,
+            'category_label' => $this->categorySectionLabel(),
+            'type_details' => $this->type_details,
+            'type_detail_items' => $this->formattedTypeDetails(),
             'participants_count' => $this->whenCounted('registrations'),
             'is_registered' => $this->relationLoaded('currentUserRegistration')
                 ? $this->currentUserRegistration !== null

@@ -1,14 +1,18 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Race Categories')
+@php
+    $categoryPageLabel = $selectedEvent?->categorySectionLabel() ?? 'Registration Categories';
+@endphp
+
+@section('title', $categoryPageLabel)
 
 @section('content')
     <div class="space-y-6">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
                 <p class="text-sm font-medium uppercase tracking-[0.24em] text-[#7a8495]">Event Setup</p>
-                <h1 class="mt-2 text-3xl font-semibold tracking-tight text-[#151b26]">Race Categories</h1>
-                <p class="mt-2 max-w-2xl text-sm text-[#6d7685]">Organize race distances and slot allocations per event. Category names should include the distance, like 5K Open or 10K Female.</p>
+                <h1 class="mt-2 text-3xl font-semibold tracking-tight text-[#151b26]">{{ $categoryPageLabel }}</h1>
+                <p class="mt-2 max-w-2xl text-sm text-[#6d7685]">Organize registration options, distances, fees, and slot allocations for each event.</p>
             </div>
 
             @if (request('event_id'))

@@ -246,9 +246,23 @@
                 </div>
             </section>
 
+            <section class="rounded-3xl border border-[#d9dee7] bg-white p-6 shadow-sm">
+                <h2 class="text-xl font-semibold tracking-tight text-[#151b26]">{{ $event->interest_type ?: 'Event' }} Details</h2>
+                <div class="mt-5 grid gap-5 md:grid-cols-2">
+                    @forelse ($event->formattedTypeDetails() as $detail)
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#7a8495]">{{ $detail['label'] }}</p>
+                            <p class="mt-2 whitespace-pre-line text-sm text-[#202733]">{{ $detail['value'] }}</p>
+                        </div>
+                    @empty
+                        <p class="text-sm text-[#6d7685] md:col-span-2">No type-specific details have been added yet.</p>
+                    @endforelse
+                </div>
+            </section>
+
             <section class="rounded-3xl border border-[#d9dee7] bg-white shadow-sm">
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#eef1f4] px-6 py-4">
-                    <h2 class="text-xl font-semibold tracking-tight text-[#151b26]">Race Categories</h2>
+                    <h2 class="text-xl font-semibold tracking-tight text-[#151b26]">{{ $event->categorySectionLabel() }}</h2>
                     @if ($canManage)
                         <a href="{{ route('admin.categories.index', ['event_id' => $event->id]) }}" class="text-sm font-semibold text-[#151b26]">Manage categories</a>
                     @endif

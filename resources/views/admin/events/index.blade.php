@@ -221,6 +221,12 @@
                             <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Description</p>
                             <p class="mt-2 text-sm leading-6 text-slate-800">{{ $event->description ?: 'No description provided.' }}</p>
                         </div>
+                        @foreach ($event->formattedTypeDetails() as $detail)
+                            <div class="rounded-2xl border border-white/60 bg-white/40 p-4 shadow-sm backdrop-blur-xl">
+                                <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">{{ $detail['label'] }}</p>
+                                <p class="mt-2 whitespace-pre-line text-sm font-medium text-slate-800">{{ $detail['value'] }}</p>
+                            </div>
+                        @endforeach
                         <div class="rounded-2xl border border-white/60 bg-white/40 p-4 shadow-sm backdrop-blur-xl">
                             <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Date</p>
                             <p class="mt-2 text-sm font-medium text-slate-800">{{ $event->event_date?->format('F d, Y') ?: 'TBD' }}</p>
@@ -314,7 +320,7 @@
                                 Edit Event
                             </div>
                             <h2 id="edit-event-title-{{ $event->id }}" class="mt-2 truncate text-2xl font-bold tracking-tight text-slate-950">{{ $event->title }}</h2>
-                            <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Update event details here, then manage race categories on the second page.</p>
+                            <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Update event details here, then manage {{ strtolower($event->categorySectionLabel()) }} on the second page.</p>
                         </div>
 
                         <button type="button" data-close-event-modal class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/60 bg-white/45 text-slate-500 shadow-sm backdrop-blur-xl transition hover:bg-white/70 hover:text-slate-800" aria-label="Close dialog">
@@ -424,7 +430,7 @@
                                         <div class="inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/45 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.2em] text-slate-600 shadow-sm backdrop-blur-xl">
                                             Categories
                                         </div>
-                                        <h3 class="mt-3 text-lg font-bold tracking-tight text-slate-950">Race category setup</h3>
+                                        <h3 class="mt-3 text-lg font-bold tracking-tight text-slate-950">{{ $event->categorySectionLabel() }} setup</h3>
                                         <p class="mt-1 text-sm leading-6 text-slate-600">Categories use the existing category management page so pricing, slots, payment setup, and registrations stay in one place.</p>
                                     </div>
 

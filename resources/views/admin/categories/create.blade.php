@@ -3,11 +3,17 @@
 @section('title', 'Create Category')
 
 @section('content')
+    @php
+        $selectedEventId = (string) old('event_id', request('event_id'));
+        $selectedCategoryEvent = $events->first(fn ($item) => (string) $item->id === $selectedEventId) ?? $events->first();
+        $initialCategoryLabel = $selectedCategoryEvent?->categorySectionLabel() ?? 'Registration Categories';
+        $categoryLabelsByEvent = $events->mapWithKeys(fn ($item) => [(string) $item->id => $item->categorySectionLabel()]);
+    @endphp
     <div class="mx-auto max-w-4xl space-y-6">
         <div>
             <p class="text-sm font-medium uppercase tracking-[0.24em] text-[#7a8495]">Event Setup</p>
-            <h1 class="mt-2 text-3xl font-semibold tracking-tight text-[#151b26]">Add Race Category</h1>
-            <p class="mt-2 text-sm text-[#6d7685]">Create distance-based groups like 5K Open, 10K Female, or 21K Elite for a selected event.</p>
+            <h1 class="mt-2 text-3xl font-semibold tracking-tight text-[#151b26]">Add to <span data-category-page-heading>{{ $initialCategoryLabel }}</span></h1>
+            <p class="mt-2 text-sm text-[#6d7685]">Create a distance-based registration option for the selected event.</p>
         </div>
 
         @if ($errors->any())
@@ -150,10 +156,19 @@
     </div>
 
     <script>
+        const eventSelect = document.getElementById('event_id');
+        const categoryPageHeading = document.querySelector('[data-category-page-heading]');
+        const categoryLabelsByEvent = @json($categoryLabelsByEvent);
         const categoryType = document.getElementById('category_type');
         const customCategoryWrapper = document.getElementById('custom-category-wrapper');
         const distanceOption = document.getElementById('distance_option');
         const customDistanceWrapper = document.getElementById('custom-distance-wrapper');
+
+        eventSelect?.addEventListener('change', () => {
+            if (categoryPageHeading) {
+                categoryPageHeading.textContent = categoryLabelsByEvent[eventSelect.value] || 'Registration Categories';
+            }
+        });
 
         categoryType?.addEventListener('change', () => {
             customCategoryWrapper?.classList.toggle('hidden', categoryType.value !== 'custom');

@@ -6,7 +6,7 @@
     <div class="mx-auto max-w-4xl space-y-6">
         <div>
             <p class="text-sm font-medium uppercase tracking-[0.24em] text-[#7a8495]">Event Setup</p>
-            <h1 class="mt-2 text-3xl font-semibold tracking-tight text-[#151b26]">Edit Race Category</h1>
+            <h1 class="mt-2 text-3xl font-semibold tracking-tight text-[#151b26]">Edit {{ $category->event?->categorySectionLabel() ?? 'Registration Category' }}</h1>
             <p class="mt-2 text-sm text-[#6d7685]">{{ $category->event?->title ?: 'Removed event' }} · {{ $category->name }}</p>
         </div>
 

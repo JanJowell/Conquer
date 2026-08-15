@@ -23,6 +23,7 @@ class Event extends Model
         'banner_image',
         'organized_by',
         'interest_type',
+        'type_details',
         'manager_id',
     ];
 
@@ -33,6 +34,7 @@ class Event extends Model
             'registration_deadline' => 'date',
             'start_time' => 'datetime:H:i',
             'end_time' => 'datetime:H:i',
+            'type_details' => 'array',
         ];
     }
 
@@ -166,6 +168,24 @@ class Event extends Model
             }
         }
 
+        $typeDetails = array_key_exists('type_details', $overrides)
+            ? $overrides['type_details']
+            : $this->type_details;
+        $interestType = $overrides['interest_type'] ?? $this->interest_type;
+
+        // Null identifies a legacy event created before structured details existed.
+        if ($typeDetails !== null) {
+            foreach (static::typeDetailSchema($interestType) as $key => $definition) {
+                if (! ($definition['required_for_publication'] ?? false)) {
+                    continue;
+                }
+
+                if (! array_key_exists($key, $typeDetails) || ($definition['type'] !== 'boolean' && blank($typeDetails[$key]))) {
+                    $errors[] = 'add '.strtolower($definition['label']);
+                }
+            }
+        }
+
         if (! $this->exists || ! $this->categories()->where('status', 'open')->exists()) {
             $errors[] = 'add at least one open category';
         }
@@ -185,6 +205,39 @@ class Event extends Model
         }
 
         return $errors;
+    }
+
+    public static function typeDetailSchema(?string $interestType): array
+    {
+        return config("conquer.event_type_details.{$interestType}", []);
+    }
+
+    public function categorySectionLabel(): string
+    {
+        return config("conquer.event_category_labels.{$this->interest_type}", 'Registration Categories');
+    }
+
+    public function formattedTypeDetails(): array
+    {
+        return collect(static::typeDetailSchema($this->interest_type))
+            ->map(function (array $definition, string $key) {
+                if (! is_array($this->type_details) || ! array_key_exists($key, $this->type_details)) {
+                    return null;
+                }
+
+                $value = $this->type_details[$key];
+
+                if ($definition['type'] === 'boolean') {
+                    $value = $value ? 'Yes' : 'No';
+                } elseif (filled($value) && isset($definition['suffix'])) {
+                    $value .= ' '.$definition['suffix'];
+                }
+
+                return ['key' => $key, 'label' => $definition['label'], 'value' => $value];
+            })
+            ->filter(fn ($item) => $item !== null && filled($item['value']))
+            ->values()
+            ->all();
     }
 
     private static function dateTimeForEvent(Carbon $eventDay, mixed $time): Carbon

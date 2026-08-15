@@ -59,6 +59,15 @@ function completeEventPayload(Event $event, array $overrides = []): array
         'banner_image' => 'events/banners/sample.jpg',
         'organized_by' => 'Conquer Events Team',
         'interest_type' => config('conquer.event_interest_types.0'),
+        'type_details' => [
+            'Cycling' => [
+                'route_distance_km' => 50,
+                'surface_type' => 'Road',
+                'elevation_gain_m' => 600,
+                'bike_type' => 'Road Bike',
+                'helmet_required' => '1',
+            ],
+        ],
     ], $overrides);
 }
 
@@ -93,6 +102,31 @@ test('an event stays draft until it has an open category', function () {
         ->assertSessionHasNoErrors();
 
     expect($event->fresh()->status)->toBe('draft');
+});
+
+test('an event stays draft until its selected type details are complete', function () {
+    $admin = superAdminUser();
+    $event = draftEvent();
+    openCategoryFor($event);
+
+    $this
+        ->actingAs($admin)
+        ->put(route('admin.events.update', $event), completeEventPayload($event, [
+            'type_details' => [
+                'Cycling' => [
+                    'route_distance_km' => '',
+                    'surface_type' => '',
+                    'elevation_gain_m' => '',
+                    'bike_type' => '',
+                    'helmet_required' => '1',
+                ],
+            ],
+        ]))
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    expect($event->fresh()->status)->toBe('draft')
+        ->and($event->fresh()->publicReadinessErrors())->toContain('add route distance');
 });
 
 test('a paid event stays draft until payment details are complete', function () {
