@@ -26,8 +26,56 @@
         </div>
 
         <div class="rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm leading-6 text-sky-900">
-            Saving or updating a finish time recalculates overall and category ranks for that event. Automatic e-badges are then issued or revoked based on the updated ranks.
+            The Finish button calculates elapsed time from the participant category's recorded start. Saving or updating a result recalculates rankings and automatic e-badges.
         </div>
+
+        <section class="overflow-hidden rounded-2xl border border-[#d9dee7] bg-white shadow-sm">
+            <div class="border-b border-[#eef1f4] px-5 py-4">
+                <h2 class="text-lg font-semibold tracking-tight text-[#151b26]">Category Starts</h2>
+                <p class="mt-1 text-sm text-[#6d7685]">Start each race wave once. Railway server time becomes the official start for all participants in that category.</p>
+            </div>
+            <div class="divide-y divide-[#eef1f4]">
+                @forelse ($raceCategories as $raceCategory)
+                    @php
+                        $scheduledStartAt = $raceCategory->scheduledStartAt();
+                    @endphp
+                    <div class="grid gap-4 px-5 py-4 md:grid-cols-[minmax(0,1fr)_130px_220px] md:items-center">
+                        <div>
+                            <p class="font-semibold text-[#151b26]">{{ $raceCategory->event?->title }} · {{ $raceCategory->name }}</p>
+                            <p class="mt-1 text-xs text-[#6d7685]">{{ number_format($raceCategory->checked_in_count) }} checked-in/completed · {{ number_format($raceCategory->race_results_count) }} results</p>
+                        </div>
+                        <div>
+                            @if ($raceCategory->started_at)
+                                <span class="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">In Progress</span>
+                            @else
+                                <span class="inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">Not Started</span>
+                            @endif
+                        </div>
+                        <div class="md:text-right">
+                            @if ($raceCategory->started_at)
+                                <p class="text-sm font-semibold text-[#151b26]">{{ $raceCategory->started_at->format('M j, Y g:i:s A') }}</p>
+                                <p class="mt-1 text-xs text-[#6d7685]">Started by {{ $raceCategory->startedBy?->name ?: 'administrator' }}</p>
+                            @elseif ($raceCategory->status === 'draft')
+                                <p class="text-xs text-[#6d7685]">Open or close this category before starting it.</p>
+                            @elseif (! $scheduledStartAt)
+                                <p class="text-xs font-medium text-amber-700">Set the event schedule before starting.</p>
+                            @elseif (now()->lt($scheduledStartAt))
+                                <p class="text-xs font-medium text-sky-700">Start available {{ $scheduledStartAt->format('M j, Y g:i A') }}</p>
+                            @else
+                                <form method="POST" action="{{ route('admin.categories.start', $raceCategory) }}" onsubmit="return confirm('Start this category now? This server timestamp will be used for every participant finish calculation and cannot be restarted.');">
+                                    @csrf
+                                    <button type="submit" class="inline-flex h-10 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100">
+                                        Start Category
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
+                    </div>
+                @empty
+                    <div class="px-5 py-8 text-center text-sm text-[#6d7685]">Checked-in categories will appear here. You can also start a category from its management page.</div>
+                @endforelse
+            </div>
+        </section>
 
         <form method="GET" class="grid gap-3 rounded-2xl border border-[#d9dee7] bg-white p-4 shadow-sm md:grid-cols-[minmax(0,1fr)_220px_auto]">
             <div>
@@ -90,6 +138,11 @@
                                 <td class="px-6 py-5">
                                     <p>{{ $registration->event?->title ?: 'Deleted event' }}</p>
                                     <p class="mt-1 text-xs text-[#6d7685]">Registered: {{ $registration->category?->name ?: 'No category' }}</p>
+                                    @if ($registration->category?->started_at)
+                                        <p class="mt-1 text-xs font-medium text-emerald-700">Started {{ $registration->category->started_at->format('g:i:s A') }}</p>
+                                    @else
+                                        <p class="mt-1 text-xs font-medium text-amber-700">Category not started</p>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-5">{{ $registration->bib_number ?: 'Not assigned' }}</td>
                                 <td class="px-4 py-5">
@@ -110,7 +163,9 @@
                                                 Update
                                             </button>
                                         @else
-                                            <button form="{{ $formId }}" name="finish_now" value="1" type="submit" class="inline-flex h-10 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-200">
+                                            <button form="{{ $formId }}" name="finish_now" value="1" type="submit" @disabled(! $registration->category?->started_at)
+                                                title="{{ $registration->category?->started_at ? 'Calculate from category start' : 'Start this category first' }}"
+                                                class="inline-flex h-10 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-200 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400">
                                                 Finish
                                             </button>
                                         @endif

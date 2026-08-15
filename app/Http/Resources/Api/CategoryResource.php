@@ -34,6 +34,8 @@ class CategoryResource extends JsonResource
                 ? max($this->slot_limit - $registeredCount, 0)
                 : null,
             'status' => $this->status,
+            'started_at' => optional($this->started_at)->toIso8601String(),
+            'has_started' => $this->started_at !== null,
         ];
     }
 }

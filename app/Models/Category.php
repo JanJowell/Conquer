@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 class Category extends Model
 {
@@ -28,6 +29,8 @@ class Category extends Model
         'payment_account_number',
         'payment_instructions',
         'status',
+        'started_at',
+        'started_by_user_id',
     ];
 
     protected function casts(): array
@@ -36,6 +39,7 @@ class Category extends Model
             'distance_km' => 'decimal:2',
             'slot_limit' => 'integer',
             'price_cents' => 'integer',
+            'started_at' => 'datetime',
         ];
     }
 
@@ -52,6 +56,25 @@ class Category extends Model
     public function raceResults()
     {
         return $this->hasMany(RaceResult::class);
+    }
+
+    public function startedBy()
+    {
+        return $this->belongsTo(User::class, 'started_by_user_id');
+    }
+
+    public function scheduledStartAt(): ?Carbon
+    {
+        $this->loadMissing('event');
+
+        if (! $this->event?->event_date || ! $this->event?->start_time) {
+            return null;
+        }
+
+        return Carbon::parse(
+            $this->event->event_date->format('Y-m-d').' '.$this->event->start_time->format('H:i:s'),
+            config('app.timezone')
+        );
     }
 
     public function payments()

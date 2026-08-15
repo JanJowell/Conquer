@@ -52,6 +52,7 @@
                             <th class="px-6 py-4">Slots</th>
                             <th class="px-6 py-4">Usage</th>
                             <th class="px-6 py-4">Status</th>
+                            <th class="px-6 py-4">Race Start</th>
                             <th class="px-6 py-4 text-right">Actions</th>
                         </tr>
                     </thead>
@@ -65,6 +66,7 @@
                                         && filled($category->payment_account_name)
                                         && (filled($category->payment_account_number) || filled($category->payment_instructions))
                                     );
+                                $scheduledStartAt = $category->scheduledStartAt();
                             @endphp
                             <tr>
                                 <td class="px-6 py-5">
@@ -98,6 +100,28 @@
                                         {{ str($category->status)->replace('_', ' ')->title() }}
                                     </span>
                                 </td>
+                                <td class="px-6 py-5">
+                                    @if ($category->started_at)
+                                        <span class="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">In Progress</span>
+                                        <p class="mt-2 text-xs font-medium text-[#202733]">{{ $category->started_at->format('M j, Y g:i:s A') }}</p>
+                                        <p class="mt-1 text-xs text-[#6d7685]">Started by {{ $category->startedBy?->name ?: 'administrator' }}</p>
+                                    @elseif ($category->status === 'draft')
+                                        <span class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">Draft</span>
+                                    @elseif (! $scheduledStartAt)
+                                        <span class="text-xs font-medium text-amber-700">Set the event schedule first</span>
+                                    @elseif (now()->lt($scheduledStartAt))
+                                        <span class="inline-flex rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">Scheduled</span>
+                                        <p class="mt-2 text-xs text-[#6d7685]">Available {{ $scheduledStartAt->format('M j, Y g:i A') }}</p>
+                                    @else
+                                        <form method="POST" action="{{ route('admin.categories.start', $category) }}" onsubmit="return confirm('Start this category now? The server time will become the official start for every participant in this category and cannot be restarted.');">
+                                            @csrf
+                                            <button type="submit" class="inline-flex h-10 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100">
+                                                Start Category
+                                            </button>
+                                        </form>
+                                        <p class="mt-2 text-xs text-[#6d7685]">Uses secure server time.</p>
+                                    @endif
+                                </td>
                                 <td class="px-6 py-5 text-right">
                                     <div class="flex justify-end gap-2">
                                         <a href="{{ route('admin.categories.edit', $category) }}" class="inline-flex h-10 items-center justify-center rounded-xl border border-[#d9dee7] px-4 text-xs font-semibold text-[#151b26] transition hover:bg-[#f7f8fa]">
@@ -124,7 +148,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="px-6 py-12 text-center text-sm text-[#6d7685]">No categories found yet.</td>
+                                <td colspan="9" class="px-6 py-12 text-center text-sm text-[#6d7685]">No categories found yet.</td>
                             </tr>
                         @endforelse
                     </tbody>

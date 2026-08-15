@@ -130,6 +130,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/events/{event}', [\App\Http\Controllers\Admin\EventController::class, 'show'])
         ->middleware('role:super_admin,executive,event_manager')
         ->name('events.show');
+    Route::post('/categories/{category}/start', [\App\Http\Controllers\Admin\CategoryController::class, 'start'])
+        ->middleware('role:super_admin,event_manager')
+        ->name('categories.start');
     Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class)
         ->middleware('role:super_admin,event_manager')
         ->except(['show']);

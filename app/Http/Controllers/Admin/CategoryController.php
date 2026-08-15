@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Event;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -18,7 +19,7 @@ class CategoryController extends Controller
         $accessibleEventIds = $user->managedEventIds();
         $paymentMethods = Category::paymentMethods();
 
-        $categories = Category::with('event')
+        $categories = Category::with(['event', 'startedBy'])
             ->withCount(['registrations', 'raceResults'])
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($accessibleEventIds) {
                 $query->whereIn('event_id', $accessibleEventIds);
@@ -179,6 +180,47 @@ class CategoryController extends Controller
         return back()->with('success', $hasRecords
             ? 'Category and its related registrations/results were deleted successfully.'
             : 'Category deleted successfully.');
+    }
+
+    public function start(Request $request, Category $category): RedirectResponse
+    {
+        abort_unless($this->canAccessCategory($category), 403);
+
+        $category->load('event');
+
+        if ($category->started_at) {
+            return back()->with('error', "{$category->name} already started at {$category->started_at->format('M j, Y g:i:s A')}.");
+        }
+
+        if ($category->status === 'draft') {
+            return back()->with('error', 'A draft category cannot be started. Open or close registration first.');
+        }
+
+        $scheduledStartAt = $category->scheduledStartAt();
+
+        if (! $scheduledStartAt) {
+            return back()->with('error', 'Set the event date and general start time before starting a category.');
+        }
+
+        if (now()->lt($scheduledStartAt)) {
+            return back()->with('error', 'This category cannot start before the event schedule begins at '.$scheduledStartAt->format('M j, Y g:i A').'.');
+        }
+
+        $startedAt = now();
+        $started = DB::transaction(fn () => Category::query()
+            ->whereKey($category->id)
+            ->whereNull('started_at')
+            ->update([
+                'started_at' => $startedAt,
+                'started_by_user_id' => $request->user()->id,
+                'updated_at' => $startedAt,
+            ]));
+
+        if (! $started) {
+            return back()->with('error', "{$category->name} was already started by another administrator.");
+        }
+
+        return back()->with('success', "{$category->name} started at {$startedAt->format('g:i:s A')}. Finish times will now use this category start.");
     }
 
     private function accessibleEventIds(Request $request): array

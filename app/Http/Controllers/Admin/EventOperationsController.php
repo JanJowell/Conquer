@@ -14,7 +14,6 @@ use App\Services\FirebaseCloudMessaging;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
@@ -286,6 +285,24 @@ class EventOperationsController extends Controller
             ->paginate(10)
             ->withQueryString();
 
+        $raceCategories = Category::query()
+            ->with(['event', 'startedBy'])
+            ->withCount([
+                'registrations as checked_in_count' => fn ($query) => $query->whereIn('status', ['checked_in', 'completed']),
+                'raceResults',
+            ])
+            ->whereIn('event_id', $accessibleEventIds)
+            ->when($request->filled('event_id'), function ($query) use ($request) {
+                $query->where('event_id', $request->integer('event_id'));
+            })
+            ->where(function ($query) {
+                $query->whereNotNull('started_at')
+                    ->orWhereHas('registrations', fn ($registrationQuery) => $registrationQuery->whereIn('status', ['checked_in', 'completed']));
+            })
+            ->orderBy('event_id')
+            ->orderBy('distance_km')
+            ->get();
+
         $summary = [
             'published_results' => $this->raceResultBaseQuery($user)->count(),
             'awaiting_results' => $this->registrationBaseQuery($user)->where('status', 'checked_in')->doesntHave('raceResult')->count(),
@@ -300,7 +317,7 @@ class EventOperationsController extends Controller
             ->orderBy('title')
             ->get(['id', 'event_id', 'category_id', 'title', 'auto_issue_rule']);
 
-        return view('admin.results.index', compact('registrations', 'events', 'summary', 'badges'));
+        return view('admin.results.index', compact('registrations', 'events', 'summary', 'badges', 'raceCategories'));
     }
 
     public function storeResult(Request $request): RedirectResponse
@@ -332,12 +349,12 @@ class EventOperationsController extends Controller
         }
 
         if ($request->boolean('finish_now')) {
-            $finishTime = $this->finishTimeFromEventStart($registration);
+            $finishTime = $this->finishTimeFromCategoryStart($registration);
 
             if (! $finishTime) {
                 return back()
                     ->withInput()
-                    ->with('error', 'Set a valid event date and start time before using Finish.');
+                    ->with('error', 'Start the participant category before using Finish.');
             }
 
             $validated['finish_time'] = $finishTime;
@@ -397,12 +414,12 @@ class EventOperationsController extends Controller
         }
 
         if ($request->boolean('finish_now')) {
-            $finishTime = $this->finishTimeFromEventStart($result->registration);
+            $finishTime = $this->finishTimeFromCategoryStart($result->registration);
 
             if (! $finishTime) {
                 return back()
                     ->withInput()
-                    ->with('error', 'Set a valid event date and start time before using Finish.');
+                    ->with('error', 'Start the participant category before using Finish.');
             }
 
             $validated['finish_time'] = $finishTime;
@@ -642,18 +659,15 @@ class EventOperationsController extends Controller
         return str_pad((string) ($highestBib + 1), 3, '0', STR_PAD_LEFT);
     }
 
-    private function finishTimeFromEventStart(Registration $registration): ?string
+    private function finishTimeFromCategoryStart(Registration $registration): ?string
     {
-        $registration->loadMissing('event');
+        $registration->loadMissing('category');
 
-        if (! $registration->event?->event_date || ! $registration->event?->start_time) {
+        if (! $registration->category?->started_at) {
             return null;
         }
 
-        $startAt = Carbon::parse(
-            $registration->event->event_date->format('Y-m-d').' '.$registration->event->start_time->format('H:i:s'),
-            config('app.timezone')
-        );
+        $startAt = $registration->category->started_at;
 
         if (now()->lt($startAt)) {
             return null;
