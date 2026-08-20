@@ -209,7 +209,7 @@ test('category schedule is exposed to the mobile API resource', function () {
         ->and($payload['scheduled_end_at'])->toContain('T10:00:00');
 });
 
-test('category forms display the scheduled gun start and cutoff end fields', function () {
+test('category forms display the gun start and end fields', function () {
     $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
     $event = scheduledCategoryEvent($admin);
 
@@ -217,11 +217,12 @@ test('category forms display the scheduled gun start and cutoff end fields', fun
         ->actingAs($admin)
         ->get(route('admin.categories.create', ['event_id' => $event->id]))
         ->assertOk()
-        ->assertSee('Scheduled Gun Start Date')
+        ->assertSee('Gun Start Date')
         ->assertSee('name="scheduled_start_date"', false)
-        ->assertSee('Scheduled Gun Start')
+        ->assertSee('Gun Start Time')
         ->assertSee('name="scheduled_start_time"', false)
-        ->assertSee('Category Cutoff/End Time')
+        ->assertSee('End Date')
+        ->assertSee('End Time')
         ->assertSee('name="scheduled_end_date"', false)
         ->assertSee('name="scheduled_end_time"', false);
 });

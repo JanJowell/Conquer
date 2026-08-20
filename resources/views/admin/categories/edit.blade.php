@@ -122,7 +122,7 @@
                 @endif
 
                 <div>
-                    <p class="mb-2 block text-sm font-medium text-[#3d4757]">Scheduled Gun Start Date</p>
+                    <p class="mb-2 block text-sm font-medium text-[#3d4757]">Gun Start Date</p>
                     @if ($category->started_at)
                         <p class="flex h-12 items-center rounded-2xl border border-[#d9dee7] bg-[#f8f9fb] px-4 text-sm font-semibold text-[#151b26]">
                             {{ ($category->scheduled_start_date ?? $category->event?->event_date)?->format('F j, Y') ?? 'Not set' }}
@@ -134,7 +134,7 @@
                 </div>
 
                 <div>
-                    <p class="mb-2 block text-sm font-medium text-[#3d4757]">Scheduled Gun Start</p>
+                    <p class="mb-2 block text-sm font-medium text-[#3d4757]">Gun Start Time</p>
                     @if ($category->started_at)
                         <p class="flex h-12 items-center rounded-2xl border border-[#d9dee7] bg-[#f8f9fb] px-4 text-sm font-semibold text-[#151b26]">
                             {{ $category->scheduled_start_time?->format('g:i A') ?: ($category->event?->start_time?->format('g:i A') ?? 'Not set') }}
@@ -148,7 +148,7 @@
                 </div>
 
                 <div>
-                    <p class="mb-2 block text-sm font-medium text-[#3d4757]">Category Cutoff/End Date</p>
+                    <p class="mb-2 block text-sm font-medium text-[#3d4757]">End Date</p>
                     @if ($category->started_at)
                         <p class="flex h-12 items-center rounded-2xl border border-[#d9dee7] bg-[#f8f9fb] px-4 text-sm font-semibold text-[#151b26]">
                             {{ ($category->scheduled_end_date ?? $category->scheduled_start_date ?? $category->event?->event_date)?->format('F j, Y') ?? 'Not set' }}
@@ -160,7 +160,7 @@
                 </div>
 
                 <div>
-                    <p class="mb-2 block text-sm font-medium text-[#3d4757]">Category Cutoff/End Time</p>
+                    <p class="mb-2 block text-sm font-medium text-[#3d4757]">End Time</p>
                     @if ($category->started_at)
                         <p class="flex h-12 items-center rounded-2xl border border-[#d9dee7] bg-[#f8f9fb] px-4 text-sm font-semibold text-[#151b26]">
                             {{ $category->scheduled_end_time?->format('g:i A') ?: ($category->event?->end_time?->format('g:i A') ?? 'Not set') }}

@@ -277,26 +277,26 @@
                         @endforeach
 
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Scheduled Gun Start Date</label>
+                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Gun Start Date</label>
                             <input name="categories[{{ $index }}][scheduled_start_date]" type="date" value="{{ $categoryRow['scheduled_start_date'] ?? '' }}" required
                                 class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                         </div>
 
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Scheduled Gun Start</label>
+                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Gun Start Time</label>
                             <input name="categories[{{ $index }}][scheduled_start_time]" type="time" value="{{ $categoryRow['scheduled_start_time'] ?? '' }}" required
                                 class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                             <p class="mt-2 text-xs text-[#6d7685]">Planned wave time; the Start button records the actual server time.</p>
                         </div>
 
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Category Cutoff/End Date</label>
+                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">End Date</label>
                             <input name="categories[{{ $index }}][scheduled_end_date]" type="date" value="{{ $categoryRow['scheduled_end_date'] ?? '' }}" required
                                 class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                         </div>
 
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Category Cutoff/End Time</label>
+                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">End Time</label>
                             <input name="categories[{{ $index }}][scheduled_end_time]" type="time" value="{{ $categoryRow['scheduled_end_time'] ?? '' }}" required
                                 class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                             <p class="mt-2 text-xs text-[#6d7685]">Must be after the gun start and within the event schedule.</p>
@@ -422,20 +422,20 @@
                         </div>
                     @endforeach
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Scheduled Gun Start Date</label>
+                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Gun Start Date</label>
                         <input name="categories[__INDEX__][scheduled_start_date]" type="date" data-category-start-date required class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                     </div>
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Scheduled Gun Start</label>
+                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Gun Start Time</label>
                         <input name="categories[__INDEX__][scheduled_start_time]" type="time" required class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                         <p class="mt-2 text-xs text-[#6d7685]">Planned wave time; the Start button records the actual server time.</p>
                     </div>
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Category Cutoff/End Date</label>
+                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">End Date</label>
                         <input name="categories[__INDEX__][scheduled_end_date]" type="date" data-category-end-date required class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                     </div>
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Category Cutoff/End Time</label>
+                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">End Time</label>
                         <input name="categories[__INDEX__][scheduled_end_time]" type="time" required class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                         <p class="mt-2 text-xs text-[#6d7685]">Must be after the gun start and within the event schedule.</p>
                     </div>
