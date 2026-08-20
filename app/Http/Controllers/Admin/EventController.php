@@ -10,6 +10,7 @@ use App\Models\Event;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -108,8 +109,15 @@ class EventController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $user = $request->user();
+        $usesSegmentedDistances = $this->usesSegmentedCategoryDistances($request->input('interest_type'));
+        $eventStartDate = $request->input('event_date');
+        $eventEndDate = $request->input('event_end_date', $eventStartDate);
         $request->merge([
-            'categories' => $this->filledCategoryRows($request->input('categories', [])),
+            'event_end_date' => $eventEndDate,
+            'categories' => $this->categoryRowsWithScheduleDates(
+                $this->filledCategoryRows($request->input('categories', [])),
+                $eventStartDate
+            ),
         ]);
 
         $validated = $request->validate([
@@ -117,8 +125,9 @@ class EventController extends Controller
             'description' => ['nullable', 'string'],
             'venue' => ['required', 'string', 'max:255'],
             'event_date' => ['required', 'date'],
+            'event_end_date' => ['required', 'date', 'after_or_equal:event_date'],
             'start_time' => ['nullable', 'required_with:end_time', 'date_format:H:i'],
-            'end_time' => ['nullable', 'date_format:H:i', 'after:start_time'],
+            'end_time' => ['nullable', 'date_format:H:i'],
             'registration_deadline' => ['nullable', 'date', 'before_or_equal:event_date'],
             'banner_image' => ['nullable', 'string', 'max:255'],
             'banner_image_upload' => ['nullable', 'image', 'max:4096'],
@@ -131,9 +140,11 @@ class EventController extends Controller
             'categories' => ['nullable', 'array'],
             'categories.*.category_type' => ['required', Rule::in(array_keys($this->categoryTypes()))],
             'categories.*.custom_category_name' => ['nullable', 'required_if:categories.*.category_type,custom', 'string', 'max:255'],
-            'categories.*.distance_option' => ['required', Rule::in(array_keys($this->distanceOptions()))],
+            'categories.*.distance_option' => [Rule::requiredIf(! $usesSegmentedDistances), 'nullable', Rule::in(array_keys($this->distanceOptions()))],
             'categories.*.custom_distance_km' => ['nullable', 'required_if:categories.*.distance_option,custom', 'numeric', 'min:0.01'],
+            'categories.*.scheduled_start_date' => ['required', 'date'],
             'categories.*.scheduled_start_time' => ['required', 'date_format:H:i'],
+            'categories.*.scheduled_end_date' => ['required', 'date'],
             'categories.*.scheduled_end_time' => ['required', 'date_format:H:i'],
             'categories.*.description' => ['nullable', 'string'],
             'categories.*.slot_limit' => ['nullable', 'integer', 'min:1'],
@@ -144,10 +155,15 @@ class EventController extends Controller
             'categories.*.payment_account_number' => ['nullable', 'string', 'max:255'],
             'categories.*.payment_instructions' => ['nullable', 'string', 'max:5000'],
             'categories.*.status' => ['required', 'in:open,closed,draft'],
+            ...$this->categoryTypeDetailValidationRules($request->input('interest_type')),
             ...$this->typeDetailValidationRules($request),
         ]);
 
-        if ($errors = $this->categorySetupErrors($validated['categories'] ?? [], $validated['start_time'] ?? null, $validated['end_time'] ?? null)) {
+        if ($errors = $this->eventScheduleErrors($validated)) {
+            return back()->withErrors($errors)->withInput();
+        }
+
+        if ($errors = $this->categorySetupErrors($validated['categories'] ?? [], $validated)) {
             return back()->withErrors($errors)->withInput();
         }
 
@@ -209,8 +225,15 @@ class EventController extends Controller
         abort_unless($this->canAccessEvent($event), 403);
 
         $user = $request->user();
+        $usesSegmentedDistances = $this->usesSegmentedCategoryDistances($request->input('interest_type'));
+        $eventStartDate = $request->input('event_date');
+        $eventEndDate = $request->input('event_end_date', $eventStartDate);
         $request->merge([
-            'categories' => $this->filledCategoryRows($request->input('categories', [])),
+            'event_end_date' => $eventEndDate,
+            'categories' => $this->categoryRowsWithScheduleDates(
+                $this->filledCategoryRows($request->input('categories', [])),
+                $eventStartDate
+            ),
         ]);
 
         $validated = $request->validate([
@@ -218,8 +241,9 @@ class EventController extends Controller
             'description' => ['nullable', 'string'],
             'venue' => ['required', 'string', 'max:255'],
             'event_date' => ['required', 'date'],
+            'event_end_date' => ['required', 'date', 'after_or_equal:event_date'],
             'start_time' => ['nullable', 'required_with:end_time', 'date_format:H:i'],
-            'end_time' => ['nullable', 'date_format:H:i', 'after:start_time'],
+            'end_time' => ['nullable', 'date_format:H:i'],
             'registration_deadline' => ['nullable', 'date', 'before_or_equal:event_date'],
             'banner_image' => ['nullable', 'string', 'max:255'],
             'banner_image_upload' => ['nullable', 'image', 'max:4096'],
@@ -232,9 +256,11 @@ class EventController extends Controller
             'categories' => ['nullable', 'array'],
             'categories.*.category_type' => ['required', Rule::in(array_keys($this->categoryTypes()))],
             'categories.*.custom_category_name' => ['nullable', 'required_if:categories.*.category_type,custom', 'string', 'max:255'],
-            'categories.*.distance_option' => ['required', Rule::in(array_keys($this->distanceOptions()))],
+            'categories.*.distance_option' => [Rule::requiredIf(! $usesSegmentedDistances), 'nullable', Rule::in(array_keys($this->distanceOptions()))],
             'categories.*.custom_distance_km' => ['nullable', 'required_if:categories.*.distance_option,custom', 'numeric', 'min:0.01'],
+            'categories.*.scheduled_start_date' => ['required', 'date'],
             'categories.*.scheduled_start_time' => ['required', 'date_format:H:i'],
+            'categories.*.scheduled_end_date' => ['required', 'date'],
             'categories.*.scheduled_end_time' => ['required', 'date_format:H:i'],
             'categories.*.description' => ['nullable', 'string'],
             'categories.*.slot_limit' => ['nullable', 'integer', 'min:1'],
@@ -245,14 +271,19 @@ class EventController extends Controller
             'categories.*.payment_account_number' => ['nullable', 'string', 'max:255'],
             'categories.*.payment_instructions' => ['nullable', 'string', 'max:5000'],
             'categories.*.status' => ['required', 'in:open,closed,draft'],
+            ...$this->categoryTypeDetailValidationRules($request->input('interest_type')),
             ...$this->typeDetailValidationRules($request),
         ]);
 
-        if ($errors = $this->categorySetupErrors($validated['categories'] ?? [], $validated['start_time'] ?? null, $validated['end_time'] ?? null)) {
+        if ($errors = $this->eventScheduleErrors($validated)) {
             return back()->withErrors($errors)->withInput();
         }
 
-        if ($errors = $this->existingCategoryScheduleErrors($event, $validated['start_time'] ?? null, $validated['end_time'] ?? null)) {
+        if ($errors = $this->categorySetupErrors($validated['categories'] ?? [], $validated)) {
+            return back()->withErrors($errors)->withInput();
+        }
+
+        if ($errors = $this->existingCategoryScheduleErrors($event, $validated)) {
             return back()->withErrors($errors)->withInput();
         }
 
@@ -329,6 +360,11 @@ class EventController extends Controller
         ];
 
         foreach ($schema as $key => $definition) {
+            if (($definition['category_owned'] ?? false)
+                && ! $request->has("type_details.{$interestType}.{$key}")) {
+                continue;
+            }
+
             $fieldRules = $definition['rules'] ?? ['nullable'];
 
             if (($definition['type'] ?? null) === 'select' && isset($definition['options'])) {
@@ -363,6 +399,17 @@ class EventController extends Controller
         $details = [];
 
         foreach ($schema as $key => $definition) {
+            if (($definition['category_owned'] ?? false)
+                && ! array_key_exists($key, $submitted)) {
+                if ($event
+                    && $event->interest_type === $interestType
+                    && array_key_exists($key, $event->type_details ?? [])) {
+                    $details[$key] = $event->type_details[$key];
+                }
+
+                continue;
+            }
+
             $value = $submitted[$key] ?? null;
             $details[$key] = ($definition['type'] ?? null) === 'boolean'
                 ? filter_var($value, FILTER_VALIDATE_BOOLEAN)
@@ -399,6 +446,40 @@ class EventController extends Controller
         ];
     }
 
+    private function usesSegmentedCategoryDistances(?string $eventType): bool
+    {
+        return in_array($eventType, ['Triathlon', 'Duathlon'], true);
+    }
+
+    private function categoryTypeDetailValidationRules(?string $eventType): array
+    {
+        $schema = config("conquer.event_category_type_details.{$eventType}", []);
+
+        if ($schema === []) {
+            return [];
+        }
+
+        $rules = ['categories.*.type_details' => ['required', 'array']];
+
+        foreach ($schema as $key => $definition) {
+            $rules["categories.*.type_details.{$key}"] = $definition['rules'];
+        }
+
+        return $rules;
+    }
+
+    private function normalizedCategoryTypeDetails(?string $eventType, mixed $details): array
+    {
+        if (! is_array($details)) {
+            return [];
+        }
+
+        return collect(config("conquer.event_category_type_details.{$eventType}", []))
+            ->mapWithKeys(fn (array $definition, string $key) => [$key => $details[$key] ?? null])
+            ->filter(fn ($value) => filled($value))
+            ->all();
+    }
+
     private function filledCategoryRows(mixed $rows): array
     {
         if (! is_array($rows)) {
@@ -413,6 +494,10 @@ class EventController extends Controller
 
     private function categoryRowHasIntent(array $row): bool
     {
+        if (collect($row['type_details'] ?? [])->contains(fn ($value) => filled($value))) {
+            return true;
+        }
+
         foreach (['category_type', 'custom_category_name', 'distance_option', 'custom_distance_km', 'description', 'slot_limit', 'payment_provider', 'payment_account_name', 'payment_account_number', 'payment_instructions'] as $field) {
             if (filled($row[$field] ?? null)) {
                 return true;
@@ -422,14 +507,29 @@ class EventController extends Controller
         return (float) ($row['price_amount'] ?? 0) > 0;
     }
 
+    private function categoryRowsWithScheduleDates(array $rows, ?string $eventStartDate): array
+    {
+        return collect($rows)
+            ->map(function (array $row) use ($eventStartDate) {
+                $row['scheduled_start_date'] ??= $eventStartDate;
+                $row['scheduled_end_date'] ??= $row['scheduled_start_date'] ?? $eventStartDate;
+
+                return $row;
+            })
+            ->all();
+    }
+
     private function createCategoriesForEvent(Event $event, array $rows): void
     {
         foreach ($rows as $row) {
-            $distanceKm = $this->distanceValue($row);
+            $typeDetails = $this->normalizedCategoryTypeDetails($event->interest_type, $row['type_details'] ?? []);
+            $distanceKm = Category::distanceFromTypeDetails($event->interest_type, $typeDetails)
+                ?? $this->distanceValue($row);
 
             $event->categories()->create([
                 'name' => $this->nameWithDistance($this->categoryTypeName($row), $distanceKm),
                 'distance_km' => $distanceKm,
+                'type_details' => $typeDetails ?: null,
                 'description' => $row['description'] ?? null,
                 'slot_limit' => $row['slot_limit'] ?? null,
                 'price_cents' => (int) round((float) ($row['price_amount'] ?? 0) * 100),
@@ -439,13 +539,15 @@ class EventController extends Controller
                 'payment_account_number' => $row['payment_account_number'] ?? null,
                 'payment_instructions' => $row['payment_instructions'] ?? null,
                 'status' => $row['status'] ?? 'open',
+                'scheduled_start_date' => $row['scheduled_start_date'],
                 'scheduled_start_time' => $row['scheduled_start_time'],
+                'scheduled_end_date' => $row['scheduled_end_date'],
                 'scheduled_end_time' => $row['scheduled_end_time'],
             ]);
         }
     }
 
-    private function categorySetupErrors(array $rows, ?string $eventStartTime = null, ?string $eventEndTime = null): array
+    private function categorySetupErrors(array $rows, array $eventSchedule): array
     {
         $errors = [];
 
@@ -456,27 +558,25 @@ class EventController extends Controller
                 $errors["categories.{$index}.custom_category_name"] = "Category {$number}: enter a custom category type.";
             }
 
-            if (($row['distance_option'] ?? null) === 'custom' && blank($row['custom_distance_km'] ?? null)) {
+            if (! $this->usesSegmentedCategoryDistances($eventSchedule['interest_type'] ?? null)
+                && ($row['distance_option'] ?? null) === 'custom'
+                && blank($row['custom_distance_km'] ?? null)) {
                 $errors["categories.{$index}.custom_distance_km"] = "Category {$number}: enter a custom distance.";
             }
 
-            $scheduledStartTime = $row['scheduled_start_time'] ?? null;
-            $scheduledEndTime = $row['scheduled_end_time'] ?? null;
+            $scheduleError = $this->scheduleWindowError(
+                $row['scheduled_start_date'] ?? null,
+                $row['scheduled_start_time'] ?? null,
+                $row['scheduled_end_date'] ?? null,
+                $row['scheduled_end_time'] ?? null,
+                $eventSchedule['event_date'] ?? null,
+                $eventSchedule['start_time'] ?? null,
+                $eventSchedule['event_end_date'] ?? null,
+                $eventSchedule['end_time'] ?? null
+            );
 
-            if ($scheduledStartTime && $eventStartTime && $scheduledStartTime < $eventStartTime) {
-                $errors["categories.{$index}.scheduled_start_time"] = "Category {$number}: scheduled gun start cannot be before the event start time.";
-            }
-
-            if ($scheduledStartTime && $eventEndTime && $scheduledStartTime >= $eventEndTime) {
-                $errors["categories.{$index}.scheduled_start_time"] = "Category {$number}: scheduled gun start must be before the event end time.";
-            }
-
-            if ($scheduledStartTime && $scheduledEndTime && $scheduledEndTime <= $scheduledStartTime) {
-                $errors["categories.{$index}.scheduled_end_time"] = "Category {$number}: cutoff/end time must be after the scheduled gun start.";
-            }
-
-            if ($scheduledEndTime && $eventEndTime && $scheduledEndTime > $eventEndTime) {
-                $errors["categories.{$index}.scheduled_end_time"] = "Category {$number}: cutoff/end time cannot be after the event end time.";
+            if ($scheduleError) {
+                $errors["categories.{$index}.{$scheduleError['field']}"] = "Category {$number}: {$scheduleError['message']}";
             }
 
             if ((float) ($row['price_amount'] ?? 0) <= 0) {
@@ -499,28 +599,90 @@ class EventController extends Controller
         return $errors;
     }
 
-    private function existingCategoryScheduleErrors(Event $event, ?string $eventStartTime, ?string $eventEndTime): array
+    private function existingCategoryScheduleErrors(Event $event, array $eventSchedule): array
     {
         $event->loadMissing('categories');
 
         foreach ($event->categories as $category) {
-            $scheduledStartTime = $category->scheduled_start_time?->format('H:i');
-            $scheduledEndTime = $category->scheduled_end_time?->format('H:i');
-
-            if (! $scheduledStartTime && ! $scheduledEndTime) {
+            if (! $category->scheduledStartAt() && ! $category->scheduledEndAt()) {
                 continue;
             }
 
-            if ($eventStartTime && $scheduledStartTime && $scheduledStartTime < $eventStartTime) {
-                return ['start_time' => "The event cannot start after the scheduled gun start of {$category->name} ({$category->scheduled_start_time->format('g:i A')})."];
-            }
+            $scheduleError = $this->scheduleWindowError(
+                $category->scheduled_start_date?->format('Y-m-d') ?? $event->event_date?->format('Y-m-d'),
+                $category->scheduled_start_time?->format('H:i') ?? $event->start_time?->format('H:i'),
+                $category->scheduled_end_date?->format('Y-m-d') ?? $category->scheduled_start_date?->format('Y-m-d') ?? $event->event_date?->format('Y-m-d'),
+                $category->scheduled_end_time?->format('H:i') ?? $event->end_time?->format('H:i'),
+                $eventSchedule['event_date'] ?? null,
+                $eventSchedule['start_time'] ?? null,
+                $eventSchedule['event_end_date'] ?? null,
+                $eventSchedule['end_time'] ?? null
+            );
 
-            if ($eventEndTime && $scheduledEndTime && $scheduledEndTime > $eventEndTime) {
-                return ['end_time' => "The event cannot end before the cutoff/end time of {$category->name} ({$category->scheduled_end_time->format('g:i A')})."];
+            if ($scheduleError) {
+                $eventField = $scheduleError['field'] === 'scheduled_start_time'
+                    ? 'start_time'
+                    : 'end_time';
+
+                return [$eventField => "The updated event schedule would place {$category->name} outside the event date range."];
             }
         }
 
         return [];
+    }
+
+    private function eventScheduleErrors(array $data): array
+    {
+        if (empty($data['start_time']) || empty($data['end_time'])) {
+            return [];
+        }
+
+        $startAt = Carbon::parse($data['event_date'].' '.$data['start_time'], config('app.timezone'));
+        $endAt = Carbon::parse($data['event_end_date'].' '.$data['end_time'], config('app.timezone'));
+
+        return $endAt->lte($startAt)
+            ? ['end_time' => 'The event end date and time must be after the event start date and time.']
+            : [];
+    }
+
+    /** @return array{field: string, message: string}|null */
+    private function scheduleWindowError(
+        ?string $startDate,
+        ?string $startTime,
+        ?string $endDate,
+        ?string $endTime,
+        ?string $eventStartDate,
+        ?string $eventStartTime,
+        ?string $eventEndDate,
+        ?string $eventEndTime
+    ): ?array {
+        if (! $startDate || ! $startTime || ! $endDate || ! $endTime || ! $eventStartDate || ! $eventEndDate) {
+            return null;
+        }
+
+        $timezone = config('app.timezone');
+        $startAt = Carbon::parse("{$startDate} {$startTime}", $timezone);
+        $endAt = Carbon::parse("{$endDate} {$endTime}", $timezone);
+        $eventStartsAt = Carbon::parse($eventStartDate.' '.($eventStartTime ?: '00:00'), $timezone);
+        $eventEndsAt = Carbon::parse($eventEndDate.' '.($eventEndTime ?: '23:59:59'), $timezone);
+
+        if ($startAt->lt($eventStartsAt)) {
+            return ['field' => 'scheduled_start_time', 'message' => 'scheduled gun start cannot be before the event starts.'];
+        }
+
+        if ($startAt->gte($eventEndsAt)) {
+            return ['field' => 'scheduled_start_time', 'message' => 'scheduled gun start must be before the event ends.'];
+        }
+
+        if ($endAt->lte($startAt)) {
+            return ['field' => 'scheduled_end_time', 'message' => 'cutoff/end date and time must be after the scheduled gun start.'];
+        }
+
+        if ($endAt->gt($eventEndsAt)) {
+            return ['field' => 'scheduled_end_time', 'message' => 'cutoff/end cannot be after the event ends.'];
+        }
+
+        return null;
     }
 
     private function categoryTypeName(array $data): string
@@ -571,7 +733,13 @@ class EventController extends Controller
                 $query->where('manager_id', $user->id);
             })
             ->where('status', 'upcoming')
-            ->whereDate('event_date', '<', today())
+            ->where(function ($query) {
+                $query->whereDate('event_end_date', '<', today())
+                    ->orWhere(function ($legacyQuery) {
+                        $legacyQuery->whereNull('event_end_date')
+                            ->whereDate('event_date', '<', today());
+                    });
+            })
             ->update([
                 'status' => 'completed',
                 'updated_at' => now(),

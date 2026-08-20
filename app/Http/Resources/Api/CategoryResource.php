@@ -16,6 +16,8 @@ class CategoryResource extends JsonResource
             'event_id' => $this->event_id,
             'name' => $this->name,
             'distance_km' => $this->distance_km !== null ? (float) $this->distance_km : null,
+            'type_details' => $this->type_details,
+            'type_detail_items' => $this->formattedTypeDetails(),
             'requires_medical_certificate' => $this->requiresMedicalCertificate(),
             'description' => $this->description,
             'slot_limit' => $this->slot_limit,
@@ -34,8 +36,12 @@ class CategoryResource extends JsonResource
                 ? max($this->slot_limit - $registeredCount, 0)
                 : null,
             'status' => $this->status,
+            'scheduled_start_date' => optional($this->scheduled_start_date ?? $this->event?->event_date)->format('Y-m-d'),
             'scheduled_start_time' => optional($this->scheduled_start_time)->format('H:i'),
+            'scheduled_end_date' => optional($this->scheduled_end_date ?? $this->scheduled_start_date ?? $this->event?->event_date)->format('Y-m-d'),
             'scheduled_end_time' => optional($this->scheduled_end_time)->format('H:i'),
+            'scheduled_start_at' => optional($this->scheduledStartAt())->toIso8601String(),
+            'scheduled_end_at' => optional($this->scheduledEndAt())->toIso8601String(),
             'started_at' => optional($this->started_at)->toIso8601String(),
             'has_started' => $this->started_at !== null,
         ];

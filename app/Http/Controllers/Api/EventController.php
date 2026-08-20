@@ -9,9 +9,13 @@ use App\Models\Category;
 use App\Models\Event;
 use App\Models\Registration;
 use App\Models\User;
+use App\Services\CategoryRegistrationEligibility;
 use App\Services\MobileRecommendationContext;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -32,11 +36,17 @@ class EventController extends Controller
                 ->withCount(['registrations' => fn ($registrationQuery) => $registrationQuery->where('status', '!=', 'rejected')]),
         ])
             ->withCount(['registrations' => fn ($query) => $query->where('status', '!=', 'rejected')])
+            ->withAggregate(
+                ['registrations as participants_count' => fn ($query) => $query->where('status', '!=', 'rejected')],
+                DB::raw('distinct user_id'),
+                'count'
+            )
             ->when($user, function ($query) use ($user) {
                 $query->with([
-                    'currentUserRegistration' => fn ($registrationQuery) => $registrationQuery
+                    'currentUserRegistrations' => fn ($registrationQuery) => $registrationQuery
                         ->where('user_id', $user->id)
-                        ->with(['category', 'latestPayment']),
+                        ->with(['category.event', 'latestPayment'])
+                        ->latest('registered_at'),
                 ]);
             })
             ->when($request->filled('search'), function ($query) use ($request) {
@@ -100,6 +110,12 @@ class EventController extends Controller
             'announcements' => fn ($query) => $query->active()->latest(),
         ])->loadCount(['registrations' => fn ($query) => $query->where('status', '!=', 'rejected')]);
 
+        $event->loadAggregate(
+            ['registrations as participants_count' => fn ($query) => $query->where('status', '!=', 'rejected')],
+            DB::raw('distinct user_id'),
+            'count'
+        );
+
         if (! in_array($event->effective_status, ['upcoming', 'ongoing', 'completed'], true)) {
             return response()->json([
                 'message' => 'Event is not available in the mobile app yet.',
@@ -108,9 +124,10 @@ class EventController extends Controller
 
         if ($user) {
             $event->load([
-                'currentUserRegistration' => fn ($query) => $query
+                'currentUserRegistrations' => fn ($query) => $query
                     ->where('user_id', $user->id)
-                    ->with(['category', 'latestPayment']),
+                    ->with(['category.event', 'latestPayment'])
+                    ->latest('registered_at'),
             ]);
         }
 
@@ -152,14 +169,31 @@ class EventController extends Controller
             ], 422);
         }
 
-        $existingRegistration = $request->user()
+        $eventRegistrations = $request->user()
             ->registrations()
             ->where('event_id', $event->id)
-            ->first();
+            ->with('category.event')
+            ->get();
+
+        $existingRegistration = $eventRegistrations
+            ->firstWhere('category_id', $category->id);
 
         if ($existingRegistration && $existingRegistration->status !== 'rejected') {
             return response()->json([
-                'message' => 'You are already registered for this event.',
+                'message' => 'You are already registered for this category.',
+            ], 422);
+        }
+
+        $eligibility = app(CategoryRegistrationEligibility::class)->evaluate($category, $eventRegistrations);
+
+        if (! $eligibility['allowed']) {
+            $conflictingRegistration = $eligibility['conflicting_registration'];
+
+            return response()->json([
+                'message' => $eligibility['reason'],
+                'conflict_category_id' => $conflictingRegistration?->category_id,
+                'conflict_category_name' => $conflictingRegistration?->category?->name,
+                'safety_buffer_minutes' => CategoryRegistrationEligibility::SAFETY_BUFFER_MINUTES,
             ], 422);
         }
 
@@ -184,39 +218,60 @@ class EventController extends Controller
 
         $medicalCertificatePath = $registration->medical_certificate_path;
         $medicalCertificateSubmittedAt = $registration->medical_certificate_submitted_at;
+        $newMedicalCertificatePath = null;
 
         if ($request->hasFile('medical_certificate')) {
-            $medicalCertificatePath = $request->file('medical_certificate')
+            $newMedicalCertificatePath = $request->file('medical_certificate')
                 ->store('medical-certificates', 'public');
+            $medicalCertificatePath = $newMedicalCertificatePath;
             $medicalCertificateSubmittedAt = now();
         }
 
         $waiverAcceptedAt = $registration->waiver_accepted ? $registration->waiver_accepted_at : now();
 
-        $registration->fill([
-            'category_id' => $category->id,
-            'bib_number' => null,
-            'shirt_size' => $validated['shirt_size'] ?? 'M',
-            'medical_conditions' => $validated['medical_conditions'] ?? null,
-            'medical_certificate_path' => $medicalCertificatePath,
-            'medical_certificate_submitted_at' => $medicalCertificateSubmittedAt,
-            'first_aid_kit_confirmed' => true,
-            'waiver_accepted' => true,
-            'waiver_accepted_at' => $waiverAcceptedAt,
-            'waiver_name' => $validated['waiver_name'] ?? $request->user()->name,
-            'waiver_ip' => $request->ip(),
-            'waiver_user_agent' => Str::limit((string) $request->userAgent(), 512, ''),
-            'kit_waiver_signed_at' => null,
-            'kit_released_at' => null,
-            'status' => 'pending',
-            'rejection_reason' => null,
-            'payment_required' => (int) ($category->price_cents ?? 0) > 0,
-            'payment_status' => (int) ($category->price_cents ?? 0) > 0 ? 'unpaid' : 'waived',
-            'payment_amount_cents' => (int) ($category->price_cents ?? 0),
-            'payment_currency' => $category->price_currency ?? 'PHP',
-            'paid_at' => null,
-            'registered_at' => now(),
-        ])->save();
+        try {
+            $registration->fill([
+                'category_id' => $category->id,
+                'bib_number' => null,
+                'shirt_size' => $validated['shirt_size'] ?? 'M',
+                'medical_conditions' => $validated['medical_conditions'] ?? null,
+                'medical_certificate_path' => $medicalCertificatePath,
+                'medical_certificate_submitted_at' => $medicalCertificateSubmittedAt,
+                'first_aid_kit_confirmed' => true,
+                'waiver_accepted' => true,
+                'waiver_accepted_at' => $waiverAcceptedAt,
+                'waiver_name' => $validated['waiver_name'] ?? $request->user()->name,
+                'waiver_ip' => $request->ip(),
+                'waiver_user_agent' => Str::limit((string) $request->userAgent(), 512, ''),
+                'kit_waiver_signed_at' => null,
+                'kit_released_at' => null,
+                'status' => 'pending',
+                'rejection_reason' => null,
+                'payment_required' => (int) ($category->price_cents ?? 0) > 0,
+                'payment_status' => (int) ($category->price_cents ?? 0) > 0 ? 'unpaid' : 'waived',
+                'payment_amount_cents' => (int) ($category->price_cents ?? 0),
+                'payment_currency' => $category->price_currency ?? 'PHP',
+                'paid_at' => null,
+                'registered_at' => now(),
+            ])->save();
+        } catch (QueryException $exception) {
+            $duplicateExists = $request->user()->registrations()
+                ->where('event_id', $event->id)
+                ->where('category_id', $category->id)
+                ->exists();
+
+            if ($existingRegistration || ! $duplicateExists) {
+                throw $exception;
+            }
+
+            if ($newMedicalCertificatePath) {
+                Storage::disk('public')->delete($newMedicalCertificatePath);
+            }
+
+            return response()->json([
+                'message' => 'You are already registered for this category.',
+            ], 422);
+        }
 
         return response()->json([
             'message' => $existingRegistration ? 'Registration submitted again for review.' : 'Successfully registered.',

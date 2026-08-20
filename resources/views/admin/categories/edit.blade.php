@@ -3,6 +3,10 @@
 @section('title', 'Edit Category')
 
 @section('content')
+    @php
+        $categoryTypeDetailSchema = config("conquer.event_category_type_details.{$category->event?->interest_type}", []);
+        $usesSegmentedDistances = $categoryTypeDetailSchema !== [];
+    @endphp
     <div class="mx-auto max-w-4xl space-y-6">
         <div>
             <p class="text-sm font-medium uppercase tracking-[0.24em] text-[#7a8495]">Event Setup</p>
@@ -36,6 +40,19 @@
                         <p class="mb-2 block text-sm font-medium text-[#3d4757]">Distance</p>
                         <p class="flex h-12 items-center rounded-2xl border border-[#d9dee7] bg-[#f8f9fb] px-4 text-sm text-[#151b26]">{{ number_format((float) $category->distance_km, 2) }} km</p>
                     </div>
+                    @if ($usesSegmentedDistances)
+                        <div class="md:col-span-2 rounded-2xl border border-[#d9dee7] bg-[#f8f9fb] p-4">
+                            <p class="mb-3 text-sm font-medium text-[#3d4757]">Category Distances</p>
+                            <div class="grid gap-3 md:grid-cols-3">
+                                @foreach ($category->formattedTypeDetails() as $detail)
+                                    <div class="rounded-xl bg-white px-3 py-2 text-sm text-[#151b26]">
+                                        <span class="block text-xs text-[#7a8495]">{{ $detail['label'] }}</span>
+                                        <span class="font-semibold">{{ $detail['value'] }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
                 @else
                     <div>
                         <label for="category_type" class="mb-2 block text-sm font-medium text-[#3d4757]">Category Type</label>
@@ -61,7 +78,7 @@
                             class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none">
                     </div>
 
-                    <div>
+                    <div class="{{ $usesSegmentedDistances ? 'hidden' : '' }}">
                         <label for="distance_option" class="mb-2 block text-sm font-medium text-[#3d4757]">Distance</label>
                         <select id="distance_option" name="distance_option" class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none">
                             @foreach ([
@@ -78,12 +95,43 @@
                         </select>
                     </div>
 
-                    <div id="custom-distance-wrapper" class="{{ old('distance_option', $distanceOption) === 'custom' ? '' : 'hidden' }}">
+                    <div id="custom-distance-wrapper" class="{{ $usesSegmentedDistances || old('distance_option', $distanceOption) !== 'custom' ? 'hidden' : '' }}">
                         <label for="custom_distance_km" class="mb-2 block text-sm font-medium text-[#3d4757]">Custom Distance (km)</label>
                         <input id="custom_distance_km" name="custom_distance_km" type="number" step="0.01" min="0.01" value="{{ old('custom_distance_km', (float) $category->distance_km) }}"
                             class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none">
                     </div>
+
+                    @if ($usesSegmentedDistances)
+                        <div class="md:col-span-2 rounded-2xl border border-[#d9dee7] bg-[#fafbfc] p-4">
+                            <p class="mb-4 text-sm font-semibold text-[#151b26]">{{ $category->event->interest_type }} Category Distances</p>
+                            <div class="grid gap-4 md:grid-cols-3">
+                                @foreach ($categoryTypeDetailSchema as $detailKey => $definition)
+                                    <div>
+                                        <label for="type_details_{{ $detailKey }}" class="mb-2 block text-sm font-medium text-[#3d4757]">{{ $definition['label'] }}</label>
+                                        <div class="relative">
+                                            <input id="type_details_{{ $detailKey }}" name="type_details[{{ $detailKey }}]" type="number" min="0.01" step="0.01" value="{{ old("type_details.{$detailKey}", $category->type_details[$detailKey] ?? null) }}" required
+                                                class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 pr-12 text-sm text-[#151b26] outline-none">
+                                            <span class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-[#7a8495]">{{ $definition['suffix'] }}</span>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <p class="mt-3 text-xs text-[#6d7685]">The total category distance is calculated automatically from these segments.</p>
+                        </div>
+                    @endif
                 @endif
+
+                <div>
+                    <p class="mb-2 block text-sm font-medium text-[#3d4757]">Scheduled Gun Start Date</p>
+                    @if ($category->started_at)
+                        <p class="flex h-12 items-center rounded-2xl border border-[#d9dee7] bg-[#f8f9fb] px-4 text-sm font-semibold text-[#151b26]">
+                            {{ ($category->scheduled_start_date ?? $category->event?->event_date)?->format('F j, Y') ?? 'Not set' }}
+                        </p>
+                    @else
+                        <input id="scheduled_start_date" name="scheduled_start_date" type="date" value="{{ old('scheduled_start_date', ($category->scheduled_start_date ?? $category->event?->event_date)?->format('Y-m-d')) }}" required
+                            class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none">
+                    @endif
+                </div>
 
                 <div>
                     <p class="mb-2 block text-sm font-medium text-[#3d4757]">Scheduled Gun Start</p>
@@ -96,6 +144,18 @@
                         <input id="scheduled_start_time" name="scheduled_start_time" type="time" value="{{ old('scheduled_start_time', $category->scheduled_start_time?->format('H:i') ?? $category->event?->start_time?->format('H:i')) }}" required
                             class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none">
                         <p class="mt-2 text-xs text-[#6d7685]">The Start Category button becomes available at this planned time.</p>
+                    @endif
+                </div>
+
+                <div>
+                    <p class="mb-2 block text-sm font-medium text-[#3d4757]">Category Cutoff/End Date</p>
+                    @if ($category->started_at)
+                        <p class="flex h-12 items-center rounded-2xl border border-[#d9dee7] bg-[#f8f9fb] px-4 text-sm font-semibold text-[#151b26]">
+                            {{ ($category->scheduled_end_date ?? $category->scheduled_start_date ?? $category->event?->event_date)?->format('F j, Y') ?? 'Not set' }}
+                        </p>
+                    @else
+                        <input id="scheduled_end_date" name="scheduled_end_date" type="date" value="{{ old('scheduled_end_date', ($category->scheduled_end_date ?? $category->scheduled_start_date ?? $category->event?->event_date)?->format('Y-m-d')) }}" required
+                            class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none">
                     @endif
                 </div>
 
@@ -191,14 +251,20 @@
             const customCategoryWrapper = document.getElementById('custom-category-wrapper');
             const distanceOption = document.getElementById('distance_option');
             const customDistanceWrapper = document.getElementById('custom-distance-wrapper');
+            const usesSegmentedDistances = @json($usesSegmentedDistances);
 
             categoryType?.addEventListener('change', () => {
                 customCategoryWrapper?.classList.toggle('hidden', categoryType.value !== 'custom');
             });
 
             distanceOption?.addEventListener('change', () => {
-                customDistanceWrapper?.classList.toggle('hidden', distanceOption.value !== 'custom');
+                customDistanceWrapper?.classList.toggle('hidden', usesSegmentedDistances || distanceOption.value !== 'custom');
             });
+
+            if (usesSegmentedDistances) {
+                distanceOption.disabled = true;
+                document.getElementById('custom_distance_km').disabled = true;
+            }
         </script>
     @endunless
 @endsection

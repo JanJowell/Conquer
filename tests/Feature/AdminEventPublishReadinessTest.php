@@ -126,7 +126,7 @@ test('an event stays draft until its selected type details are complete', functi
         ->assertSessionHasNoErrors();
 
     expect($event->fresh()->status)->toBe('draft')
-        ->and($event->fresh()->publicReadinessErrors())->toContain('add route distance');
+        ->and($event->fresh()->publicReadinessErrors())->toContain('add surface type');
 });
 
 test('a paid event stays draft until payment details are complete', function () {

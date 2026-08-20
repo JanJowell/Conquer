@@ -37,9 +37,16 @@
     </div>
 
     <div>
-        <label for="event_date" class="mb-2 block text-sm font-medium text-[#3d4757]">Event Date</label>
+        <label for="event_date" class="mb-2 block text-sm font-medium text-[#3d4757]">Event Start Date</label>
         <input id="event_date" name="event_date" type="date" value="{{ old('event_date', $event?->event_date?->format('Y-m-d')) }}"
             class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none transition focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]">
+    </div>
+
+    <div>
+        <label for="event_end_date" class="mb-2 block text-sm font-medium text-[#3d4757]">Event End Date</label>
+        <input id="event_end_date" name="event_end_date" type="date" value="{{ old('event_end_date', $event?->event_end_date?->format('Y-m-d') ?? $event?->event_date?->format('Y-m-d')) }}"
+            class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none transition focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]">
+        <p class="mt-2 text-xs leading-5 text-[#6d7685]">Use the same date as the start for a one-day event.</p>
     </div>
 
     <div>
@@ -50,13 +57,13 @@
     </div>
 
     <div>
-        <label for="start_time" class="mb-2 block text-sm font-medium text-[#3d4757]">Start Time</label>
+        <label for="start_time" class="mb-2 block text-sm font-medium text-[#3d4757]">Event Start Time</label>
         <input id="start_time" name="start_time" type="time" value="{{ old('start_time', $event?->start_time?->format('H:i')) }}"
             class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none transition focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]">
     </div>
 
     <div>
-        <label for="end_time" class="mb-2 block text-sm font-medium text-[#3d4757]">End Time</label>
+        <label for="end_time" class="mb-2 block text-sm font-medium text-[#3d4757]">Event End Time</label>
         <input id="end_time" name="end_time" type="time" value="{{ old('end_time', $event?->end_time?->format('H:i')) }}"
             class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none transition focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]">
         <p class="mt-2 text-xs leading-5 text-[#6d7685]">If set, it must be later than the start time.</p>
@@ -65,6 +72,7 @@
     @php
         $selectedEventType = old('interest_type', $event?->interest_type);
         $eventTypeDetailSchemas = config('conquer.event_type_details', []);
+        $categoryTypeDetailSchemas = config('conquer.event_category_type_details', []);
         $categoryLabels = config('conquer.event_category_labels', []);
     @endphp
 
@@ -86,6 +94,7 @@
             @endphp
             <div data-event-type-panel="{{ $eventType }}" class="mt-4 grid gap-4 md:grid-cols-2 {{ $selectedEventType === $eventType ? '' : 'hidden' }}">
                 @foreach ($detailSchema as $detailKey => $definition)
+                    @continue($definition['category_owned'] ?? false)
                     @php
                         $inputName = "type_details[{$eventType}][{$detailKey}]";
                         $inputId = 'type-detail-'.str($eventType.'-'.$detailKey)->slug();
@@ -146,7 +155,9 @@
                 'custom_category_name' => '',
                 'distance_option' => '',
                 'custom_distance_km' => '',
+                'scheduled_start_date' => old('event_date', $event?->event_date?->format('Y-m-d')),
                 'scheduled_start_time' => '',
+                'scheduled_end_date' => old('event_date', $event?->event_date?->format('Y-m-d')),
                 'scheduled_end_time' => '',
                 'slot_limit' => '',
                 'price_amount' => '0.00',
@@ -189,8 +200,8 @@
                                 <p class="font-semibold text-[#151b26]">{{ $existingCategory->name }}</p>
                                 <p class="mt-1 text-xs text-[#6d7685]">{{ number_format((float) $existingCategory->distance_km, 2) }} km{{ $existingCategory->slot_limit ? ' - ' . number_format($existingCategory->slot_limit) . ' slots' : '' }}</p>
                             </div>
-                            <p>{{ $existingCategory->scheduled_start_time?->format('g:i A') ?: ($event->start_time?->format('g:i A') ?? 'Not set') }}</p>
-                            <p>{{ $existingCategory->scheduled_end_time?->format('g:i A') ?: ($event->end_time?->format('g:i A') ?? 'Not set') }}</p>
+                            <p>{{ $existingCategory->scheduledStartAt()?->format('M j, g:i A') ?? 'Not set' }}</p>
+                            <p>{{ $existingCategory->scheduledEndAt()?->format('M j, g:i A') ?? 'Not set' }}</p>
                             <p>{{ ($existingCategory->price_cents ?? 0) > 0 ? ($existingCategory->price_currency ?? 'PHP') . ' ' . number_format($existingCategory->price_cents / 100, 2) : 'Free' }}</p>
                             <p class="text-xs leading-5 text-[#6d7685]">{{ number_format($existingCategory->registrations_count ?? 0) }} registrations<br>{{ number_format($existingCategory->race_results_count ?? 0) }} results</p>
                             <p>{{ str($existingCategory->status)->title() }}</p>
@@ -230,7 +241,7 @@
                                 class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                         </div>
 
-                        <div>
+                        <div data-standard-distance>
                             <label class="mb-2 block text-sm font-medium text-[#3d4757]">Distance</label>
                             <select name="categories[{{ $index }}][distance_option]" data-distance-option class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                                 <option value="">Select distance</option>
@@ -240,9 +251,34 @@
                             </select>
                         </div>
 
-                        <div data-custom-distance-wrapper class="{{ ($categoryRow['distance_option'] ?? '') === 'custom' ? '' : 'hidden' }}">
+                        <div data-standard-distance data-custom-distance-wrapper class="{{ ($categoryRow['distance_option'] ?? '') === 'custom' ? '' : 'hidden' }}">
                             <label class="mb-2 block text-sm font-medium text-[#3d4757]">Custom Distance (km)</label>
                             <input name="categories[{{ $index }}][custom_distance_km]" type="number" step="0.01" min="0.01" value="{{ $categoryRow['custom_distance_km'] ?? '' }}"
+                                class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
+                        </div>
+
+                        @foreach ($categoryTypeDetailSchemas as $eventType => $detailSchema)
+                            <div data-category-type-details="{{ $eventType }}" class="md:col-span-2 rounded-2xl border border-[#d9dee7] bg-[#fafbfc] p-4 {{ $selectedEventType === $eventType ? '' : 'hidden' }}">
+                                <p class="mb-4 text-sm font-semibold text-[#151b26]">{{ $eventType }} Category Distances</p>
+                                <div class="grid gap-4 md:grid-cols-3">
+                                    @foreach ($detailSchema as $detailKey => $definition)
+                                        <div>
+                                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">{{ $definition['label'] }}</label>
+                                            <div class="relative">
+                                                <input name="categories[{{ $index }}][type_details][{{ $detailKey }}]" type="number" min="0.01" step="0.01" value="{{ data_get($categoryRow, "type_details.{$detailKey}") }}"
+                                                    class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 pr-12 text-sm text-[#151b26] outline-none">
+                                                <span class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-[#7a8495]">{{ $definition['suffix'] }}</span>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <p class="mt-3 text-xs text-[#6d7685]">The total category distance is calculated automatically from these segments.</p>
+                            </div>
+                        @endforeach
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Scheduled Gun Start Date</label>
+                            <input name="categories[{{ $index }}][scheduled_start_date]" type="date" value="{{ $categoryRow['scheduled_start_date'] ?? '' }}" required
                                 class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                         </div>
 
@@ -251,6 +287,12 @@
                             <input name="categories[{{ $index }}][scheduled_start_time]" type="time" value="{{ $categoryRow['scheduled_start_time'] ?? '' }}" required
                                 class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                             <p class="mt-2 text-xs text-[#6d7685]">Planned wave time; the Start button records the actual server time.</p>
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Category Cutoff/End Date</label>
+                            <input name="categories[{{ $index }}][scheduled_end_date]" type="date" value="{{ $categoryRow['scheduled_end_date'] ?? '' }}" required
+                                class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                         </div>
 
                         <div>
@@ -348,7 +390,7 @@
                         <label class="mb-2 block text-sm font-medium text-[#3d4757]">Custom Type</label>
                         <input name="categories[__INDEX__][custom_category_name]" type="text" placeholder="Trail, Family, Corporate" class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                     </div>
-                    <div>
+                    <div data-standard-distance>
                         <label class="mb-2 block text-sm font-medium text-[#3d4757]">Distance</label>
                         <select name="categories[__INDEX__][distance_option]" data-distance-option class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                             <option value="">Select distance</option>
@@ -357,14 +399,40 @@
                             @endforeach
                         </select>
                     </div>
-                    <div data-custom-distance-wrapper class="hidden">
+                    <div data-standard-distance data-custom-distance-wrapper class="hidden">
                         <label class="mb-2 block text-sm font-medium text-[#3d4757]">Custom Distance (km)</label>
                         <input name="categories[__INDEX__][custom_distance_km]" type="number" step="0.01" min="0.01" class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
+                    </div>
+                    @foreach ($categoryTypeDetailSchemas as $eventType => $detailSchema)
+                        <div data-category-type-details="{{ $eventType }}" class="hidden md:col-span-2 rounded-2xl border border-[#d9dee7] bg-[#fafbfc] p-4">
+                            <p class="mb-4 text-sm font-semibold text-[#151b26]">{{ $eventType }} Category Distances</p>
+                            <div class="grid gap-4 md:grid-cols-3">
+                                @foreach ($detailSchema as $detailKey => $definition)
+                                    <div>
+                                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">{{ $definition['label'] }}</label>
+                                        <div class="relative">
+                                            <input name="categories[__INDEX__][type_details][{{ $detailKey }}]" type="number" min="0.01" step="0.01"
+                                                class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 pr-12 text-sm text-[#151b26] outline-none">
+                                            <span class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-[#7a8495]">{{ $definition['suffix'] }}</span>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <p class="mt-3 text-xs text-[#6d7685]">The total category distance is calculated automatically from these segments.</p>
+                        </div>
+                    @endforeach
+                    <div>
+                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Scheduled Gun Start Date</label>
+                        <input name="categories[__INDEX__][scheduled_start_date]" type="date" data-category-start-date required class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                     </div>
                     <div>
                         <label class="mb-2 block text-sm font-medium text-[#3d4757]">Scheduled Gun Start</label>
                         <input name="categories[__INDEX__][scheduled_start_time]" type="time" required class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                         <p class="mt-2 text-xs text-[#6d7685]">Planned wave time; the Start button records the actual server time.</p>
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Category Cutoff/End Date</label>
+                        <input name="categories[__INDEX__][scheduled_end_date]" type="date" data-category-end-date required class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                     </div>
                     <div>
                         <label class="mb-2 block text-sm font-medium text-[#3d4757]">Category Cutoff/End Time</label>
@@ -507,6 +575,31 @@
         const eventTypeEmpty = document.querySelector('[data-event-type-empty]');
         const categoryHeading = document.querySelector('[data-category-heading]');
         const categoryLabels = @json($categoryLabels);
+        const eventStartDate = document.querySelector('#event_date');
+
+        const refreshCategoryDistanceFields = (row) => {
+            const selectedType = eventTypeSelect?.value || '';
+            const usesSegmentedDistances = ['Triathlon', 'Duathlon'].includes(selectedType);
+            const distanceOption = row.querySelector('[data-distance-option]');
+
+            row.querySelectorAll('[data-standard-distance]').forEach((wrapper) => {
+                const isCustomWrapper = wrapper.hasAttribute('data-custom-distance-wrapper');
+                const visible = ! usesSegmentedDistances && (! isCustomWrapper || distanceOption?.value === 'custom');
+                wrapper.classList.toggle('hidden', ! visible);
+                wrapper.querySelectorAll('input, select, textarea').forEach((field) => {
+                    field.disabled = ! visible;
+                });
+            });
+
+            row.querySelectorAll('[data-category-type-details]').forEach((panel) => {
+                const active = panel.dataset.categoryTypeDetails === selectedType;
+                panel.classList.toggle('hidden', ! active);
+                panel.querySelectorAll('input, select, textarea').forEach((field) => {
+                    field.disabled = ! active;
+                    field.required = active;
+                });
+            });
+        };
 
         const refreshEventTypeDetails = () => {
             const selectedType = eventTypeSelect?.value || '';
@@ -523,6 +616,8 @@
             if (categoryHeading) {
                 categoryHeading.textContent = categoryLabels[selectedType] || 'Registration Categories';
             }
+
+            document.querySelectorAll('[data-category-row]').forEach(refreshCategoryDistanceFields);
         };
 
         eventTypeSelect?.addEventListener('change', refreshEventTypeDetails);
@@ -546,7 +641,6 @@
             const categoryType = row.querySelector('[data-category-type]');
             const customCategory = row.querySelector('[data-custom-category-wrapper]');
             const distanceOption = row.querySelector('[data-distance-option]');
-            const customDistance = row.querySelector('[data-custom-distance-wrapper]');
             const removeButton = row.querySelector('[data-remove-category]');
 
             categoryType?.addEventListener('change', () => {
@@ -554,13 +648,15 @@
             });
 
             distanceOption?.addEventListener('change', () => {
-                customDistance?.classList.toggle('hidden', distanceOption.value !== 'custom');
+                refreshCategoryDistanceFields(row);
             });
 
             removeButton?.addEventListener('click', () => {
                 row.remove();
                 refreshNumbers();
             });
+
+            refreshCategoryDistanceFields(row);
         };
 
         list?.querySelectorAll('[data-category-row]').forEach(bindRow);
@@ -578,6 +674,11 @@
             if (! row) {
                 return;
             }
+
+            const categoryStartDate = row.querySelector('[data-category-start-date]');
+            const categoryEndDate = row.querySelector('[data-category-end-date]');
+            if (categoryStartDate) categoryStartDate.value = eventStartDate?.value || '';
+            if (categoryEndDate) categoryEndDate.value = eventStartDate?.value || '';
 
             list.appendChild(row);
             bindRow(row);

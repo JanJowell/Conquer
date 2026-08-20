@@ -74,7 +74,12 @@
                                     <p class="mt-1 text-xs text-[#6d7685]">{{ $category->description ?: 'No description provided' }}</p>
                                 </td>
                                 <td class="px-6 py-5">{{ $category->event?->title ?: 'Removed event' }}</td>
-                                <td class="px-6 py-5">{{ number_format((float) $category->distance_km, 2) }} km</td>
+                                <td class="px-6 py-5">
+                                    <p>{{ number_format((float) $category->distance_km, 2) }} km{{ $category->formattedTypeDetails() ? ' total' : '' }}</p>
+                                    @foreach ($category->formattedTypeDetails() as $detail)
+                                        <p class="mt-1 text-xs text-[#6d7685]">{{ $detail['label'] }}: {{ $detail['value'] }}</p>
+                                    @endforeach
+                                </td>
                                 <td class="px-6 py-5">
                                     @if (($category->price_cents ?? 0) > 0)
                                         <p class="font-semibold text-[#151b26]">{{ $category->price_currency ?? 'PHP' }} {{ number_format($category->price_cents / 100, 2) }}</p>

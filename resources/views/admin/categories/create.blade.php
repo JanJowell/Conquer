@@ -8,8 +8,13 @@
         $selectedCategoryEvent = $events->first(fn ($item) => (string) $item->id === $selectedEventId) ?? $events->first();
         $initialCategoryLabel = $selectedCategoryEvent?->categorySectionLabel() ?? 'Registration Categories';
         $categoryLabelsByEvent = $events->mapWithKeys(fn ($item) => [(string) $item->id => $item->categorySectionLabel()]);
+        $eventStartDates = $events->mapWithKeys(fn ($item) => [(string) $item->id => $item->event_date?->format('Y-m-d')]);
         $eventStartTimes = $events->mapWithKeys(fn ($item) => [(string) $item->id => $item->start_time?->format('H:i')]);
         $eventEndTimes = $events->mapWithKeys(fn ($item) => [(string) $item->id => $item->end_time?->format('H:i')]);
+        $eventTypes = $events->mapWithKeys(fn ($item) => [(string) $item->id => $item->interest_type]);
+        $categoryTypeDetailSchemas = config('conquer.event_category_type_details', []);
+        $selectedEventType = $selectedCategoryEvent?->interest_type;
+        $usesSegmentedDistances = isset($categoryTypeDetailSchemas[$selectedEventType]);
     @endphp
     <div class="mx-auto max-w-4xl space-y-6">
         <div>
@@ -62,7 +67,7 @@
                         class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none">
                 </div>
 
-                <div>
+                <div data-standard-distance class="{{ $usesSegmentedDistances ? 'hidden' : '' }}">
                     <label for="distance_option" class="mb-2 block text-sm font-medium text-[#3d4757]">Distance</label>
                     <select id="distance_option" name="distance_option" class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none">
                         @foreach ([
@@ -79,9 +84,33 @@
                     </select>
                 </div>
 
-                <div id="custom-distance-wrapper" class="{{ old('distance_option', '5') === 'custom' ? '' : 'hidden' }}">
+                <div id="custom-distance-wrapper" data-standard-distance class="{{ $usesSegmentedDistances || old('distance_option', '5') !== 'custom' ? 'hidden' : '' }}">
                     <label for="custom_distance_km" class="mb-2 block text-sm font-medium text-[#3d4757]">Custom Distance (km)</label>
                     <input id="custom_distance_km" name="custom_distance_km" type="number" step="0.01" min="0.01" value="{{ old('custom_distance_km') }}"
+                        class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none">
+                </div>
+
+                @foreach ($categoryTypeDetailSchemas as $eventType => $detailSchema)
+                    <div data-category-type-details="{{ $eventType }}" class="md:col-span-2 rounded-2xl border border-[#d9dee7] bg-[#fafbfc] p-4 {{ $selectedEventType === $eventType ? '' : 'hidden' }}">
+                        <p class="mb-4 text-sm font-semibold text-[#151b26]">{{ $eventType }} Category Distances</p>
+                        <div class="grid gap-4 md:grid-cols-3">
+                            @foreach ($detailSchema as $detailKey => $definition)
+                                <div>
+                                    <label for="type_details_{{ str($eventType)->slug('_') }}_{{ $detailKey }}" class="mb-2 block text-sm font-medium text-[#3d4757]">{{ $definition['label'] }}</label>
+                                    <div class="relative">
+                                        <input id="type_details_{{ str($eventType)->slug('_') }}_{{ $detailKey }}" name="type_details[{{ $detailKey }}]" type="number" min="0.01" step="0.01" value="{{ old("type_details.{$detailKey}") }}"
+                                            class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 pr-12 text-sm text-[#151b26] outline-none">
+                                        <span class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-[#7a8495]">{{ $definition['suffix'] }}</span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endforeach
+
+                <div>
+                    <label for="scheduled_start_date" class="mb-2 block text-sm font-medium text-[#3d4757]">Scheduled Gun Start Date</label>
+                    <input id="scheduled_start_date" name="scheduled_start_date" type="date" value="{{ old('scheduled_start_date', $selectedCategoryEvent?->event_date?->format('Y-m-d')) }}" required
                         class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none">
                 </div>
 
@@ -90,6 +119,12 @@
                     <input id="scheduled_start_time" name="scheduled_start_time" type="time" value="{{ old('scheduled_start_time', $selectedCategoryEvent?->start_time?->format('H:i')) }}" required
                         class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none">
                     <p class="mt-2 text-xs text-[#6d7685]">The Start Category button becomes available at this planned time.</p>
+                </div>
+
+                <div>
+                    <label for="scheduled_end_date" class="mb-2 block text-sm font-medium text-[#3d4757]">Category Cutoff/End Date</label>
+                    <input id="scheduled_end_date" name="scheduled_end_date" type="date" value="{{ old('scheduled_end_date', $selectedCategoryEvent?->event_date?->format('Y-m-d')) }}" required
+                        class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none">
                 </div>
 
                 <div>
@@ -175,27 +210,61 @@
         const eventSelect = document.getElementById('event_id');
         const categoryPageHeading = document.querySelector('[data-category-page-heading]');
         const categoryLabelsByEvent = @json($categoryLabelsByEvent);
+        const eventStartDates = @json($eventStartDates);
         const eventStartTimes = @json($eventStartTimes);
         const eventEndTimes = @json($eventEndTimes);
+        const eventTypes = @json($eventTypes);
+        const scheduledStartDate = document.getElementById('scheduled_start_date');
         const scheduledStartTime = document.getElementById('scheduled_start_time');
+        const scheduledEndDate = document.getElementById('scheduled_end_date');
         const scheduledEndTime = document.getElementById('scheduled_end_time');
         const categoryType = document.getElementById('category_type');
         const customCategoryWrapper = document.getElementById('custom-category-wrapper');
         const distanceOption = document.getElementById('distance_option');
         const customDistanceWrapper = document.getElementById('custom-distance-wrapper');
+        const standardDistanceFields = document.querySelectorAll('[data-standard-distance]');
+        const categoryTypeDetailPanels = document.querySelectorAll('[data-category-type-details]');
+
+        const refreshCategoryDistanceFields = () => {
+            const eventType = eventTypes[eventSelect?.value] || '';
+            const usesSegmentedDistances = ['Triathlon', 'Duathlon'].includes(eventType);
+
+            standardDistanceFields.forEach((wrapper) => {
+                const customWrapper = wrapper.id === 'custom-distance-wrapper';
+                const visible = ! usesSegmentedDistances && (! customWrapper || distanceOption?.value === 'custom');
+                wrapper.classList.toggle('hidden', ! visible);
+                wrapper.querySelectorAll('input, select').forEach((field) => field.disabled = ! visible);
+            });
+
+            categoryTypeDetailPanels.forEach((panel) => {
+                const active = panel.dataset.categoryTypeDetails === eventType;
+                panel.classList.toggle('hidden', ! active);
+                panel.querySelectorAll('input').forEach((field) => field.disabled = ! active);
+            });
+        };
 
         eventSelect?.addEventListener('change', () => {
             if (categoryPageHeading) {
                 categoryPageHeading.textContent = categoryLabelsByEvent[eventSelect.value] || 'Registration Categories';
             }
 
+            if (scheduledStartDate) {
+                scheduledStartDate.value = eventStartDates[eventSelect.value] || '';
+            }
+
             if (scheduledStartTime) {
                 scheduledStartTime.value = eventStartTimes[eventSelect.value] || '';
+            }
+
+            if (scheduledEndDate) {
+                scheduledEndDate.value = eventStartDates[eventSelect.value] || '';
             }
 
             if (scheduledEndTime) {
                 scheduledEndTime.value = eventEndTimes[eventSelect.value] || '';
             }
+
+            refreshCategoryDistanceFields();
         });
 
         categoryType?.addEventListener('change', () => {
@@ -204,6 +273,9 @@
 
         distanceOption?.addEventListener('change', () => {
             customDistanceWrapper?.classList.toggle('hidden', distanceOption.value !== 'custom');
+            refreshCategoryDistanceFields();
         });
+
+        refreshCategoryDistanceFields();
     </script>
 @endsection

@@ -12,7 +12,7 @@
         <div style="background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
             <h2>{{ $event->title }}</h2>
             <p><strong>Venue:</strong> {{ $event->venue }}</p>
-            <p><strong>Date:</strong> {{ $event->event_date->format('F d, Y') }}</p>
+            <p><strong>Date:</strong> {{ $event->event_date->format('F d, Y') }}@if ($event->event_end_date && ! $event->event_end_date->isSameDay($event->event_date)) - {{ $event->event_end_date->format('F d, Y') }}@endif</p>
             <p><strong>Status:</strong> {{ ucfirst($event->effective_status) }}</p>
             <p>{{ $event->description }}</p>
 

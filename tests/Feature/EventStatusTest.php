@@ -137,3 +137,29 @@ test('a same-day event without an end time stays ongoing after it starts', funct
         config()->set('app.timezone', $previousTimezone);
     }
 });
+
+test('a multi-day event remains ongoing between its start and end datetimes', function () {
+    $previousTimezone = config('app.timezone');
+    config()->set('app.timezone', 'Asia/Manila');
+    Carbon::setTestNow(Carbon::parse('2026-08-17 12:00:00', 'Asia/Manila'));
+
+    try {
+        expect(Event::statusForDate('upcoming', '2026-08-16', '05:00', '17:00', '2026-08-18'))->toBe('ongoing');
+    } finally {
+        Carbon::setTestNow();
+        config()->set('app.timezone', $previousTimezone);
+    }
+});
+
+test('a multi-day event completes at its end datetime', function () {
+    $previousTimezone = config('app.timezone');
+    config()->set('app.timezone', 'Asia/Manila');
+    Carbon::setTestNow(Carbon::parse('2026-08-18 17:00:00', 'Asia/Manila'));
+
+    try {
+        expect(Event::statusForDate('upcoming', '2026-08-16', '05:00', '17:00', '2026-08-18'))->toBe('completed');
+    } finally {
+        Carbon::setTestNow();
+        config()->set('app.timezone', $previousTimezone);
+    }
+});

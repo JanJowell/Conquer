@@ -16,6 +16,7 @@ class Event extends Model
         'description',
         'venue',
         'event_date',
+        'event_end_date',
         'start_time',
         'end_time',
         'registration_deadline',
@@ -31,6 +32,7 @@ class Event extends Model
     {
         return [
             'event_date' => 'date',
+            'event_end_date' => 'date',
             'registration_deadline' => 'date',
             'start_time' => 'datetime:H:i',
             'end_time' => 'datetime:H:i',
@@ -41,7 +43,13 @@ class Event extends Model
     protected static function booted(): void
     {
         static::saving(function (Event $event) {
-            $event->status = static::statusForDate($event->status, $event->event_date, $event->start_time, $event->end_time);
+            $event->status = static::statusForDate(
+                $event->status,
+                $event->event_date,
+                $event->start_time,
+                $event->end_time,
+                $event->event_end_date
+            );
         });
 
         static::created(function (Event $event) {
@@ -49,7 +57,13 @@ class Event extends Model
         });
     }
 
-    public static function statusForDate(?string $status, mixed $eventDate, mixed $startTime = null, mixed $endTime = null): ?string
+    public static function statusForDate(
+        ?string $status,
+        mixed $eventDate,
+        mixed $startTime = null,
+        mixed $endTime = null,
+        mixed $eventEndDate = null
+    ): ?string
     {
         if ($status === 'draft') {
             return 'draft';
@@ -73,32 +87,21 @@ class Event extends Model
 
         $timezone = config('app.timezone');
         $eventDay = Carbon::parse($eventDate, $timezone)->startOfDay();
-        $today = now($timezone)->startOfDay();
-
-        if ($eventDay->gt($today)) {
-            return 'upcoming';
-        }
-
-        if ($eventDay->lt($today)) {
-            return 'completed';
-        }
-
-        if (! $startTime) {
-            return 'ongoing';
-        }
-
-        $startAt = static::dateTimeForEvent($eventDay, $startTime);
+        $eventEndDay = Carbon::parse($eventEndDate ?: $eventDate, $timezone)->startOfDay();
+        $startAt = $startTime
+            ? static::dateTimeForEvent($eventDay, $startTime)
+            : $eventDay;
 
         if (now($timezone)->lt($startAt)) {
             return 'upcoming';
         }
 
-        if ($endTime) {
-            $endAt = static::dateTimeForEvent($eventDay, $endTime);
+        $endAt = $endTime
+            ? static::dateTimeForEvent($eventEndDay, $endTime)
+            : $eventEndDay->copy()->endOfDay();
 
-            if (now($timezone)->gte($endAt)) {
-                return 'completed';
-            }
+        if (now($timezone)->gte($endAt)) {
+            return 'completed';
         }
 
         return 'ongoing';
@@ -119,7 +122,8 @@ class Event extends Model
             'upcoming',
             $overrides['event_date'] ?? $this->event_date,
             $overrides['start_time'] ?? $this->start_time,
-            $overrides['end_time'] ?? $this->end_time
+            $overrides['end_time'] ?? $this->end_time,
+            $overrides['event_end_date'] ?? $this->event_end_date
         ) ?? 'upcoming';
     }
 
@@ -264,6 +268,11 @@ class Event extends Model
         return $this->hasOne(Registration::class);
     }
 
+    public function currentUserRegistrations()
+    {
+        return $this->hasMany(Registration::class);
+    }
+
     public function raceResults()
     {
         return $this->hasMany(RaceResult::class);
@@ -316,6 +325,9 @@ class Event extends Model
         $eventDate = $this->event_date
             ? $this->event_date->format('F j, Y')
             : 'To be announced';
+        $eventEndDate = $this->event_end_date
+            ? $this->event_end_date->format('F j, Y')
+            : $eventDate;
         $startTime = $this->start_time
             ? Carbon::parse($this->start_time)->format('g:i A')
             : 'To be announced';
@@ -330,7 +342,8 @@ class Event extends Model
             $this->title,
             '',
             'Registration deadline: '.$registrationDeadline,
-            'Event date: '.$eventDate,
+            ($eventEndDate !== $eventDate ? 'Event dates: ' : 'Event date: ')
+                .$eventDate.($eventEndDate !== $eventDate ? ' - '.$eventEndDate : ''),
             'Event time: '.$startTime.($endTime ? ' - '.$endTime : ''),
         ];
 

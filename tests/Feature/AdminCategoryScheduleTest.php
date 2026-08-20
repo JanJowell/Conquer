@@ -39,6 +39,64 @@ function scheduledCategoryPayload(Event $event, string $scheduledStartTime, stri
     ];
 }
 
+test('admin can save a category on the second day of a multi-day event', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $event = scheduledCategoryEvent($admin);
+    $event->update(['event_end_date' => $event->event_date->copy()->addDay()]);
+    $secondDay = $event->event_end_date->format('Y-m-d');
+    $payload = scheduledCategoryPayload($event, '07:30', '10:00') + [
+        'scheduled_start_date' => $secondDay,
+        'scheduled_end_date' => $secondDay,
+    ];
+
+    $this
+        ->actingAs($admin)
+        ->post(route('admin.categories.store'), $payload)
+        ->assertSessionHasNoErrors();
+
+    $category = $event->categories()->firstOrFail();
+
+    expect($category->scheduledStartAt()->format('Y-m-d H:i'))->toBe($secondDay.' 07:30')
+        ->and($category->scheduledEndAt()->format('Y-m-d H:i'))->toBe($secondDay.' 10:00');
+});
+
+test('an overnight category is valid inside a multi-day event', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $event = scheduledCategoryEvent($admin);
+    $event->update(['event_end_date' => $event->event_date->copy()->addDay()]);
+    $payload = scheduledCategoryPayload($event, '23:00', '02:00') + [
+        'scheduled_start_date' => $event->event_date->format('Y-m-d'),
+        'scheduled_end_date' => $event->event_end_date->format('Y-m-d'),
+    ];
+
+    $this
+        ->actingAs($admin)
+        ->post(route('admin.categories.store'), $payload)
+        ->assertSessionHasNoErrors();
+
+    $category = $event->categories()->firstOrFail();
+
+    expect($category->scheduledStartAt()->lt($category->scheduledEndAt()))->toBeTrue();
+});
+
+test('a category cannot be scheduled outside a multi-day event date range', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $event = scheduledCategoryEvent($admin);
+    $event->update(['event_end_date' => $event->event_date->copy()->addDay()]);
+    $outsideDate = $event->event_end_date->copy()->addDay()->format('Y-m-d');
+    $payload = scheduledCategoryPayload($event, '07:30', '10:00') + [
+        'scheduled_start_date' => $outsideDate,
+        'scheduled_end_date' => $outsideDate,
+    ];
+
+    $this
+        ->actingAs($admin)
+        ->post(route('admin.categories.store'), $payload)
+        ->assertSessionHasErrors('scheduled_start_time');
+
+    expect($event->categories()->count())->toBe(0);
+});
+
 test('admin can save a category-specific gun start and cutoff end time', function () {
     $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
     $event = scheduledCategoryEvent($admin);
@@ -55,6 +113,52 @@ test('admin can save a category-specific gun start and cutoff end time', functio
         ->and($category->scheduled_end_time->format('H:i'))->toBe('10:00')
         ->and($category->scheduledStartAt()->format('Y-m-d H:i'))->toBe($event->event_date->format('Y-m-d').' 07:30')
         ->and($category->scheduledEndAt()->format('Y-m-d H:i'))->toBe($event->event_date->format('Y-m-d').' 10:00');
+});
+
+test('triathlon category stores component distances and calculates its total distance', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $event = scheduledCategoryEvent($admin);
+    $event->update(['interest_type' => 'Triathlon']);
+    $payload = scheduledCategoryPayload($event, '07:30');
+    unset($payload['distance_option']);
+    $payload['type_details'] = [
+        'swim_distance_m' => 1500,
+        'bike_distance_km' => 40,
+        'run_distance_km' => 10,
+    ];
+
+    $this
+        ->actingAs($admin)
+        ->post(route('admin.categories.store'), $payload)
+        ->assertSessionHasNoErrors();
+
+    $category = $event->categories()->firstOrFail();
+    $resource = (new CategoryResource($category))->toArray(Request::create('/api/categories'));
+
+    expect((float) $category->distance_km)->toBe(51.5)
+        ->and($category->type_details)->toMatchArray($payload['type_details'])
+        ->and($resource['distance_km'])->toBe(51.5)
+        ->and(collect($resource['type_detail_items'])->pluck('key')->all())
+        ->toBe(['swim_distance_m', 'bike_distance_km', 'run_distance_km']);
+});
+
+test('multisport category requires every component distance', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $event = scheduledCategoryEvent($admin);
+    $event->update(['interest_type' => 'Duathlon']);
+    $payload = scheduledCategoryPayload($event, '07:30');
+    unset($payload['distance_option']);
+    $payload['type_details'] = [
+        'first_run_distance_km' => 5,
+        'bike_distance_km' => 20,
+    ];
+
+    $this
+        ->actingAs($admin)
+        ->post(route('admin.categories.store'), $payload)
+        ->assertSessionHasErrors('type_details.second_run_distance_km');
+
+    expect($event->categories()->count())->toBe(0);
 });
 
 test('category schedule must stay inside the overall event schedule', function (string $scheduledStartTime) {
@@ -98,7 +202,11 @@ test('category schedule is exposed to the mobile API resource', function () {
     $payload = (new CategoryResource($category))->toArray(Request::create('/api/events'));
 
     expect($payload['scheduled_start_time'])->toBe('07:30')
-        ->and($payload['scheduled_end_time'])->toBe('10:00');
+        ->and($payload['scheduled_end_time'])->toBe('10:00')
+        ->and($payload['scheduled_start_date'])->toBe($event->event_date->format('Y-m-d'))
+        ->and($payload['scheduled_end_date'])->toBe($event->event_date->format('Y-m-d'))
+        ->and($payload['scheduled_start_at'])->toContain('T07:30:00')
+        ->and($payload['scheduled_end_at'])->toContain('T10:00:00');
 });
 
 test('category forms display the scheduled gun start and cutoff end fields', function () {
@@ -109,8 +217,11 @@ test('category forms display the scheduled gun start and cutoff end fields', fun
         ->actingAs($admin)
         ->get(route('admin.categories.create', ['event_id' => $event->id]))
         ->assertOk()
+        ->assertSee('Scheduled Gun Start Date')
+        ->assertSee('name="scheduled_start_date"', false)
         ->assertSee('Scheduled Gun Start')
         ->assertSee('name="scheduled_start_time"', false)
         ->assertSee('Category Cutoff/End Time')
+        ->assertSee('name="scheduled_end_date"', false)
         ->assertSee('name="scheduled_end_time"', false);
 });

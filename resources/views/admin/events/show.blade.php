@@ -221,7 +221,12 @@
                     </div>
                     <div>
                         <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#7a8495]">Date</p>
-                        <p class="mt-2 text-sm text-[#202733]">{{ $event->event_date?->format('F d, Y') ?: 'TBD' }}</p>
+                        <p class="mt-2 text-sm text-[#202733]">
+                            {{ $event->event_date?->format('F d, Y') ?: 'TBD' }}
+                            @if ($event->event_end_date && ! $event->event_end_date->isSameDay($event->event_date))
+                                - {{ $event->event_end_date->format('F d, Y') }}
+                            @endif
+                        </p>
                     </div>
                     <div>
                         <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#7a8495]">Time</p>
@@ -274,16 +279,19 @@
                                 <p class="font-semibold text-[#151b26]">{{ $category->name }}</p>
                                 <p class="mt-1 text-xs text-[#6d7685]">{{ $category->description ?: 'No description' }}</p>
                             </div>
-                            <p>{{ number_format((float) $category->distance_km, 2) }} km</p>
+                            <div>
+                                <p>{{ number_format((float) $category->distance_km, 2) }} km{{ $category->formattedTypeDetails() ? ' total' : '' }}</p>
+                                @foreach ($category->formattedTypeDetails() as $detail)
+                                    <p class="mt-1 text-xs text-[#6d7685]">{{ $detail['label'] }}: {{ $detail['value'] }}</p>
+                                @endforeach
+                            </div>
                             <p>
                                 <span class="block text-xs text-[#6d7685]">Scheduled gun start</span>
-                                {{ $category->scheduled_start_time?->format('g:i A')
-                                    ?: ($event->start_time?->format('g:i A') ?? 'Schedule not set') }}
+                                {{ $category->scheduledStartAt()?->format('M j, Y g:i A') ?? 'Schedule not set' }}
                             </p>
                             <p>
                                 <span class="block text-xs text-[#6d7685]">Category cutoff/end</span>
-                                {{ $category->scheduled_end_time?->format('g:i A')
-                                    ?: ($event->end_time?->format('g:i A') ?? 'Cutoff not set') }}
+                                {{ $category->scheduledEndAt()?->format('M j, Y g:i A') ?? 'Cutoff not set' }}
                             </p>
                             <p>{{ $category->slot_limit ?: 'Open slots' }}</p>
                             <p>{{ number_format($category->registrations_count) }} registered</p>

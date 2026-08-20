@@ -7,27 +7,45 @@ use Illuminate\Http\Request;
 
 function eventTypePayload(string $type, array $details): array
 {
+    $eventDate = now()->addMonth()->toDateString();
+    $category = [
+        'category_type' => 'open',
+        'distance_option' => '5',
+        'scheduled_start_time' => '06:00',
+        'scheduled_end_time' => '10:00',
+        'slot_limit' => 100,
+        'price_amount' => '0.00',
+        'price_currency' => 'PHP',
+        'status' => 'open',
+    ];
+
+    if ($type === 'Triathlon') {
+        $category['type_details'] = collect(['swim_distance_m', 'bike_distance_km', 'run_distance_km'])
+            ->mapWithKeys(fn (string $key) => [$key => $details[$key]])
+            ->all();
+        unset($category['distance_option']);
+    }
+
+    if ($type === 'Duathlon') {
+        $category['type_details'] = collect(['first_run_distance_km', 'bike_distance_km', 'second_run_distance_km'])
+            ->mapWithKeys(fn (string $key) => [$key => $details[$key]])
+            ->all();
+        unset($category['distance_option']);
+    }
+
     return [
         'title' => $type.' Championship',
         'description' => 'Complete event description.',
         'venue' => 'Bacoor City',
-        'event_date' => now()->addMonth()->toDateString(),
+        'event_date' => $eventDate,
+        'event_end_date' => $eventDate,
         'start_time' => '06:00',
         'registration_deadline' => now()->addWeek()->toDateString(),
         'banner_image' => 'events/banners/sample.jpg',
         'organized_by' => 'Racetech Events',
         'interest_type' => $type,
         'type_details' => [$type => $details],
-        'categories' => [[
-            'category_type' => 'open',
-            'distance_option' => '5',
-            'scheduled_start_time' => '06:00',
-            'scheduled_end_time' => '10:00',
-            'slot_limit' => 100,
-            'price_amount' => '0.00',
-            'price_currency' => 'PHP',
-            'status' => 'open',
-        ]],
+        'categories' => [$category],
     ];
 }
 
@@ -74,6 +92,27 @@ dataset('event type details', [
     ], 'Competition Categories'],
 ]);
 
+dataset('event types with optional route details', [
+    'cycling elevation' => ['Cycling', [
+        'route_distance_km' => 80,
+        'surface_type' => 'Road',
+        'bike_type' => 'Road Bike',
+        'helmet_required' => '1',
+    ], ['elevation_gain_m']],
+    'hiking elevation' => ['Hiking', [
+        'trail_length_km' => 12,
+        'difficulty' => 'Moderate',
+        'estimated_duration' => '5 hours',
+        'required_gear' => 'Hiking shoes and water',
+    ], ['elevation_gain_m']],
+    'trail run elevation and terrain' => ['Trail Run', [
+        'distance_km' => 30,
+        'trail_difficulty' => 'Technical',
+        'mandatory_gear' => 'Hydration vest and whistle',
+        'cutoff_time' => '9 hours',
+    ], ['elevation_gain_m', 'terrain']],
+]);
+
 test('admin can store the correct structured details for each event type', function (string $type, array $details, string $categoryLabel) {
     $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
 
@@ -116,6 +155,52 @@ test('type details reject invalid values for the selected event type', function 
         ]);
 });
 
+test('optional elevation and terrain details do not block publication or appear empty', function (string $type, array $details, array $optionalKeys) {
+    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+
+    $this
+        ->actingAs($admin)
+        ->post(route('admin.events.store'), eventTypePayload($type, $details))
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    $event = Event::where('title', $type.' Championship')->firstOrFail();
+    $formattedKeys = collect($event->formattedTypeDetails())->pluck('key');
+
+    expect($event->status)->toBe('upcoming');
+
+    foreach ($optionalKeys as $optionalKey) {
+        expect($event->publicReadinessErrors())->not->toContain('add '.strtolower(str_replace('_', ' ', $optionalKey)))
+            ->and($formattedKeys)->not->toContain($optionalKey);
+    }
+})->with('event types with optional route details');
+
+test('admin can create a multi-day event with category dates inside its range', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $payload = eventTypePayload('Marathon', [
+        'distances' => '5K and 10K',
+        'cutoff_time' => '4 hours',
+    ]);
+    $payload['event_end_date'] = now()->addMonth()->addDays(2)->toDateString();
+    $payload['end_time'] = '18:00';
+    $payload['categories'][0]['scheduled_start_date'] = now()->addMonth()->addDay()->toDateString();
+    $payload['categories'][0]['scheduled_end_date'] = now()->addMonth()->addDay()->toDateString();
+
+    $this
+        ->actingAs($admin)
+        ->post(route('admin.events.store'), $payload)
+        ->assertSessionHasNoErrors();
+
+    $event = Event::where('title', 'Marathon Championship')->firstOrFail();
+    $resource = (new EventResource($event))->toArray(Request::create('/api/events'));
+
+    expect($event->event_end_date->format('Y-m-d'))->toBe($payload['event_end_date'])
+        ->and($event->categories()->firstOrFail()->scheduled_start_date->format('Y-m-d'))
+        ->toBe($payload['categories'][0]['scheduled_start_date'])
+        ->and($resource['event_start_date'])->toBe($payload['event_date'])
+        ->and($resource['event_end_date'])->toBe($payload['event_end_date']);
+});
+
 test('event form renders every type-specific field and dynamic category labels', function () {
     $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
 
@@ -123,12 +208,18 @@ test('event form renders every type-specific field and dynamic category labels',
         ->actingAs($admin)
         ->get(route('admin.events.create'))
         ->assertOk()
-        ->assertSee('type_details[Cycling][route_distance_km]', false)
-        ->assertSee('type_details[Hiking][trail_length_km]', false)
-        ->assertSee('type_details[Marathon][distances]', false)
+        ->assertSee('Event Start Date')
+        ->assertSee('name="event_date"', false)
+        ->assertSee('Event End Date')
+        ->assertSee('name="event_end_date"', false)
+        ->assertDontSee('type_details[Cycling][route_distance_km]', false)
+        ->assertDontSee('type_details[Hiking][trail_length_km]', false)
+        ->assertDontSee('type_details[Marathon][distances]', false)
         ->assertSee('type_details[Trail Run][mandatory_gear]', false)
-        ->assertSee('type_details[Triathlon][swim_distance_m]', false)
-        ->assertSee('type_details[Duathlon][second_run_distance_km]', false);
+        ->assertDontSee('type_details[Triathlon][swim_distance_m]', false)
+        ->assertDontSee('type_details[Duathlon][second_run_distance_km]', false)
+        ->assertSee('categories[0][type_details][swim_distance_m]', false)
+        ->assertSee('categories[0][type_details][second_run_distance_km]', false);
 
     expect(config('conquer.event_category_labels'))
         ->toMatchArray([

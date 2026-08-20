@@ -397,9 +397,15 @@
                                     </div>
 
                                     <div>
-                                        <label for="edit-event-date-{{ $event->id }}" class="mb-2 block text-sm font-semibold text-slate-800">Event Date</label>
+                                        <label for="edit-event-date-{{ $event->id }}" class="mb-2 block text-sm font-semibold text-slate-800">Event Start Date</label>
                                         <input id="edit-event-date-{{ $event->id }}" name="event_date" type="date" value="{{ $editingThisEvent ? old('event_date', $event->event_date?->format('Y-m-d')) : $event->event_date?->format('Y-m-d') }}" required class="h-12 w-full rounded-xl border border-white/60 bg-white/50 px-4 text-sm text-slate-900 shadow-sm outline-none backdrop-blur-xl transition focus:border-sky-300 focus:ring-4 focus:ring-sky-100/70">
                                         @if($editingThisEvent) @error('event_date') <p class="mt-2 text-sm text-rose-600">{{ $message }}</p> @enderror @endif
+                                    </div>
+
+                                    <div>
+                                        <label for="edit-event-end-date-{{ $event->id }}" class="mb-2 block text-sm font-semibold text-slate-800">Event End Date</label>
+                                        <input id="edit-event-end-date-{{ $event->id }}" name="event_end_date" type="date" value="{{ $editingThisEvent ? old('event_end_date', $event->event_end_date?->format('Y-m-d') ?? $event->event_date?->format('Y-m-d')) : ($event->event_end_date?->format('Y-m-d') ?? $event->event_date?->format('Y-m-d')) }}" required class="h-12 w-full rounded-xl border border-white/60 bg-white/50 px-4 text-sm text-slate-900 shadow-sm outline-none backdrop-blur-xl transition focus:border-sky-300 focus:ring-4 focus:ring-sky-100/70">
+                                        @if($editingThisEvent) @error('event_end_date') <p class="mt-2 text-sm text-rose-600">{{ $message }}</p> @enderror @endif
                                     </div>
 
                                     <div>
@@ -409,13 +415,13 @@
                                     </div>
 
                                     <div>
-                                        <label for="edit-start-time-{{ $event->id }}" class="mb-2 block text-sm font-semibold text-slate-800">Start Time</label>
+                                        <label for="edit-start-time-{{ $event->id }}" class="mb-2 block text-sm font-semibold text-slate-800">Event Start Time</label>
                                         <input id="edit-start-time-{{ $event->id }}" name="start_time" type="time" value="{{ $editingThisEvent ? old('start_time', $event->start_time?->format('H:i')) : $event->start_time?->format('H:i') }}" required class="h-12 w-full rounded-xl border border-white/60 bg-white/50 px-4 text-sm text-slate-900 shadow-sm outline-none backdrop-blur-xl transition focus:border-sky-300 focus:ring-4 focus:ring-sky-100/70">
                                         @if($editingThisEvent) @error('start_time') <p class="mt-2 text-sm text-rose-600">{{ $message }}</p> @enderror @endif
                                     </div>
 
                                     <div>
-                                        <label for="edit-end-time-{{ $event->id }}" class="mb-2 block text-sm font-semibold text-slate-800">End Time</label>
+                                        <label for="edit-end-time-{{ $event->id }}" class="mb-2 block text-sm font-semibold text-slate-800">Event End Time</label>
                                         <input id="edit-end-time-{{ $event->id }}" name="end_time" type="time" value="{{ $editingThisEvent ? old('end_time', $event->end_time?->format('H:i')) : $event->end_time?->format('H:i') }}" class="h-12 w-full rounded-xl border border-white/60 bg-white/50 px-4 text-sm text-slate-900 shadow-sm outline-none backdrop-blur-xl transition focus:border-sky-300 focus:ring-4 focus:ring-sky-100/70">
                                         @if($editingThisEvent) @error('end_time') <p class="mt-2 text-sm text-rose-600">{{ $message }}</p> @enderror @endif
                                     </div>

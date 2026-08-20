@@ -219,7 +219,12 @@
                                 </span>
                                 <div>
                                     <p class="text-xs uppercase tracking-[0.18em] text-[#64748b]">Date</p>
-                                    <p class="font-semibold text-[#202733]">{{ $event->event_date->format('F d, Y') }}</p>
+                                    <p class="font-semibold text-[#202733]">
+                                        {{ $event->event_date->format('F d, Y') }}
+                                        @if ($event->event_end_date && ! $event->event_end_date->isSameDay($event->event_date))
+                                            - {{ $event->event_end_date->format('F d, Y') }}
+                                        @endif
+                                    </p>
                                 </div>
                             </div>
                         </div>
