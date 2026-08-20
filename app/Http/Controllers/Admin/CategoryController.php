@@ -70,6 +70,7 @@ class CategoryController extends Controller
             'distance_option' => ['required', Rule::in(array_keys($this->distanceOptions()))],
             'custom_distance_km' => ['nullable', 'required_if:distance_option,custom', 'numeric', 'min:0.01'],
             'scheduled_start_time' => ['required', 'date_format:H:i'],
+            'scheduled_end_time' => ['required', 'date_format:H:i'],
             'description' => ['nullable', 'string'],
             'slot_limit' => ['nullable', 'integer', 'min:1'],
             'price_amount' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
@@ -83,7 +84,7 @@ class CategoryController extends Controller
 
         $event = Event::query()->whereIn('id', $accessibleEventIds)->findOrFail($validated['event_id']);
 
-        if ($errors = $this->categoryScheduleErrors($event, $validated['scheduled_start_time'])) {
+        if ($errors = $this->categoryScheduleErrors($event, $validated['scheduled_start_time'], $validated['scheduled_end_time'])) {
             return back()->withErrors($errors)->withInput();
         }
 
@@ -125,7 +126,10 @@ class CategoryController extends Controller
         $categoryInUse = $category->registrations_count > 0 || $category->race_results_count > 0;
 
         $rules = [
-            ...($category->started_at ? [] : ['scheduled_start_time' => ['required', 'date_format:H:i']]),
+            ...($category->started_at ? [] : [
+                'scheduled_start_time' => ['required', 'date_format:H:i'],
+                'scheduled_end_time' => ['required', 'date_format:H:i'],
+            ]),
             'description' => ['nullable', 'string'],
             'slot_limit' => ['nullable', 'integer', 'min:1'],
             'price_amount' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
@@ -149,7 +153,7 @@ class CategoryController extends Controller
 
         $validated = $request->validate($rules);
 
-        if (! $category->started_at && ($errors = $this->categoryScheduleErrors($category->event, $validated['scheduled_start_time']))) {
+        if (! $category->started_at && ($errors = $this->categoryScheduleErrors($category->event, $validated['scheduled_start_time'], $validated['scheduled_end_time']))) {
             return back()->withErrors($errors)->withInput();
         }
 
@@ -211,7 +215,7 @@ class CategoryController extends Controller
         $scheduledStartAt = $category->scheduledStartAt();
 
         if (! $scheduledStartAt) {
-            return back()->with('error', 'Set the event date and category scheduled start time before starting this category.');
+            return back()->with('error', 'Set the event date and category scheduled gun start before starting this category.');
         }
 
         if (now()->lt($scheduledStartAt)) {
@@ -375,7 +379,7 @@ class CategoryController extends Controller
         return $errors;
     }
 
-    private function categoryScheduleErrors(?Event $event, string $scheduledStartTime): array
+    private function categoryScheduleErrors(?Event $event, string $scheduledStartTime, string $scheduledEndTime): array
     {
         if (! $event) {
             return ['event_id' => 'Select a valid event for this category.'];
@@ -385,11 +389,19 @@ class CategoryController extends Controller
         $eventEndTime = $event->end_time?->format('H:i');
 
         if ($eventStartTime && $scheduledStartTime < $eventStartTime) {
-            return ['scheduled_start_time' => 'The category scheduled start cannot be before the event start time.'];
+            return ['scheduled_start_time' => 'The scheduled gun start cannot be before the event start time.'];
         }
 
-        if ($eventEndTime && $scheduledStartTime > $eventEndTime) {
-            return ['scheduled_start_time' => 'The category scheduled start cannot be after the event end time.'];
+        if ($eventEndTime && $scheduledStartTime >= $eventEndTime) {
+            return ['scheduled_start_time' => 'The scheduled gun start must be before the event end time.'];
+        }
+
+        if ($scheduledEndTime <= $scheduledStartTime) {
+            return ['scheduled_end_time' => 'The category cutoff/end time must be after the scheduled gun start.'];
+        }
+
+        if ($eventEndTime && $scheduledEndTime > $eventEndTime) {
+            return ['scheduled_end_time' => 'The category cutoff/end time cannot be after the event end time.'];
         }
 
         return [];

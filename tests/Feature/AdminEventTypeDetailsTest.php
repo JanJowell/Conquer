@@ -22,6 +22,7 @@ function eventTypePayload(string $type, array $details): array
             'category_type' => 'open',
             'distance_option' => '5',
             'scheduled_start_time' => '06:00',
+            'scheduled_end_time' => '10:00',
             'slot_limit' => 100,
             'price_amount' => '0.00',
             'price_currency' => 'PHP',
@@ -207,4 +208,32 @@ test('event schedule cannot be moved outside an existing category schedule', fun
         ->assertSessionHasErrors('start_time');
 
     expect($event->fresh()->start_time->format('H:i'))->toBe('06:00');
+});
+
+test('event end cannot be moved before an existing category cutoff end', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $details = [
+        'distances' => '5K, 10K, 21K, 42K',
+        'cutoff_time' => '7 hours',
+    ];
+
+    $this
+        ->actingAs($admin)
+        ->post(route('admin.events.store'), eventTypePayload('Marathon', $details))
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    $event = Event::where('title', 'Marathon Championship')->firstOrFail();
+    $updatePayload = eventTypePayload('Marathon', $details);
+    $updatePayload['end_time'] = '09:00';
+    $updatePayload['categories'][0]['scheduled_end_time'] = '09:00';
+
+    $this
+        ->actingAs($admin)
+        ->from(route('admin.events.edit', $event))
+        ->put(route('admin.events.update', $event), $updatePayload)
+        ->assertRedirect(route('admin.events.edit', $event))
+        ->assertSessionHasErrors('end_time');
+
+    expect($event->fresh()->end_time)->toBeNull();
 });

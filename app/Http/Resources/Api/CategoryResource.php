@@ -35,6 +35,7 @@ class CategoryResource extends JsonResource
                 : null,
             'status' => $this->status,
             'scheduled_start_time' => optional($this->scheduled_start_time)->format('H:i'),
+            'scheduled_end_time' => optional($this->scheduled_end_time)->format('H:i'),
             'started_at' => optional($this->started_at)->toIso8601String(),
             'has_started' => $this->started_at !== null,
         ];

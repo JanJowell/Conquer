@@ -30,6 +30,7 @@ class Category extends Model
         'payment_instructions',
         'status',
         'scheduled_start_time',
+        'scheduled_end_time',
         'started_at',
         'started_by_user_id',
     ];
@@ -41,6 +42,7 @@ class Category extends Model
             'slot_limit' => 'integer',
             'price_cents' => 'integer',
             'scheduled_start_time' => 'datetime:H:i',
+            'scheduled_end_time' => 'datetime:H:i',
             'started_at' => 'datetime',
         ];
     }
@@ -74,6 +76,26 @@ class Category extends Model
         }
 
         $scheduledTime = $this->scheduled_start_time ?? $this->event->start_time;
+
+        if (! $scheduledTime) {
+            return null;
+        }
+
+        return Carbon::parse(
+            $this->event->event_date->format('Y-m-d').' '.$scheduledTime->format('H:i:s'),
+            config('app.timezone')
+        );
+    }
+
+    public function scheduledEndAt(): ?Carbon
+    {
+        $this->loadMissing('event');
+
+        if (! $this->event?->event_date) {
+            return null;
+        }
+
+        $scheduledTime = $this->scheduled_end_time ?? $this->event->end_time;
 
         if (! $scheduledTime) {
             return null;

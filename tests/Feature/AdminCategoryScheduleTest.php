@@ -24,13 +24,14 @@ function scheduledCategoryEvent(User $manager): Event
     ]);
 }
 
-function scheduledCategoryPayload(Event $event, string $scheduledStartTime): array
+function scheduledCategoryPayload(Event $event, string $scheduledStartTime, string $scheduledEndTime = '10:00'): array
 {
     return [
         'event_id' => $event->id,
         'category_type' => 'open',
         'distance_option' => '10',
         'scheduled_start_time' => $scheduledStartTime,
+        'scheduled_end_time' => $scheduledEndTime,
         'slot_limit' => 100,
         'price_amount' => '0.00',
         'price_currency' => 'PHP',
@@ -38,7 +39,7 @@ function scheduledCategoryPayload(Event $event, string $scheduledStartTime): arr
     ];
 }
 
-test('admin can save a category-specific scheduled start time', function () {
+test('admin can save a category-specific gun start and cutoff end time', function () {
     $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
     $event = scheduledCategoryEvent($admin);
 
@@ -51,7 +52,9 @@ test('admin can save a category-specific scheduled start time', function () {
     $category = Category::where('event_id', $event->id)->firstOrFail();
 
     expect($category->scheduled_start_time->format('H:i'))->toBe('07:30')
-        ->and($category->scheduledStartAt()->format('Y-m-d H:i'))->toBe($event->event_date->format('Y-m-d').' 07:30');
+        ->and($category->scheduled_end_time->format('H:i'))->toBe('10:00')
+        ->and($category->scheduledStartAt()->format('Y-m-d H:i'))->toBe($event->event_date->format('Y-m-d').' 07:30')
+        ->and($category->scheduledEndAt()->format('Y-m-d H:i'))->toBe($event->event_date->format('Y-m-d').' 10:00');
 });
 
 test('category schedule must stay inside the overall event schedule', function (string $scheduledStartTime) {
@@ -68,6 +71,18 @@ test('category schedule must stay inside the overall event schedule', function (
     expect($event->categories()->count())->toBe(0);
 })->with(['before event' => '05:59', 'after event' => '12:01']);
 
+test('category cutoff end must be after its gun start and inside the event schedule', function (string $scheduledEndTime) {
+    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $event = scheduledCategoryEvent($admin);
+
+    $this
+        ->actingAs($admin)
+        ->post(route('admin.categories.store'), scheduledCategoryPayload($event, '07:30', $scheduledEndTime))
+        ->assertSessionHasErrors('scheduled_end_time');
+
+    expect($event->categories()->count())->toBe(0);
+})->with(['equal to gun start' => '07:30', 'before gun start' => '07:29', 'after event' => '12:01']);
+
 test('category schedule is exposed to the mobile API resource', function () {
     $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
     $event = scheduledCategoryEvent($admin);
@@ -76,15 +91,17 @@ test('category schedule is exposed to the mobile API resource', function () {
         'name' => '10K Open',
         'distance_km' => 10,
         'scheduled_start_time' => '07:30',
+        'scheduled_end_time' => '10:00',
         'status' => 'open',
     ]);
 
     $payload = (new CategoryResource($category))->toArray(Request::create('/api/events'));
 
-    expect($payload['scheduled_start_time'])->toBe('07:30');
+    expect($payload['scheduled_start_time'])->toBe('07:30')
+        ->and($payload['scheduled_end_time'])->toBe('10:00');
 });
 
-test('category forms display the scheduled start field', function () {
+test('category forms display the scheduled gun start and cutoff end fields', function () {
     $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
     $event = scheduledCategoryEvent($admin);
 
@@ -92,6 +109,8 @@ test('category forms display the scheduled start field', function () {
         ->actingAs($admin)
         ->get(route('admin.categories.create', ['event_id' => $event->id]))
         ->assertOk()
-        ->assertSee('Scheduled Start Time')
-        ->assertSee('name="scheduled_start_time"', false);
+        ->assertSee('Scheduled Gun Start')
+        ->assertSee('name="scheduled_start_time"', false)
+        ->assertSee('Category Cutoff/End Time')
+        ->assertSee('name="scheduled_end_time"', false);
 });

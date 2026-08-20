@@ -269,15 +269,21 @@
                 </div>
                 <div class="divide-y divide-[#eef1f4]">
                     @forelse ($event->categories as $category)
-                        <div class="grid gap-3 px-6 py-4 text-sm md:grid-cols-[minmax(0,1fr)_120px_130px_120px_120px]">
+                        <div class="grid gap-3 px-6 py-4 text-sm md:grid-cols-[minmax(0,1fr)_120px_130px_130px_120px_120px]">
                             <div>
                                 <p class="font-semibold text-[#151b26]">{{ $category->name }}</p>
                                 <p class="mt-1 text-xs text-[#6d7685]">{{ $category->description ?: 'No description' }}</p>
                             </div>
                             <p>{{ number_format((float) $category->distance_km, 2) }} km</p>
                             <p>
+                                <span class="block text-xs text-[#6d7685]">Scheduled gun start</span>
                                 {{ $category->scheduled_start_time?->format('g:i A')
                                     ?: ($event->start_time?->format('g:i A') ?? 'Schedule not set') }}
+                            </p>
+                            <p>
+                                <span class="block text-xs text-[#6d7685]">Category cutoff/end</span>
+                                {{ $category->scheduled_end_time?->format('g:i A')
+                                    ?: ($event->end_time?->format('g:i A') ?? 'Cutoff not set') }}
                             </p>
                             <p>{{ $category->slot_limit ?: 'Open slots' }}</p>
                             <p>{{ number_format($category->registrations_count) }} registered</p>

@@ -103,17 +103,20 @@
                                 <td class="px-6 py-5">
                                     @if ($category->started_at)
                                         <span class="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">In Progress</span>
-                                        <p class="mt-2 text-xs text-[#6d7685]">Scheduled {{ $scheduledStartAt?->format('M j, Y g:i A') ?: 'time unavailable' }}</p>
+                                        <p class="mt-2 text-xs text-[#6d7685]">Scheduled gun start {{ $scheduledStartAt?->format('M j, Y g:i A') ?: 'time unavailable' }}</p>
+                                        <p class="mt-1 text-xs text-[#6d7685]">Cutoff/end {{ $category->scheduledEndAt()?->format('M j, Y g:i A') ?: 'time unavailable' }}</p>
                                         <p class="mt-2 text-xs font-medium text-[#202733]">{{ $category->started_at->format('M j, Y g:i:s A') }}</p>
                                         <p class="mt-1 text-xs text-[#6d7685]">Started by {{ $category->startedBy?->name ?: 'administrator' }}</p>
                                     @elseif ($category->status === 'draft')
                                         <span class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">Draft</span>
-                                        <p class="mt-2 text-xs text-[#6d7685]">Scheduled {{ $scheduledStartAt?->format('M j, Y g:i A') ?: 'time not set' }}</p>
+                                        <p class="mt-2 text-xs text-[#6d7685]">Scheduled gun start {{ $scheduledStartAt?->format('M j, Y g:i A') ?: 'time not set' }}</p>
+                                        <p class="mt-1 text-xs text-[#6d7685]">Cutoff/end {{ $category->scheduledEndAt()?->format('M j, Y g:i A') ?: 'time not set' }}</p>
                                     @elseif (! $scheduledStartAt)
                                         <span class="text-xs font-medium text-amber-700">Set the event schedule first</span>
                                     @elseif (now()->lt($scheduledStartAt))
                                         <span class="inline-flex rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">Scheduled</span>
-                                        <p class="mt-2 text-xs text-[#6d7685]">Available {{ $scheduledStartAt->format('M j, Y g:i A') }}</p>
+                                        <p class="mt-2 text-xs text-[#6d7685]">Gun start {{ $scheduledStartAt->format('M j, Y g:i A') }}</p>
+                                        <p class="mt-1 text-xs text-[#6d7685]">Cutoff/end {{ $category->scheduledEndAt()?->format('M j, Y g:i A') ?: 'time not set' }}</p>
                                     @else
                                         <form method="POST" action="{{ route('admin.categories.start', $category) }}" onsubmit="return confirm('Start this category now? The server time will become the official start for every participant in this category and cannot be restarted.');">
                                             @csrf
@@ -121,7 +124,8 @@
                                                 Start Category
                                             </button>
                                         </form>
-                                        <p class="mt-2 text-xs text-[#6d7685]">Scheduled {{ $scheduledStartAt->format('M j, Y g:i A') }}. Uses secure server time.</p>
+                                        <p class="mt-2 text-xs text-[#6d7685]">Scheduled gun start {{ $scheduledStartAt->format('M j, Y g:i A') }}. Uses secure server time.</p>
+                                        <p class="mt-1 text-xs text-[#6d7685]">Cutoff/end {{ $category->scheduledEndAt()?->format('M j, Y g:i A') ?: 'time not set' }}</p>
                                     @endif
                                 </td>
                                 <td class="px-6 py-5 text-right">
