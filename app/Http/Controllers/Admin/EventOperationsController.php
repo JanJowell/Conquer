@@ -16,14 +16,14 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class EventOperationsController extends Controller
 {
-    public function __construct(private readonly FirebaseCloudMessaging $messaging)
-    {
-    }
+    public function __construct(private readonly FirebaseCloudMessaging $messaging) {}
 
     public function participants(Request $request): View
     {
@@ -37,31 +37,20 @@ class EventOperationsController extends Controller
             ->orderBy('event_date')
             ->get(['id', 'title']);
 
-        $participants = Registration::query()
-            ->with(['user', 'event', 'category', 'raceResult', 'issuedEBadges.badge'])
+        $categories = Category::query()
+            ->with('event:id,title')
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($accessibleEventIds) {
                 $query->whereIn('event_id', $accessibleEventIds);
             })
             ->when($request->filled('event_id'), function ($query) use ($request) {
                 $query->where('event_id', $request->integer('event_id'));
             })
-            ->when($request->filled('status'), function ($query) use ($request) {
-                $query->where('status', $request->string('status'));
-            })
-            ->when($request->filled('search'), function ($query) use ($request) {
-                $search = $request->string('search');
+            ->orderBy('event_id')
+            ->orderBy('name')
+            ->get(['id', 'event_id', 'name']);
 
-                $query->where(function ($inner) use ($search) {
-                    $inner->where('bib_number', 'like', "%{$search}%")
-                        ->orWhereHas('user', function ($userQuery) use ($search) {
-                            $userQuery->where('name', 'like', "%{$search}%")
-                                ->orWhere('email', 'like', "%{$search}%");
-                        })
-                        ->orWhereHas('event', function ($eventQuery) use ($search) {
-                            $eventQuery->where('title', 'like', "%{$search}%");
-                        });
-                });
-            })
+        $participants = $this->filteredParticipantQuery($request)
+            ->with(['issuedEBadges.badge'])
             ->orderByDesc('registered_at')
             ->orderByDesc('id')
             ->paginate(12)
@@ -78,7 +67,90 @@ class EventOperationsController extends Controller
 
         $statusOptions = $this->registrationStatuses();
 
-        return view('admin.participants.index', compact('participants', 'events', 'summary', 'statusOptions'));
+        return view('admin.participants.index', compact('participants', 'events', 'categories', 'summary', 'statusOptions'));
+    }
+
+    public function exportParticipants(Request $request): StreamedResponse
+    {
+        $user = $request->user();
+        $accessibleEventIds = $this->accessibleEventIds($user);
+        $event = $request->filled('event_id')
+            ? Event::query()->whereIn('id', $accessibleEventIds)->find($request->integer('event_id'))
+            : null;
+        $category = $request->filled('category_id')
+            ? Category::query()->whereIn('event_id', $accessibleEventIds)->find($request->integer('category_id'))
+            : null;
+
+        $nameParts = [
+            $event ? Str::slug($event->title) : 'all-events',
+            $category ? Str::slug($category->name) : null,
+            'participants',
+            now()->format('Y-m-d-His'),
+        ];
+        $filename = implode('-', array_filter($nameParts)).'.csv';
+
+        return response()->streamDownload(function () use ($request) {
+            $handle = fopen('php://output', 'w');
+
+            if ($handle === false) {
+                throw new \RuntimeException('Unable to open the participant export stream.');
+            }
+
+            fwrite($handle, "\xEF\xBB\xBF");
+            fputcsv($handle, [
+                'Registration ID',
+                'Bib Number',
+                'Participant Name',
+                'Email',
+                'Phone',
+                'Event',
+                'Category',
+                'Shirt Size',
+                'Registration Status',
+                'Payment Status',
+                'Payment Amount',
+                'Currency',
+                'Category Start',
+                'Finish Time',
+                'Category Rank',
+                'Overall Rank',
+                'Registered At',
+            ]);
+
+            $this->filteredParticipantQuery($request)
+                ->orderBy('id')
+                ->chunkById(200, function ($registrations) use ($handle) {
+                    foreach ($registrations as $registration) {
+                        $values = [
+                            $registration->id,
+                            $registration->bib_number,
+                            $registration->user?->name,
+                            $registration->user?->email,
+                            $registration->user?->phone,
+                            $registration->event?->title,
+                            $registration->category?->name,
+                            $registration->shirt_size,
+                            $registration->status,
+                            $registration->payment_status,
+                            number_format(($registration->payment_amount_cents ?? 0) / 100, 2, '.', ''),
+                            $registration->payment_currency ?? 'PHP',
+                            optional($registration->category?->started_at)?->format('Y-m-d H:i:s'),
+                            $registration->raceResult?->finish_time,
+                            $registration->raceResult?->rank_category,
+                            $registration->raceResult?->rank_overall,
+                            optional($registration->registered_at ?? $registration->created_at)?->format('Y-m-d H:i:s'),
+                        ];
+
+                        fputcsv($handle, array_map(fn ($value) => $this->safeCsvValue($value), $values));
+                    }
+                }, 'id');
+
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Cache-Control' => 'private, no-store',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
     }
 
     public function updateParticipant(Request $request, Registration $registration): RedirectResponse
@@ -467,6 +539,49 @@ class EventOperationsController extends Controller
             'completed' => 'Completed',
             'rejected' => 'Rejected',
         ];
+    }
+
+    private function filteredParticipantQuery(Request $request)
+    {
+        $user = $request->user();
+
+        return Registration::query()
+            ->with(['user', 'event', 'category', 'raceResult'])
+            ->when($user->managesAssignedEventsOnly(), function ($query) use ($user) {
+                $query->whereIn('event_id', $user->managedEventIds());
+            })
+            ->when($request->filled('event_id'), function ($query) use ($request) {
+                $query->where('event_id', $request->integer('event_id'));
+            })
+            ->when($request->filled('category_id'), function ($query) use ($request) {
+                $query->where('category_id', $request->integer('category_id'));
+            })
+            ->when($request->filled('status'), function ($query) use ($request) {
+                $query->where('status', $request->string('status'));
+            })
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $search = $request->string('search')->trim()->toString();
+
+                $query->where(function ($inner) use ($search) {
+                    $inner->where('bib_number', 'like', "%{$search}%")
+                        ->orWhereHas('user', function ($userQuery) use ($search) {
+                            $userQuery->where('name', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%");
+                        })
+                        ->orWhereHas('event', function ($eventQuery) use ($search) {
+                            $eventQuery->where('title', 'like', "%{$search}%");
+                        });
+                });
+            });
+    }
+
+    private function safeCsvValue(mixed $value): mixed
+    {
+        if (! is_string($value)) {
+            return $value;
+        }
+
+        return preg_match('/^\s*[=+\-@]/u', $value) === 1 ? "'{$value}" : $value;
     }
 
     private function participantStatuses(): array

@@ -9,31 +9,31 @@
             'pending' => [
                 'label' => 'Needs Approval',
                 'value' => $summary['pending'] ?? 0,
-                'href' => route('admin.participants.index', array_filter(['event_id' => request('event_id'), 'status' => 'pending'])),
+                'href' => route('admin.participants.index', array_filter(['event_id' => request('event_id'), 'category_id' => request('category_id'), 'status' => 'pending'])),
                 'tone' => 'border-amber-200 bg-amber-50 text-amber-800',
             ],
             'approved' => [
                 'label' => 'Ready For Check-in',
                 'value' => $summary['approved'] ?? 0,
-                'href' => route('admin.participants.index', array_filter(['event_id' => request('event_id'), 'status' => 'approved'])),
+                'href' => route('admin.participants.index', array_filter(['event_id' => request('event_id'), 'category_id' => request('category_id'), 'status' => 'approved'])),
                 'tone' => 'border-sky-200 bg-sky-50 text-sky-800',
             ],
             'checked_in' => [
                 'label' => 'Awaiting Results',
                 'value' => $summary['checked_in'] ?? 0,
-                'href' => route('admin.participants.index', array_filter(['event_id' => request('event_id'), 'status' => 'checked_in'])),
+                'href' => route('admin.participants.index', array_filter(['event_id' => request('event_id'), 'category_id' => request('category_id'), 'status' => 'checked_in'])),
                 'tone' => 'border-indigo-200 bg-indigo-50 text-indigo-800',
             ],
             'completed' => [
                 'label' => 'Completed',
                 'value' => $summary['completed'] ?? 0,
-                'href' => route('admin.participants.index', array_filter(['event_id' => request('event_id'), 'status' => 'completed'])),
+                'href' => route('admin.participants.index', array_filter(['event_id' => request('event_id'), 'category_id' => request('category_id'), 'status' => 'completed'])),
                 'tone' => 'border-emerald-200 bg-emerald-50 text-emerald-800',
             ],
             'rejected' => [
                 'label' => 'Rejected',
                 'value' => $summary['rejected'] ?? 0,
-                'href' => route('admin.participants.index', array_filter(['event_id' => request('event_id'), 'status' => 'rejected'])),
+                'href' => route('admin.participants.index', array_filter(['event_id' => request('event_id'), 'category_id' => request('category_id'), 'status' => 'rejected'])),
                 'tone' => 'border-rose-200 bg-rose-50 text-rose-800',
             ],
         ];
@@ -67,12 +67,19 @@
                     <a href="{{ route('admin.results.index', ['event_id' => request('event_id')]) }}" class="inline-flex h-11 items-center justify-center rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm font-semibold text-[#151b26] transition hover:bg-[#f7f8fa]">
                         Results
                     </a>
+                    <a href="{{ route('admin.participants.export', request()->only(['search', 'event_id', 'category_id', 'status'])) }}" class="inline-flex h-11 items-center justify-center rounded-2xl bg-[#151b26] px-4 text-sm font-semibold text-white transition hover:bg-[#2a3342]">
+                        Export CSV
+                    </a>
                 </div>
+            @else
+                <a href="{{ route('admin.participants.export', request()->only(['search', 'category_id', 'status'])) }}" class="inline-flex h-11 items-center justify-center rounded-2xl bg-[#151b26] px-4 text-sm font-semibold text-white transition hover:bg-[#2a3342]">
+                    Export CSV
+                </a>
             @endif
         </div>
 
         <div class="grid gap-4 md:grid-cols-3 xl:grid-cols-6">
-            <a href="{{ route('admin.participants.index', array_filter(['event_id' => request('event_id')])) }}" class="rounded-3xl border border-[#d9dee7] bg-white p-5 shadow-sm transition hover:border-[#b8c0cc] hover:bg-[#fafbfc]">
+            <a href="{{ route('admin.participants.index', array_filter(['event_id' => request('event_id'), 'category_id' => request('category_id')])) }}" class="rounded-3xl border border-[#d9dee7] bg-white p-5 shadow-sm transition hover:border-[#b8c0cc] hover:bg-[#fafbfc]">
                 <p class="text-sm font-medium text-[#6d7685]">Total</p>
                 <p class="mt-3 text-3xl font-semibold tracking-tight text-[#151b26]">{{ number_format($summary['total'] ?? 0) }}</p>
             </a>
@@ -92,7 +99,7 @@
             </div>
         @endif
 
-        <form method="GET" class="grid gap-3 rounded-3xl border border-[#d9dee7] bg-white p-4 shadow-sm md:grid-cols-[minmax(0,1fr)_220px_180px_auto]">
+        <form method="GET" class="grid gap-3 rounded-3xl border border-[#d9dee7] bg-white p-4 shadow-sm md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_220px_220px_180px_auto]">
             <div>
                 <label for="search" class="mb-2 block text-sm font-medium text-[#3d4757]">Search</label>
                 <input id="search" name="search" value="{{ request('search') }}" type="text" placeholder="Participant, email, bib, event"
@@ -104,6 +111,19 @@
                     <option value="">All events</option>
                     @foreach ($events as $event)
                         <option value="{{ $event->id }}" @selected((string) request('event_id') === (string) $event->id)>{{ $event->title }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label for="category_id" class="mb-2 block text-sm font-medium text-[#3d4757]">Category</label>
+                <select id="category_id" name="category_id" class="h-11 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none">
+                    <option value="">All categories</option>
+                    @foreach ($categories->groupBy('event_id') as $eventCategories)
+                        <optgroup label="{{ $eventCategories->first()?->event?->title ?: 'Event' }}">
+                            @foreach ($eventCategories as $category)
+                                <option value="{{ $category->id }}" @selected((string) request('category_id') === (string) $category->id)>{{ $category->name }}</option>
+                            @endforeach
+                        </optgroup>
                     @endforeach
                 </select>
             </div>
