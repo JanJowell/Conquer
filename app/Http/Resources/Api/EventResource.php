@@ -75,6 +75,12 @@ class EventResource extends JsonResource
             'category_label' => $this->categorySectionLabel(),
             'type_details' => $this->type_details,
             'type_detail_items' => $this->formattedTypeDetails(),
+            'payment_options' => EventPaymentMethodResource::collection(
+                $this->relationLoaded('paymentMethods')
+                    ? $this->paymentMethods->where('is_enabled', true)->values()
+                    : collect()
+            ),
+            'payment_setup_needs_review' => (bool) $this->payment_setup_needs_review,
             'participants_count' => $this->when(
                 isset($this->participants_count),
                 (int) ($this->participants_count ?? 0)

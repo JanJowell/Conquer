@@ -60,12 +60,14 @@
                         @forelse ($categories as $category)
                             @php
                                 $paidCategory = ($category->price_cents ?? 0) > 0;
-                                $paymentReady = ! $paidCategory
-                                    || (
-                                        filled($category->payment_provider)
-                                        && filled($category->payment_account_name)
-                                        && (filled($category->payment_account_number) || filled($category->payment_instructions))
-                                    );
+                                $paymentReady = ! $paidCategory || $category->event?->hasUsablePaymentOptions(collect([$category]));
+                                $eventPaymentProviders = ($category->event?->paymentMethods ?? collect())
+                                    ->where('is_enabled', true)
+                                    ->pluck('provider')
+                                    ->join(', ');
+                                $legacyPaymentProvider = ($category->event?->paymentMethods ?? collect())->isEmpty()
+                                    ? $category->payment_provider_label
+                                    : null;
                                 $scheduledStartAt = $category->scheduledStartAt();
                             @endphp
                             <tr>
@@ -83,10 +85,10 @@
                                 <td class="px-6 py-5">
                                     @if (($category->price_cents ?? 0) > 0)
                                         <p class="font-semibold text-[#151b26]">{{ $category->price_currency ?? 'PHP' }} {{ number_format($category->price_cents / 100, 2) }}</p>
-                                        <p class="mt-1 text-xs text-[#6d7685]">{{ $category->payment_provider_label ?: 'No payment method set' }}</p>
+                                        <p class="mt-1 text-xs text-[#6d7685]">{{ $eventPaymentProviders ?: ($legacyPaymentProvider ?: 'No enabled event payment option') }}</p>
                                         @unless ($paymentReady)
                                             <p class="mt-2 inline-flex rounded-full border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-800">
-                                                Missing payment details
+                                                Missing event payment option
                                             </p>
                                         @endunless
                                     @else

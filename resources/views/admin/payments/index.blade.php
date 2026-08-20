@@ -143,8 +143,15 @@
                                 <td class="px-6 py-5">
                                     <p class="font-semibold text-[#151b26]">{{ $registration->payment_currency ?? 'PHP' }} {{ number_format(($registration->payment_amount_cents ?? 0) / 100, 2) }}</p>
                                     <p class="mt-1 text-xs text-[#6d7685]">{{ $registration->payment_required ? 'Required' : 'Not required' }}</p>
-                                    @if ($registration->category?->payment_provider)
-                                        <p class="mt-1 text-xs text-[#6d7685]">{{ $registration->category->payment_provider_label }}</p>
+                                    @php
+                                        $eventPaymentMethods = $registration->event?->paymentMethods ?? collect();
+                                        $paymentProviders = $eventPaymentMethods->where('is_enabled', true)->pluck('provider')->join(', ');
+                                        $legacyPaymentProvider = $eventPaymentMethods->isEmpty()
+                                            ? $registration->category?->payment_provider_label
+                                            : null;
+                                    @endphp
+                                    @if ($paymentProviders || $legacyPaymentProvider)
+                                        <p class="mt-1 text-xs text-[#6d7685]">{{ $paymentProviders ?: $legacyPaymentProvider }}</p>
                                     @endif
                                 </td>
                                 <td class="px-6 py-5">

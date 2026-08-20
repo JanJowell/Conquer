@@ -189,36 +189,6 @@
                     <p class="mt-2 text-xs text-[#6d7685]">Existing registrations keep their original payment amount.</p>
                 </div>
 
-                <div class="md:col-span-2 rounded-2xl border border-[#d9dee7] bg-[#fafbfc] p-4">
-                    <p class="mb-4 text-sm text-[#6d7685]">Required when the registration fee is greater than 0.00.</p>
-                    <div class="grid gap-5 md:grid-cols-3">
-                        <div>
-                            <label for="payment_provider" class="mb-2 block text-sm font-medium text-[#3d4757]">Payment Method</label>
-                            <select id="payment_provider" name="payment_provider" class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
-                                <option value="">Select method</option>
-                                @foreach ($paymentMethods as $value => $label)
-                                    <option value="{{ $value }}" @selected(old('payment_provider', \App\Models\Category::normalizePaymentProvider($category->payment_provider)) === $value)>{{ $label }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div>
-                            <label for="payment_account_name" class="mb-2 block text-sm font-medium text-[#3d4757]">Account Name</label>
-                            <input id="payment_account_name" name="payment_account_name" type="text" value="{{ old('payment_account_name', $category->payment_account_name) }}"
-                                class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
-                        </div>
-                        <div>
-                            <label for="payment_account_number" class="mb-2 block text-sm font-medium text-[#3d4757]">Account Number</label>
-                            <input id="payment_account_number" name="payment_account_number" type="text" value="{{ old('payment_account_number', $category->payment_account_number) }}"
-                                class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
-                        </div>
-                        <div class="md:col-span-3">
-                            <label for="payment_instructions" class="mb-2 block text-sm font-medium text-[#3d4757]">Payment Instructions</label>
-                            <textarea id="payment_instructions" name="payment_instructions" rows="4" placeholder="Tell runners how to pay and what proof/reference they should upload."
-                                class="w-full rounded-2xl border border-[#d9dee7] bg-white px-4 py-3 text-sm text-[#151b26] outline-none">{{ old('payment_instructions', $category->payment_instructions) }}</textarea>
-                        </div>
-                    </div>
-                </div>
-
                 <div>
                     <label for="status" class="mb-2 block text-sm font-medium text-[#3d4757]">Status</label>
                     <select id="status" name="status" class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none">

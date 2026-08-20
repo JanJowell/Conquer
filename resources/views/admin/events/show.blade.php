@@ -265,6 +265,42 @@
                 </div>
             </section>
 
+            <section class="rounded-3xl border border-[#d9dee7] bg-white p-6 shadow-sm">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <h2 class="text-xl font-semibold tracking-tight text-[#151b26]">Event Payment Options</h2>
+                        <p class="mt-1 text-sm text-[#6d7685]">Available to every paid category in this event.</p>
+                    </div>
+                    @if ($canManage)
+                        <a href="{{ route('admin.events.edit', $event) }}" class="text-sm font-semibold text-[#151b26]">Manage options</a>
+                    @endif
+                </div>
+                @if ($event->payment_setup_needs_review)
+                    <div class="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                        Conflicting legacy category accounts need administrator review.
+                    </div>
+                @endif
+                <div class="mt-5 grid gap-4 md:grid-cols-2">
+                    @forelse ($event->paymentMethods as $paymentMethod)
+                        <div class="rounded-2xl border border-[#eef1f4] bg-[#fafbfc] p-4">
+                            <div class="flex items-center justify-between gap-3">
+                                <p class="font-semibold text-[#151b26]">{{ \App\Models\EventPaymentMethod::providers()[$paymentMethod->provider] ?? $paymentMethod->provider }}</p>
+                                <span class="rounded-full px-2.5 py-1 text-xs font-semibold {{ $paymentMethod->is_enabled ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600' }}">{{ $paymentMethod->is_enabled ? 'Enabled' : 'Disabled' }}</span>
+                            </div>
+                            @unless ($paymentMethod->isOnlineCheckout())
+                                <p class="mt-3 text-sm text-[#202733]">{{ $paymentMethod->account_name ?: 'Account name not set' }}</p>
+                                <p class="mt-1 text-sm text-[#6d7685]">{{ $paymentMethod->account_number ?: 'Account number not set' }}</p>
+                            @endunless
+                            @if ($paymentMethod->instructions)
+                                <p class="mt-3 whitespace-pre-line text-xs leading-5 text-[#6d7685]">{{ $paymentMethod->instructions }}</p>
+                            @endif
+                        </div>
+                    @empty
+                        <p class="text-sm text-[#6d7685] md:col-span-2">No event payment options configured. Free categories are unaffected.</p>
+                    @endforelse
+                </div>
+            </section>
+
             <section class="rounded-3xl border border-[#d9dee7] bg-white shadow-sm">
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#eef1f4] px-6 py-4">
                     <h2 class="text-xl font-semibold tracking-tight text-[#151b26]">{{ $event->categorySectionLabel() }}</h2>

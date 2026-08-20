@@ -312,7 +312,7 @@ class PaymentController extends Controller
         $managedEventIds = $user->managedEventIds();
 
         return Registration::query()
-            ->with(['user', 'event', 'category', 'latestPayment', 'payments' => function ($query) {
+            ->with(['user', 'event.paymentMethods', 'category', 'latestPayment', 'payments' => function ($query) {
                 $query->latest();
             }])
             ->where(function ($query) {

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\RegistrationResource;
 use App\Models\Payment;
 use App\Models\Registration;
+use App\Models\EventPaymentMethod;
 use App\Services\PayMongoCheckoutService;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\JsonResponse;
@@ -76,6 +77,14 @@ class PaymentController extends Controller
         if ($registration->status !== 'pending') {
             return response()->json([
                 'message' => 'Online checkout can only be created while the registration is pending.',
+            ], 422);
+        }
+
+        $registration->loadMissing('event.paymentMethods');
+        if ($registration->event?->paymentMethods->isNotEmpty()
+            && ! $registration->event->paymentMethods->contains(fn ($method) => $method->is_enabled && $method->provider === 'PayMongo')) {
+            return response()->json([
+                'message' => 'PayMongo is not enabled for this event.',
             ], 422);
         }
 
@@ -188,10 +197,34 @@ class PaymentController extends Controller
             'notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $proofPath = $request->file('proof_image')?->store('payment-proofs', 'public');
-        $provider = trim($validated['provider'] ?? '') ?: 'manual';
+        $registration->loadMissing(['event.paymentMethods', 'category']);
+        $allOptions = $registration->event?->paymentMethods ?? collect();
+        $enabledOptions = $allOptions->where('is_enabled', true)->values();
+        $selectedOption = null;
 
-        DB::transaction(function () use ($registration, $validated, $proofPath, $provider) {
+        if ($allOptions->isNotEmpty()) {
+            if (blank($validated['provider'] ?? null)) {
+                return response()->json([
+                    'message' => 'Select one of the event payment options before submitting proof.',
+                ], 422);
+            }
+
+            $selectedOption = $enabledOptions->first(fn (EventPaymentMethod $method) =>
+                strtolower($method->provider) === strtolower(trim((string) $validated['provider']))
+            );
+
+            if (! $selectedOption || $selectedOption->isOnlineCheckout()) {
+                return response()->json([
+                    'message' => 'Select a valid manual payment option for this event.',
+                ], 422);
+            }
+        }
+
+        $proofPath = $request->file('proof_image')?->store('payment-proofs', 'public');
+        $provider = $selectedOption?->provider
+            ?? (trim($validated['provider'] ?? '') ?: ($registration->category?->payment_provider ?: 'manual'));
+
+        DB::transaction(function () use ($registration, $validated, $proofPath, $provider, $selectedOption) {
             $registration->update([
                 'payment_required' => true,
                 'payment_status' => Payment::STATUS_SUBMITTED,
@@ -213,6 +246,7 @@ class PaymentController extends Controller
                 'payload' => [
                     'notes' => $validated['notes'] ?? null,
                     'source' => 'mobile_payment_proof',
+                    'event_payment_method_id' => $selectedOption?->id,
                 ],
             ]);
         });

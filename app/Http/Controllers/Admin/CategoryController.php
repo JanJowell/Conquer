@@ -20,7 +20,7 @@ class CategoryController extends Controller
         $accessibleEventIds = $user->managedEventIds();
         $paymentMethods = Category::paymentMethods();
 
-        $categories = Category::with(['event', 'startedBy'])
+        $categories = Category::with(['event.paymentMethods', 'startedBy'])
             ->withCount(['registrations', 'raceResults'])
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($accessibleEventIds) {
                 $query->whereIn('event_id', $accessibleEventIds);
@@ -113,10 +113,6 @@ class CategoryController extends Controller
             return back()->withErrors($errors)->withInput();
         }
 
-        if ($errors = $this->paymentReadinessErrors($validated)) {
-            return back()->withErrors($errors)->withInput();
-        }
-
         $validated['type_details'] = $this->normalizedCategoryTypeDetails($event->interest_type, $validated['type_details'] ?? []);
         $validated['distance_km'] = Category::distanceFromTypeDetails($event->interest_type, $validated['type_details'])
             ?? $this->distanceValue($validated);
@@ -206,10 +202,6 @@ class CategoryController extends Controller
             $validated['scheduled_end_date'],
             $validated['scheduled_end_time']
         ))) {
-            return back()->withErrors($errors)->withInput();
-        }
-
-        if ($errors = $this->paymentReadinessErrors($validated)) {
             return back()->withErrors($errors)->withInput();
         }
 
@@ -445,29 +437,6 @@ class CategoryController extends Controller
         $data['price_currency'] = strtoupper($data['price_currency'] ?? 'PHP');
 
         unset($data['price_amount']);
-    }
-
-    private function paymentReadinessErrors(array $data): array
-    {
-        if ((float) ($data['price_amount'] ?? 0) <= 0) {
-            return [];
-        }
-
-        $errors = [];
-
-        if (blank($data['payment_provider'] ?? null)) {
-            $errors['payment_provider'] = 'Paid categories require a payment method.';
-        }
-
-        if (blank($data['payment_account_name'] ?? null)) {
-            $errors['payment_account_name'] = 'Paid categories require a payment account name.';
-        }
-
-        if (blank($data['payment_account_number'] ?? null) && blank($data['payment_instructions'] ?? null)) {
-            $errors['payment_account_number'] = 'Paid categories require an account number or clear payment instructions.';
-        }
-
-        return $errors;
     }
 
     private function categoryScheduleErrors(

@@ -25,6 +25,7 @@ class Event extends Model
         'organized_by',
         'interest_type',
         'type_details',
+        'payment_setup_needs_review',
         'manager_id',
     ];
 
@@ -37,6 +38,7 @@ class Event extends Model
             'start_time' => 'datetime:H:i',
             'end_time' => 'datetime:H:i',
             'type_details' => 'array',
+            'payment_setup_needs_review' => 'boolean',
         ];
     }
 
@@ -196,18 +198,13 @@ class Event extends Model
             $errors[] = 'add at least one open category';
         }
 
-        $incompletePaidCategories = $this->categories()
+        $paidOpenCategories = $this->categories()
             ->where('status', 'open')
             ->where('price_cents', '>', 0)
-            ->get()
-            ->filter(fn ($category) => blank($category->payment_provider)
-                || blank($category->payment_account_name)
-                || (blank($category->payment_account_number) && blank($category->payment_instructions)))
-            ->pluck('name')
-            ->values();
+            ->get();
 
-        if ($incompletePaidCategories->isNotEmpty()) {
-            $errors[] = 'complete payment details for paid open categories: '.$incompletePaidCategories->join(', ');
+        if ($paidOpenCategories->isNotEmpty() && ! $this->hasUsablePaymentOptions($paidOpenCategories)) {
+            $errors[] = 'add at least one enabled event payment option';
         }
 
         return $errors;
@@ -256,6 +253,41 @@ class Event extends Model
     public function categories()
     {
         return $this->hasMany(Category::class);
+    }
+
+    public function paymentMethods()
+    {
+        return $this->hasMany(EventPaymentMethod::class)
+            ->orderBy('sort_order')
+            ->orderBy('id');
+    }
+
+    public function enabledPaymentMethods()
+    {
+        return $this->paymentMethods()->where('is_enabled', true);
+    }
+
+    public function hasUsablePaymentOptions($paidCategories = null): bool
+    {
+        $eventMethods = $this->paymentMethods()->get();
+
+        if ($eventMethods->isNotEmpty()) {
+            return $eventMethods->contains(fn (EventPaymentMethod $method) => $method->is_enabled
+                && ($method->isOnlineCheckout()
+                    || (filled($method->account_name) && (filled($method->account_number) || filled($method->instructions)))));
+        }
+
+        // Temporary compatibility for events created before event-owned payment options.
+        $paidCategories ??= $this->categories()
+            ->where('status', 'open')
+            ->where('price_cents', '>', 0)
+            ->get();
+
+        return $paidCategories->isNotEmpty() && $paidCategories->every(fn (Category $category) =>
+            filled($category->payment_provider)
+            && filled($category->payment_account_name)
+            && (filled($category->payment_account_number) || filled($category->payment_instructions))
+        );
     }
 
     public function registrations()

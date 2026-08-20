@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Checkpoint;
 use App\Models\CommunityPost;
 use App\Models\Event;
+use App\Models\EventPaymentMethod;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -69,7 +70,7 @@ class EventController extends Controller
         $interestTypes = $this->eventInterestTypes();
         $categoryTypes = $this->categoryTypes();
         $distanceOptions = $this->distanceOptions();
-        $paymentMethods = Category::paymentMethods();
+        $paymentMethods = EventPaymentMethod::providers();
 
         $managers = User::query()
             ->whereIn('role', [User::ROLE_EVENT_MANAGER, User::ROLE_LEGACY_ADMIN])
@@ -85,6 +86,7 @@ class EventController extends Controller
 
         $event->load([
             'manager',
+            'paymentMethods',
             'categories' => fn ($query) => $query->withCount('registrations')->orderBy('distance_km'),
             'checkpoints' => fn ($query) => $query->orderBy('order')->orderBy('name'),
             'announcements' => fn ($query) => $query->latest()->take(5),
@@ -114,6 +116,7 @@ class EventController extends Controller
         $eventEndDate = $request->input('event_end_date', $eventStartDate);
         $request->merge([
             'event_end_date' => $eventEndDate,
+            'payment_methods' => $this->filledPaymentMethodRows($request->input('payment_methods', [])),
             'categories' => $this->categoryRowsWithScheduleDates(
                 $this->filledCategoryRows($request->input('categories', [])),
                 $eventStartDate
@@ -137,6 +140,13 @@ class EventController extends Controller
                 'nullable',
                 Rule::exists('users', 'id')->where(fn ($query) => $query->whereIn('role', [User::ROLE_EVENT_MANAGER, User::ROLE_LEGACY_ADMIN])),
             ],
+            'payment_methods_submitted' => ['nullable', 'boolean'],
+            'payment_methods' => ['nullable', 'array'],
+            'payment_methods.*.provider' => ['required', 'distinct', Rule::in(array_keys(EventPaymentMethod::providers()))],
+            'payment_methods.*.account_name' => ['nullable', 'string', 'max:255'],
+            'payment_methods.*.account_number' => ['nullable', 'string', 'max:255'],
+            'payment_methods.*.instructions' => ['nullable', 'string', 'max:5000'],
+            'payment_methods.*.is_enabled' => ['nullable', 'boolean'],
             'categories' => ['nullable', 'array'],
             'categories.*.category_type' => ['required', Rule::in(array_keys($this->categoryTypes()))],
             'categories.*.custom_category_name' => ['nullable', 'required_if:categories.*.category_type,custom', 'string', 'max:255'],
@@ -167,8 +177,14 @@ class EventController extends Controller
             return back()->withErrors($errors)->withInput();
         }
 
+        if ($errors = $this->paymentMethodSetupErrors($validated['payment_methods'] ?? [])) {
+            return back()->withErrors($errors)->withInput();
+        }
+
         $categoryRows = $validated['categories'] ?? [];
-        unset($validated['categories']);
+        $paymentMethodRows = $validated['payment_methods'] ?? [];
+        $paymentMethodsSubmitted = $request->boolean('payment_methods_submitted');
+        unset($validated['categories'], $validated['payment_methods'], $validated['payment_methods_submitted']);
         $this->normalizeTypeDetails($validated, $request);
 
         $validated['status'] = 'draft';
@@ -183,11 +199,15 @@ class EventController extends Controller
 
         unset($validated['banner_image_upload']);
 
-        $event = DB::transaction(function () use ($validated, $categoryRows) {
+        $event = DB::transaction(function () use ($validated, $categoryRows, $paymentMethodRows, $paymentMethodsSubmitted) {
             $event = Event::create([
                 ...$validated,
                 'slug' => Str::slug($validated['title'].'-'.time()),
             ]);
+
+            if ($paymentMethodsSubmitted) {
+                $this->syncPaymentMethods($event, $paymentMethodRows);
+            }
 
             $this->createCategoriesForEvent($event, $categoryRows);
             $event->refreshAutomaticStatus();
@@ -206,11 +226,12 @@ class EventController extends Controller
 
         $event->load([
             'categories' => fn ($query) => $query->withCount(['registrations', 'raceResults'])->orderBy('distance_km')->orderBy('name'),
+            'paymentMethods',
         ])->loadCount(['categories', 'registrations', 'raceResults']);
         $interestTypes = $this->eventInterestTypes();
         $categoryTypes = $this->categoryTypes();
         $distanceOptions = $this->distanceOptions();
-        $paymentMethods = Category::paymentMethods();
+        $paymentMethods = EventPaymentMethod::providers();
 
         $managers = User::query()
             ->whereIn('role', [User::ROLE_EVENT_MANAGER, User::ROLE_LEGACY_ADMIN])
@@ -230,6 +251,7 @@ class EventController extends Controller
         $eventEndDate = $request->input('event_end_date', $eventStartDate);
         $request->merge([
             'event_end_date' => $eventEndDate,
+            'payment_methods' => $this->filledPaymentMethodRows($request->input('payment_methods', [])),
             'categories' => $this->categoryRowsWithScheduleDates(
                 $this->filledCategoryRows($request->input('categories', [])),
                 $eventStartDate
@@ -253,6 +275,13 @@ class EventController extends Controller
                 'nullable',
                 Rule::exists('users', 'id')->where(fn ($query) => $query->whereIn('role', [User::ROLE_EVENT_MANAGER, User::ROLE_LEGACY_ADMIN])),
             ],
+            'payment_methods_submitted' => ['nullable', 'boolean'],
+            'payment_methods' => ['nullable', 'array'],
+            'payment_methods.*.provider' => ['required', 'distinct', Rule::in(array_keys(EventPaymentMethod::providers()))],
+            'payment_methods.*.account_name' => ['nullable', 'string', 'max:255'],
+            'payment_methods.*.account_number' => ['nullable', 'string', 'max:255'],
+            'payment_methods.*.instructions' => ['nullable', 'string', 'max:5000'],
+            'payment_methods.*.is_enabled' => ['nullable', 'boolean'],
             'categories' => ['nullable', 'array'],
             'categories.*.category_type' => ['required', Rule::in(array_keys($this->categoryTypes()))],
             'categories.*.custom_category_name' => ['nullable', 'required_if:categories.*.category_type,custom', 'string', 'max:255'],
@@ -283,12 +312,18 @@ class EventController extends Controller
             return back()->withErrors($errors)->withInput();
         }
 
+        if ($errors = $this->paymentMethodSetupErrors($validated['payment_methods'] ?? [])) {
+            return back()->withErrors($errors)->withInput();
+        }
+
         if ($errors = $this->existingCategoryScheduleErrors($event, $validated)) {
             return back()->withErrors($errors)->withInput();
         }
 
         $categoryRows = $validated['categories'] ?? [];
-        unset($validated['categories']);
+        $paymentMethodRows = $validated['payment_methods'] ?? [];
+        $paymentMethodsSubmitted = $request->boolean('payment_methods_submitted');
+        unset($validated['categories'], $validated['payment_methods'], $validated['payment_methods_submitted']);
         $this->normalizeTypeDetails($validated, $request, $event);
 
         if ($user->managesAssignedEventsOnly()) {
@@ -301,11 +336,15 @@ class EventController extends Controller
 
         unset($validated['banner_image_upload']);
 
-        DB::transaction(function () use ($event, $validated, $categoryRows) {
+        DB::transaction(function () use ($event, $validated, $categoryRows, $paymentMethodRows, $paymentMethodsSubmitted) {
             $event->update([
                 ...$validated,
                 'slug' => Str::slug($validated['title'].'-'.$event->id),
             ]);
+
+            if ($paymentMethodsSubmitted) {
+                $this->syncPaymentMethods($event, $paymentMethodRows);
+            }
 
             $this->createCategoriesForEvent($event, $categoryRows);
             $event->refreshAutomaticStatus();
@@ -480,6 +519,58 @@ class EventController extends Controller
             ->all();
     }
 
+    private function filledPaymentMethodRows(mixed $rows): array
+    {
+        if (! is_array($rows)) {
+            return [];
+        }
+
+        return collect($rows)
+            ->filter(fn ($row) => is_array($row) && filled($row['provider'] ?? null))
+            ->values()
+            ->all();
+    }
+
+    private function paymentMethodSetupErrors(array $rows): array
+    {
+        $errors = [];
+
+        foreach ($rows as $index => $row) {
+            if (($row['provider'] ?? null) === 'PayMongo') {
+                continue;
+            }
+
+            if (blank($row['account_name'] ?? null)) {
+                $errors["payment_methods.{$index}.account_name"] = 'Enter the account name for this payment option.';
+            }
+
+            if (blank($row['account_number'] ?? null) && blank($row['instructions'] ?? null)) {
+                $errors["payment_methods.{$index}.account_number"] = 'Enter an account number or clear payment instructions.';
+            }
+        }
+
+        return $errors;
+    }
+
+    private function syncPaymentMethods(Event $event, array $rows): void
+    {
+        $event->paymentMethods()->delete();
+
+        foreach (array_values($rows) as $index => $row) {
+            $event->paymentMethods()->create([
+                'provider' => $row['provider'],
+                'account_name' => $row['provider'] === 'PayMongo' ? null : ($row['account_name'] ?? null),
+                'account_number' => $row['provider'] === 'PayMongo' ? null : ($row['account_number'] ?? null),
+                'instructions' => $row['instructions'] ?? null,
+                'is_enabled' => filter_var($row['is_enabled'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                'sort_order' => $index,
+            ]);
+        }
+
+        $event->forceFill(['payment_setup_needs_review' => false])->save();
+        $event->unsetRelation('paymentMethods');
+    }
+
     private function filledCategoryRows(mixed $rows): array
     {
         if (! is_array($rows)) {
@@ -579,21 +670,6 @@ class EventController extends Controller
                 $errors["categories.{$index}.{$scheduleError['field']}"] = "Category {$number}: {$scheduleError['message']}";
             }
 
-            if ((float) ($row['price_amount'] ?? 0) <= 0) {
-                continue;
-            }
-
-            if (blank($row['payment_provider'] ?? null)) {
-                $errors["categories.{$index}.payment_provider"] = "Category {$number}: paid categories require a payment method.";
-            }
-
-            if (blank($row['payment_account_name'] ?? null)) {
-                $errors["categories.{$index}.payment_account_name"] = "Category {$number}: paid categories require a payment account name.";
-            }
-
-            if (blank($row['payment_account_number'] ?? null) && blank($row['payment_instructions'] ?? null)) {
-                $errors["categories.{$index}.payment_account_number"] = "Category {$number}: paid categories require an account number or clear payment instructions.";
-            }
         }
 
         return $errors;

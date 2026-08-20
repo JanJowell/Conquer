@@ -148,6 +148,132 @@
     </section>
 
     @php
+        $paymentMethodRows = old('payment_methods');
+        if ($paymentMethodRows === null) {
+            $paymentMethodRows = $event
+                ? $event->paymentMethods->map(fn ($method) => [
+                    'provider' => $method->provider,
+                    'account_name' => $method->account_name,
+                    'account_number' => $method->account_number,
+                    'instructions' => $method->instructions,
+                    'is_enabled' => $method->is_enabled ? '1' : '0',
+                ])->values()->all()
+                : [[
+                    'provider' => '',
+                    'account_name' => '',
+                    'account_number' => '',
+                    'instructions' => '',
+                    'is_enabled' => '1',
+                ]];
+        }
+
+        if ($paymentMethodRows === []) {
+            $paymentMethodRows = [[
+                'provider' => '',
+                'account_name' => '',
+                'account_number' => '',
+                'instructions' => '',
+                'is_enabled' => '1',
+            ]];
+        }
+    @endphp
+
+    <section class="md:col-span-2 rounded-3xl border border-[#d9dee7] bg-[#fafbfc] p-5">
+        <input type="hidden" name="payment_methods_submitted" value="1">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+                <h2 class="text-lg font-semibold tracking-tight text-[#151b26]">Event Payment Options</h2>
+                <p class="mt-1 text-sm leading-6 text-[#6d7685]">These options apply to every paid category. Category fees remain separate.</p>
+            </div>
+            <button type="button" data-add-payment-method class="inline-flex h-11 items-center justify-center rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm font-semibold text-[#151b26] transition hover:bg-[#f7f8fa]">
+                Add Payment Option
+            </button>
+        </div>
+
+        @if ($event?->payment_setup_needs_review)
+            <div class="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800">
+                Older categories used different accounts for the same provider. Review these event options and save the event to confirm which accounts participants should use. The old category data remains preserved.
+            </div>
+        @endif
+
+        <div data-payment-method-list class="mt-4 space-y-4">
+            @foreach ($paymentMethodRows as $index => $paymentMethodRow)
+                <div data-payment-method-row class="rounded-2xl border border-[#d9dee7] bg-white p-4">
+                    <div class="mb-4 flex items-center justify-between gap-3">
+                        <p class="text-sm font-semibold text-[#151b26]">Payment Option <span data-payment-method-number>{{ $index + 1 }}</span></p>
+                        <button type="button" data-remove-payment-method class="inline-flex h-9 items-center justify-center rounded-xl border border-rose-200 px-3 text-xs font-semibold text-rose-600 transition hover:bg-rose-50">Remove</button>
+                    </div>
+                    <div class="grid gap-4 md:grid-cols-3">
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Provider</label>
+                            <select name="payment_methods[{{ $index }}][provider]" data-payment-provider class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
+                                <option value="">Select provider</option>
+                                @foreach (($paymentMethods ?? []) as $value => $label)
+                                    <option value="{{ $value }}" @selected(($paymentMethodRow['provider'] ?? '') === $value)>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div data-manual-payment-field>
+                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Account Name</label>
+                            <input name="payment_methods[{{ $index }}][account_name]" type="text" value="{{ $paymentMethodRow['account_name'] ?? '' }}" class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
+                        </div>
+                        <div data-manual-payment-field>
+                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Account Number</label>
+                            <input name="payment_methods[{{ $index }}][account_number]" type="text" value="{{ $paymentMethodRow['account_number'] ?? '' }}" class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
+                        </div>
+                        <div class="md:col-span-3">
+                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Instructions</label>
+                            <textarea name="payment_methods[{{ $index }}][instructions]" rows="3" placeholder="Explain how to pay and what reference or proof to submit." class="w-full rounded-2xl border border-[#d9dee7] bg-white px-4 py-3 text-sm text-[#151b26] outline-none">{{ $paymentMethodRow['instructions'] ?? '' }}</textarea>
+                        </div>
+                        <label class="md:col-span-3 flex items-center gap-3 text-sm font-medium text-[#3d4757]">
+                            <input type="hidden" name="payment_methods[{{ $index }}][is_enabled]" value="0">
+                            <input name="payment_methods[{{ $index }}][is_enabled]" type="checkbox" value="1" @checked(($paymentMethodRow['is_enabled'] ?? '1') === '1') class="h-4 w-4 rounded border-[#cbd2dc]">
+                            Enabled for participants
+                        </label>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
+        <template data-payment-method-template>
+            <div data-payment-method-row class="rounded-2xl border border-[#d9dee7] bg-white p-4">
+                <div class="mb-4 flex items-center justify-between gap-3">
+                    <p class="text-sm font-semibold text-[#151b26]">Payment Option <span data-payment-method-number></span></p>
+                    <button type="button" data-remove-payment-method class="inline-flex h-9 items-center justify-center rounded-xl border border-rose-200 px-3 text-xs font-semibold text-rose-600 transition hover:bg-rose-50">Remove</button>
+                </div>
+                <div class="grid gap-4 md:grid-cols-3">
+                    <div>
+                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Provider</label>
+                        <select name="payment_methods[__PAYMENT_INDEX__][provider]" data-payment-provider class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
+                            <option value="">Select provider</option>
+                            @foreach (($paymentMethods ?? []) as $value => $label)
+                                <option value="{{ $value }}">{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div data-manual-payment-field>
+                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Account Name</label>
+                        <input name="payment_methods[__PAYMENT_INDEX__][account_name]" type="text" class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
+                    </div>
+                    <div data-manual-payment-field>
+                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Account Number</label>
+                        <input name="payment_methods[__PAYMENT_INDEX__][account_number]" type="text" class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
+                    </div>
+                    <div class="md:col-span-3">
+                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Instructions</label>
+                        <textarea name="payment_methods[__PAYMENT_INDEX__][instructions]" rows="3" placeholder="Explain how to pay and what reference or proof to submit." class="w-full rounded-2xl border border-[#d9dee7] bg-white px-4 py-3 text-sm text-[#151b26] outline-none"></textarea>
+                    </div>
+                    <label class="md:col-span-3 flex items-center gap-3 text-sm font-medium text-[#3d4757]">
+                        <input type="hidden" name="payment_methods[__PAYMENT_INDEX__][is_enabled]" value="0">
+                        <input name="payment_methods[__PAYMENT_INDEX__][is_enabled]" type="checkbox" value="1" checked class="h-4 w-4 rounded border-[#cbd2dc]">
+                        Enabled for participants
+                    </label>
+                </div>
+            </div>
+        </template>
+    </section>
+
+    @php
         $categoryRows = old('categories');
         if ($categoryRows === null) {
             $categoryRows = $event ? [] : [[
@@ -162,10 +288,6 @@
                 'slot_limit' => '',
                 'price_amount' => '0.00',
                 'price_currency' => 'PHP',
-                'payment_provider' => '',
-                'payment_account_name' => '',
-                'payment_account_number' => '',
-                'payment_instructions' => '',
                 'status' => 'open',
                 'description' => '',
             ]];
@@ -328,36 +450,6 @@
                             </select>
                         </div>
 
-                        <div class="md:col-span-2 rounded-2xl border border-[#eef1f4] bg-[#fafbfc] p-4">
-                            <p class="mb-4 text-sm text-[#6d7685]">Payment details are required when the registration fee is greater than 0.00.</p>
-                            <div class="grid gap-4 md:grid-cols-3">
-                                <div>
-                                    <label class="mb-2 block text-sm font-medium text-[#3d4757]">Payment Method</label>
-                                    <select name="categories[{{ $index }}][payment_provider]" class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
-                                        <option value="">Select method</option>
-                                        @foreach (($paymentMethods ?? []) as $value => $label)
-                                            <option value="{{ $value }}" @selected(($categoryRow['payment_provider'] ?? '') === $value)>{{ $label }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="mb-2 block text-sm font-medium text-[#3d4757]">Account Name</label>
-                                    <input name="categories[{{ $index }}][payment_account_name]" type="text" value="{{ $categoryRow['payment_account_name'] ?? '' }}"
-                                        class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
-                                </div>
-                                <div>
-                                    <label class="mb-2 block text-sm font-medium text-[#3d4757]">Account Number</label>
-                                    <input name="categories[{{ $index }}][payment_account_number]" type="text" value="{{ $categoryRow['payment_account_number'] ?? '' }}"
-                                        class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
-                                </div>
-                                <div class="md:col-span-3">
-                                    <label class="mb-2 block text-sm font-medium text-[#3d4757]">Payment Instructions</label>
-                                    <textarea name="categories[{{ $index }}][payment_instructions]" rows="3" placeholder="Tell runners how to pay and what proof/reference they should upload."
-                                        class="w-full rounded-2xl border border-[#d9dee7] bg-white px-4 py-3 text-sm text-[#151b26] outline-none">{{ $categoryRow['payment_instructions'] ?? '' }}</textarea>
-                                </div>
-                            </div>
-                        </div>
-
                         <div class="md:col-span-2">
                             <label class="mb-2 block text-sm font-medium text-[#3d4757]">Description</label>
                             <textarea name="categories[{{ $index }}][description]" rows="3" class="w-full rounded-2xl border border-[#d9dee7] bg-white px-4 py-3 text-sm text-[#151b26] outline-none">{{ $categoryRow['description'] ?? '' }}</textarea>
@@ -458,32 +550,6 @@
                                 <option value="{{ $status }}" @selected($status === 'open')>{{ str($status)->title() }}</option>
                             @endforeach
                         </select>
-                    </div>
-                    <div class="md:col-span-2 rounded-2xl border border-[#eef1f4] bg-[#fafbfc] p-4">
-                        <p class="mb-4 text-sm text-[#6d7685]">Payment details are required when the registration fee is greater than 0.00.</p>
-                        <div class="grid gap-4 md:grid-cols-3">
-                            <div>
-                                <label class="mb-2 block text-sm font-medium text-[#3d4757]">Payment Method</label>
-                                <select name="categories[__INDEX__][payment_provider]" class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
-                                    <option value="">Select method</option>
-                                    @foreach (($paymentMethods ?? []) as $value => $label)
-                                        <option value="{{ $value }}">{{ $label }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label class="mb-2 block text-sm font-medium text-[#3d4757]">Account Name</label>
-                                <input name="categories[__INDEX__][payment_account_name]" type="text" class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
-                            </div>
-                            <div>
-                                <label class="mb-2 block text-sm font-medium text-[#3d4757]">Account Number</label>
-                                <input name="categories[__INDEX__][payment_account_number]" type="text" class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
-                            </div>
-                            <div class="md:col-span-3">
-                                <label class="mb-2 block text-sm font-medium text-[#3d4757]">Payment Instructions</label>
-                                <textarea name="categories[__INDEX__][payment_instructions]" rows="3" placeholder="Tell runners how to pay and what proof/reference they should upload." class="w-full rounded-2xl border border-[#d9dee7] bg-white px-4 py-3 text-sm text-[#151b26] outline-none"></textarea>
-                            </div>
-                        </div>
                     </div>
                     <div class="md:col-span-2">
                         <label class="mb-2 block text-sm font-medium text-[#3d4757]">Description</label>
@@ -622,6 +688,60 @@
 
         eventTypeSelect?.addEventListener('change', refreshEventTypeDetails);
         refreshEventTypeDetails();
+
+        const paymentMethodList = document.querySelector('[data-payment-method-list]');
+        const paymentMethodTemplate = document.querySelector('[data-payment-method-template]');
+        const addPaymentMethodButton = document.querySelector('[data-add-payment-method]');
+        let nextPaymentMethodIndex = paymentMethodList
+            ? paymentMethodList.querySelectorAll('[data-payment-method-row]').length
+            : 0;
+
+        const refreshPaymentMethodNumbers = () => {
+            paymentMethodList?.querySelectorAll('[data-payment-method-row]').forEach((row, index) => {
+                const number = row.querySelector('[data-payment-method-number]');
+                if (number) number.textContent = index + 1;
+            });
+        };
+
+        const bindPaymentMethodRow = (row) => {
+            const provider = row.querySelector('[data-payment-provider]');
+            const removeButton = row.querySelector('[data-remove-payment-method]');
+            const refreshProviderFields = () => {
+                const online = provider?.value === 'PayMongo';
+                row.querySelectorAll('[data-manual-payment-field]').forEach((wrapper) => {
+                    wrapper.classList.toggle('hidden', online);
+                    wrapper.querySelectorAll('input, select, textarea').forEach((field) => {
+                        field.disabled = online;
+                    });
+                });
+            };
+
+            provider?.addEventListener('change', refreshProviderFields);
+            removeButton?.addEventListener('click', () => {
+                row.remove();
+                refreshPaymentMethodNumbers();
+            });
+            refreshProviderFields();
+        };
+
+        paymentMethodList?.querySelectorAll('[data-payment-method-row]').forEach(bindPaymentMethodRow);
+
+        addPaymentMethodButton?.addEventListener('click', () => {
+            if (! paymentMethodList || ! paymentMethodTemplate) return;
+
+            const html = paymentMethodTemplate.innerHTML.replaceAll('__PAYMENT_INDEX__', nextPaymentMethodIndex);
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = html.trim();
+            const row = wrapper.firstElementChild;
+            if (! row) return;
+
+            paymentMethodList.appendChild(row);
+            bindPaymentMethodRow(row);
+            nextPaymentMethodIndex += 1;
+            refreshPaymentMethodNumbers();
+        });
+
+        refreshPaymentMethodNumbers();
 
         const list = document.querySelector('[data-category-list]');
         const template = document.querySelector('[data-category-template]');

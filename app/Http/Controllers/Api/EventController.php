@@ -31,9 +31,11 @@ class EventController extends Controller
             : [];
 
         $events = Event::with([
+            'paymentMethods',
             'categories' => fn ($query) => $query
                 ->where('status', 'open')
                 ->withCount(['registrations' => fn ($registrationQuery) => $registrationQuery->where('status', '!=', 'rejected')]),
+            'categories.event.paymentMethods',
         ])
             ->withCount(['registrations' => fn ($query) => $query->where('status', '!=', 'rejected')])
             ->withAggregate(
@@ -45,7 +47,7 @@ class EventController extends Controller
                 $query->with([
                     'currentUserRegistrations' => fn ($registrationQuery) => $registrationQuery
                         ->where('user_id', $user->id)
-                        ->with(['category.event', 'latestPayment'])
+                        ->with(['category.event.paymentMethods', 'latestPayment'])
                         ->latest('registered_at'),
                 ]);
             })
@@ -104,9 +106,11 @@ class EventController extends Controller
         $user = app(MobileRecommendationContext::class)->userFromBearerToken($request);
 
         $event->load([
+            'paymentMethods',
             'categories' => fn ($query) => $query
                 ->where('status', 'open')
                 ->withCount(['registrations' => fn ($registrationQuery) => $registrationQuery->where('status', '!=', 'rejected')]),
+            'categories.event.paymentMethods',
             'announcements' => fn ($query) => $query->active()->latest(),
         ])->loadCount(['registrations' => fn ($query) => $query->where('status', '!=', 'rejected')]);
 
@@ -126,7 +130,7 @@ class EventController extends Controller
             $event->load([
                 'currentUserRegistrations' => fn ($query) => $query
                     ->where('user_id', $user->id)
-                    ->with(['category.event', 'latestPayment'])
+                    ->with(['category.event.paymentMethods', 'latestPayment'])
                     ->latest('registered_at'),
             ]);
         }

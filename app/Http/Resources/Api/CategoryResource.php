@@ -10,6 +10,26 @@ class CategoryResource extends JsonResource
     public function toArray(Request $request): array
     {
         $registeredCount = $this->whenCounted('registrations');
+        $allEventPaymentMethods = $this->event
+            ? ($this->event->relationLoaded('paymentMethods')
+                ? $this->event->paymentMethods
+                : $this->event->paymentMethods()->get())
+            : collect();
+        $eventPaymentMethods = $allEventPaymentMethods->where('is_enabled', true)->values();
+        $fallbackPaymentMethod = $eventPaymentMethods->first(fn ($method) => ! $method->isOnlineCheckout());
+        $legacyPaymentInstructions = $allEventPaymentMethods->isEmpty() && filled($this->payment_provider)
+            ? [
+                'provider' => $this->payment_provider,
+                'account_name' => $this->payment_account_name,
+                'account_number' => $this->payment_account_number,
+                'instructions' => $this->payment_instructions,
+            ]
+            : ($fallbackPaymentMethod ? [
+                'provider' => $fallbackPaymentMethod->provider,
+                'account_name' => $fallbackPaymentMethod->account_name,
+                'account_number' => $fallbackPaymentMethod->account_number,
+                'instructions' => $fallbackPaymentMethod->instructions,
+            ] : null);
 
         return [
             'id' => $this->id,
@@ -25,12 +45,10 @@ class CategoryResource extends JsonResource
             'price_amount' => number_format(($this->price_cents ?? 0) / 100, 2, '.', ''),
             'price_currency' => $this->price_currency ?? 'PHP',
             'is_free' => (int) ($this->price_cents ?? 0) === 0,
-            'payment_instructions' => (int) ($this->price_cents ?? 0) > 0 ? [
-                'provider' => $this->payment_provider,
-                'account_name' => $this->payment_account_name,
-                'account_number' => $this->payment_account_number,
-                'instructions' => $this->payment_instructions,
-            ] : null,
+            'payment_instructions' => (int) ($this->price_cents ?? 0) > 0 ? $legacyPaymentInstructions : null,
+            'payment_options' => (int) ($this->price_cents ?? 0) > 0
+                ? EventPaymentMethodResource::collection($eventPaymentMethods)
+                : [],
             'registered_count' => $registeredCount,
             'slots_remaining' => is_int($registeredCount) && $this->slot_limit !== null
                 ? max($this->slot_limit - $registeredCount, 0)
