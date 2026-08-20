@@ -43,6 +43,7 @@
                         <div>
                             <p class="font-semibold text-[#151b26]">{{ $raceCategory->event?->title }} · {{ $raceCategory->name }}</p>
                             <p class="mt-1 text-xs text-[#6d7685]">{{ number_format($raceCategory->checked_in_count) }} checked-in/completed · {{ number_format($raceCategory->race_results_count) }} results</p>
+                            <p class="mt-1 text-xs font-medium text-[#4f5a6a]">Scheduled {{ $scheduledStartAt?->format('M j, Y g:i A') ?: 'time not set' }}</p>
                         </div>
                         <div>
                             @if ($raceCategory->started_at)

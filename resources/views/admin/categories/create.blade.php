@@ -8,6 +8,7 @@
         $selectedCategoryEvent = $events->first(fn ($item) => (string) $item->id === $selectedEventId) ?? $events->first();
         $initialCategoryLabel = $selectedCategoryEvent?->categorySectionLabel() ?? 'Registration Categories';
         $categoryLabelsByEvent = $events->mapWithKeys(fn ($item) => [(string) $item->id => $item->categorySectionLabel()]);
+        $eventStartTimes = $events->mapWithKeys(fn ($item) => [(string) $item->id => $item->start_time?->format('H:i')]);
     @endphp
     <div class="mx-auto max-w-4xl space-y-6">
         <div>
@@ -81,6 +82,13 @@
                     <label for="custom_distance_km" class="mb-2 block text-sm font-medium text-[#3d4757]">Custom Distance (km)</label>
                     <input id="custom_distance_km" name="custom_distance_km" type="number" step="0.01" min="0.01" value="{{ old('custom_distance_km') }}"
                         class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none">
+                </div>
+
+                <div>
+                    <label for="scheduled_start_time" class="mb-2 block text-sm font-medium text-[#3d4757]">Scheduled Start Time</label>
+                    <input id="scheduled_start_time" name="scheduled_start_time" type="time" value="{{ old('scheduled_start_time', $selectedCategoryEvent?->start_time?->format('H:i')) }}" required
+                        class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none">
+                    <p class="mt-2 text-xs text-[#6d7685]">The Start Category button becomes available at this planned time.</p>
                 </div>
 
                 <div>
@@ -159,6 +167,8 @@
         const eventSelect = document.getElementById('event_id');
         const categoryPageHeading = document.querySelector('[data-category-page-heading]');
         const categoryLabelsByEvent = @json($categoryLabelsByEvent);
+        const eventStartTimes = @json($eventStartTimes);
+        const scheduledStartTime = document.getElementById('scheduled_start_time');
         const categoryType = document.getElementById('category_type');
         const customCategoryWrapper = document.getElementById('custom-category-wrapper');
         const distanceOption = document.getElementById('distance_option');
@@ -167,6 +177,10 @@
         eventSelect?.addEventListener('change', () => {
             if (categoryPageHeading) {
                 categoryPageHeading.textContent = categoryLabelsByEvent[eventSelect.value] || 'Registration Categories';
+            }
+
+            if (scheduledStartTime) {
+                scheduledStartTime.value = eventStartTimes[eventSelect.value] || '';
             }
         });
 

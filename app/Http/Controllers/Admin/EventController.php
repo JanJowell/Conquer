@@ -133,6 +133,7 @@ class EventController extends Controller
             'categories.*.custom_category_name' => ['nullable', 'required_if:categories.*.category_type,custom', 'string', 'max:255'],
             'categories.*.distance_option' => ['required', Rule::in(array_keys($this->distanceOptions()))],
             'categories.*.custom_distance_km' => ['nullable', 'required_if:categories.*.distance_option,custom', 'numeric', 'min:0.01'],
+            'categories.*.scheduled_start_time' => ['required', 'date_format:H:i'],
             'categories.*.description' => ['nullable', 'string'],
             'categories.*.slot_limit' => ['nullable', 'integer', 'min:1'],
             'categories.*.price_amount' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
@@ -145,7 +146,7 @@ class EventController extends Controller
             ...$this->typeDetailValidationRules($request),
         ]);
 
-        if ($errors = $this->categorySetupErrors($validated['categories'] ?? [])) {
+        if ($errors = $this->categorySetupErrors($validated['categories'] ?? [], $validated['start_time'] ?? null, $validated['end_time'] ?? null)) {
             return back()->withErrors($errors)->withInput();
         }
 
@@ -232,6 +233,7 @@ class EventController extends Controller
             'categories.*.custom_category_name' => ['nullable', 'required_if:categories.*.category_type,custom', 'string', 'max:255'],
             'categories.*.distance_option' => ['required', Rule::in(array_keys($this->distanceOptions()))],
             'categories.*.custom_distance_km' => ['nullable', 'required_if:categories.*.distance_option,custom', 'numeric', 'min:0.01'],
+            'categories.*.scheduled_start_time' => ['required', 'date_format:H:i'],
             'categories.*.description' => ['nullable', 'string'],
             'categories.*.slot_limit' => ['nullable', 'integer', 'min:1'],
             'categories.*.price_amount' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
@@ -244,7 +246,11 @@ class EventController extends Controller
             ...$this->typeDetailValidationRules($request),
         ]);
 
-        if ($errors = $this->categorySetupErrors($validated['categories'] ?? [])) {
+        if ($errors = $this->categorySetupErrors($validated['categories'] ?? [], $validated['start_time'] ?? null, $validated['end_time'] ?? null)) {
+            return back()->withErrors($errors)->withInput();
+        }
+
+        if ($errors = $this->existingCategoryScheduleErrors($event, $validated['start_time'] ?? null, $validated['end_time'] ?? null)) {
             return back()->withErrors($errors)->withInput();
         }
 
@@ -431,11 +437,12 @@ class EventController extends Controller
                 'payment_account_number' => $row['payment_account_number'] ?? null,
                 'payment_instructions' => $row['payment_instructions'] ?? null,
                 'status' => $row['status'] ?? 'open',
+                'scheduled_start_time' => $row['scheduled_start_time'],
             ]);
         }
     }
 
-    private function categorySetupErrors(array $rows): array
+    private function categorySetupErrors(array $rows, ?string $eventStartTime = null, ?string $eventEndTime = null): array
     {
         $errors = [];
 
@@ -448,6 +455,16 @@ class EventController extends Controller
 
             if (($row['distance_option'] ?? null) === 'custom' && blank($row['custom_distance_km'] ?? null)) {
                 $errors["categories.{$index}.custom_distance_km"] = "Category {$number}: enter a custom distance.";
+            }
+
+            $scheduledStartTime = $row['scheduled_start_time'] ?? null;
+
+            if ($scheduledStartTime && $eventStartTime && $scheduledStartTime < $eventStartTime) {
+                $errors["categories.{$index}.scheduled_start_time"] = "Category {$number}: scheduled start cannot be before the event start time.";
+            }
+
+            if ($scheduledStartTime && $eventEndTime && $scheduledStartTime > $eventEndTime) {
+                $errors["categories.{$index}.scheduled_start_time"] = "Category {$number}: scheduled start cannot be after the event end time.";
             }
 
             if ((float) ($row['price_amount'] ?? 0) <= 0) {
@@ -468,6 +485,29 @@ class EventController extends Controller
         }
 
         return $errors;
+    }
+
+    private function existingCategoryScheduleErrors(Event $event, ?string $eventStartTime, ?string $eventEndTime): array
+    {
+        $event->loadMissing('categories');
+
+        foreach ($event->categories as $category) {
+            $scheduledStartTime = $category->scheduled_start_time?->format('H:i');
+
+            if (! $scheduledStartTime) {
+                continue;
+            }
+
+            if ($eventStartTime && $scheduledStartTime < $eventStartTime) {
+                return ['start_time' => "The event cannot start after the scheduled start of {$category->name} ({$category->scheduled_start_time->format('g:i A')})."];
+            }
+
+            if ($eventEndTime && $scheduledStartTime > $eventEndTime) {
+                return ['end_time' => "The event cannot end before the scheduled start of {$category->name} ({$category->scheduled_start_time->format('g:i A')})."];
+            }
+        }
+
+        return [];
     }
 
     private function categoryTypeName(array $data): string

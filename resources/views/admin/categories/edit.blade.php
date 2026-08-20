@@ -18,7 +18,7 @@
 
         @if ($categoryInUse)
             <div class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800">
-                This category already has registrations or results, so distance and type are locked. You can still update status, slots, fee, and description for future registrations.
+                This category already has registrations or results, so distance and type are locked. You can still update its scheduled start before the race begins, along with status, slots, fee, and description.
             </div>
         @endif
 
@@ -84,6 +84,20 @@
                             class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none">
                     </div>
                 @endif
+
+                <div>
+                    <p class="mb-2 block text-sm font-medium text-[#3d4757]">Scheduled Start Time</p>
+                    @if ($category->started_at)
+                        <p class="flex h-12 items-center rounded-2xl border border-[#d9dee7] bg-[#f8f9fb] px-4 text-sm font-semibold text-[#151b26]">
+                            {{ $category->scheduled_start_time?->format('g:i A') ?: ($category->event?->start_time?->format('g:i A') ?? 'Not set') }}
+                        </p>
+                        <p class="mt-2 text-xs text-[#6d7685]">Locked because this category has already started.</p>
+                    @else
+                        <input id="scheduled_start_time" name="scheduled_start_time" type="time" value="{{ old('scheduled_start_time', $category->scheduled_start_time?->format('H:i') ?? $category->event?->start_time?->format('H:i')) }}" required
+                            class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none">
+                        <p class="mt-2 text-xs text-[#6d7685]">The Start Category button becomes available at this planned time.</p>
+                    @endif
+                </div>
 
                 <div>
                     <label for="slot_limit" class="mb-2 block text-sm font-medium text-[#3d4757]">Slot Limit</label>

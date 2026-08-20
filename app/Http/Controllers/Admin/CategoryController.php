@@ -69,6 +69,7 @@ class CategoryController extends Controller
             'custom_category_name' => ['nullable', 'required_if:category_type,custom', 'string', 'max:255'],
             'distance_option' => ['required', Rule::in(array_keys($this->distanceOptions()))],
             'custom_distance_km' => ['nullable', 'required_if:distance_option,custom', 'numeric', 'min:0.01'],
+            'scheduled_start_time' => ['required', 'date_format:H:i'],
             'description' => ['nullable', 'string'],
             'slot_limit' => ['nullable', 'integer', 'min:1'],
             'price_amount' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
@@ -79,6 +80,12 @@ class CategoryController extends Controller
             'payment_instructions' => ['nullable', 'string', 'max:5000'],
             'status' => ['required', 'in:open,closed,draft'],
         ]);
+
+        $event = Event::query()->whereIn('id', $accessibleEventIds)->findOrFail($validated['event_id']);
+
+        if ($errors = $this->categoryScheduleErrors($event, $validated['scheduled_start_time'])) {
+            return back()->withErrors($errors)->withInput();
+        }
 
         if ($errors = $this->paymentReadinessErrors($validated)) {
             return back()->withErrors($errors)->withInput();
@@ -118,6 +125,7 @@ class CategoryController extends Controller
         $categoryInUse = $category->registrations_count > 0 || $category->race_results_count > 0;
 
         $rules = [
+            ...($category->started_at ? [] : ['scheduled_start_time' => ['required', 'date_format:H:i']]),
             'description' => ['nullable', 'string'],
             'slot_limit' => ['nullable', 'integer', 'min:1'],
             'price_amount' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
@@ -140,6 +148,10 @@ class CategoryController extends Controller
         }
 
         $validated = $request->validate($rules);
+
+        if (! $category->started_at && ($errors = $this->categoryScheduleErrors($category->event, $validated['scheduled_start_time']))) {
+            return back()->withErrors($errors)->withInput();
+        }
 
         if ($errors = $this->paymentReadinessErrors($validated)) {
             return back()->withErrors($errors)->withInput();
@@ -199,11 +211,11 @@ class CategoryController extends Controller
         $scheduledStartAt = $category->scheduledStartAt();
 
         if (! $scheduledStartAt) {
-            return back()->with('error', 'Set the event date and general start time before starting a category.');
+            return back()->with('error', 'Set the event date and category scheduled start time before starting this category.');
         }
 
         if (now()->lt($scheduledStartAt)) {
-            return back()->with('error', 'This category cannot start before the event schedule begins at '.$scheduledStartAt->format('M j, Y g:i A').'.');
+            return back()->with('error', 'This category cannot start before its scheduled time at '.$scheduledStartAt->format('M j, Y g:i A').'.');
         }
 
         $startedAt = now();
@@ -361,5 +373,25 @@ class CategoryController extends Controller
         }
 
         return $errors;
+    }
+
+    private function categoryScheduleErrors(?Event $event, string $scheduledStartTime): array
+    {
+        if (! $event) {
+            return ['event_id' => 'Select a valid event for this category.'];
+        }
+
+        $eventStartTime = $event->start_time?->format('H:i');
+        $eventEndTime = $event->end_time?->format('H:i');
+
+        if ($eventStartTime && $scheduledStartTime < $eventStartTime) {
+            return ['scheduled_start_time' => 'The category scheduled start cannot be before the event start time.'];
+        }
+
+        if ($eventEndTime && $scheduledStartTime > $eventEndTime) {
+            return ['scheduled_start_time' => 'The category scheduled start cannot be after the event end time.'];
+        }
+
+        return [];
     }
 }

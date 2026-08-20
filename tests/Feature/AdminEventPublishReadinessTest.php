@@ -188,6 +188,7 @@ test('an event can be created with embedded open categories', function () {
             [
                 'category_type' => 'open',
                 'distance_option' => '5',
+                'scheduled_start_time' => '06:00',
                 'slot_limit' => 100,
                 'price_amount' => '0.00',
                 'price_currency' => 'PHP',
@@ -196,6 +197,7 @@ test('an event can be created with embedded open categories', function () {
             [
                 'category_type' => 'female',
                 'distance_option' => '10',
+                'scheduled_start_time' => '06:30',
                 'slot_limit' => 50,
                 'price_amount' => '250.00',
                 'price_currency' => 'PHP',

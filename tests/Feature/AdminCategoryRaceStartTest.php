@@ -89,6 +89,32 @@ test('a category cannot start before the general event schedule or while in draf
     expect($category->fresh()->started_at)->toBeNull();
 });
 
+test('a category uses its own scheduled start instead of the general event start', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $raceNow = Carbon::parse('2026-08-15 06:15:00', config('app.timezone'));
+    $this->travelTo($raceNow);
+    $event = categoryRaceEvent($admin, $raceNow->copy()->subMinutes(15));
+    $category = categoryRaceCategory($event, ['scheduled_start_time' => '06:30']);
+
+    $this
+        ->actingAs($admin)
+        ->post(route('admin.categories.start', $category))
+        ->assertRedirect()
+        ->assertSessionHas('error');
+
+    expect($category->fresh()->started_at)->toBeNull();
+
+    $this->travelTo(Carbon::parse('2026-08-15 06:30:00', config('app.timezone')));
+
+    $this
+        ->actingAs($admin)
+        ->post(route('admin.categories.start', $category))
+        ->assertRedirect()
+        ->assertSessionHas('success');
+
+    expect($category->fresh()->started_at->format('H:i:s'))->toBe('06:30:00');
+});
+
 test('event managers cannot start categories assigned to another manager', function () {
     $assignedManager = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $otherManager = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
