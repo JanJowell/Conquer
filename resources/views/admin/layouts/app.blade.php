@@ -375,7 +375,6 @@
                     'items' => [
                         ['route' => route('admin.events.index'), 'match' => 'admin.events.*', 'icon' => 'fa-calendar-days', 'label' => 'Events'],
                         ['route' => route('admin.check-in.index'), 'match' => 'admin.check-in.*', 'icon' => 'fa-clipboard-check', 'label' => 'Check-in'],
-                        ['route' => route('admin.content.checkpoints'), 'match' => 'admin.content.checkpoints*', 'icon' => 'fa-file-lines', 'label' => 'Checkpoints'],
                         ['route' => route('admin.payments.index'), 'match' => 'admin.payments.*', 'icon' => 'fa-credit-card', 'label' => 'Payments'],
                         ['route' => route('admin.results.index'), 'match' => 'admin.results.*', 'icon' => 'fa-trophy', 'label' => 'Results'],
                         ['route' => route('admin.e-badges.index'), 'match' => 'admin.e-badges.*', 'icon' => 'fa-award', 'label' => 'E-Badges'],
@@ -416,7 +415,6 @@
                 ['route' => route('admin.results.index'), 'match' => 'admin.results.*', 'icon' => 'fa-trophy', 'label' => 'Results'],
                 ['route' => route('admin.e-badges.index'), 'match' => 'admin.e-badges.*', 'icon' => 'fa-award', 'label' => 'E-Badges'],
                 ['route' => route('admin.announcements.index'), 'match' => 'admin.announcements.*', 'icon' => 'fa-bullhorn', 'label' => 'Announcements'],
-                ['route' => route('admin.content.checkpoints'), 'match' => 'admin.content.checkpoints*', 'icon' => 'fa-location-dot', 'label' => 'Checkpoints'],
                 ['route' => route('admin.reports'), 'match' => 'admin.reports', 'icon' => 'fa-chart-line', 'label' => 'Reports'],
                 ['route' => route('admin.feedback-insights'), 'match' => 'admin.feedback-insights', 'icon' => 'fa-message', 'label' => 'Feedback'],
             ],
@@ -438,8 +436,6 @@
             $successCreateAction = ['label' => 'Create another category', 'url' => route('admin.categories.create')];
         } elseif ($currentRouteName === 'admin.content.training-modules' && \Illuminate\Support\Facades\Route::has('admin.content.training-modules.create')) {
             $successCreateAction = ['label' => 'Create another training module', 'url' => route('admin.content.training-modules.create')];
-        } elseif ($currentRouteName === 'admin.content.checkpoints' && \Illuminate\Support\Facades\Route::has('admin.content.checkpoints.create')) {
-            $successCreateAction = ['label' => 'Create another checkpoint', 'url' => route('admin.content.checkpoints.create')];
         }
     @endphp
 

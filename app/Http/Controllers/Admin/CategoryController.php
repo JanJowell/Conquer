@@ -9,8 +9,10 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Throwable;
 
 class CategoryController extends Controller
 {
@@ -91,6 +93,8 @@ class CategoryController extends Controller
             'scheduled_end_time' => ['required', 'date_format:H:i'],
             'description' => ['nullable', 'string'],
             'qualification_notes' => ['nullable', 'string', 'max:5000'],
+            'requires_medical_certificate' => ['sometimes', 'boolean'],
+            'checkpoint_map_image_upload' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'slot_limit' => ['nullable', 'integer', 'min:1'],
             'price_amount' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
             'price_currency' => ['required', 'string', 'size:3'],
@@ -121,8 +125,30 @@ class CategoryController extends Controller
         $this->applyPriceFields($validated);
         unset($validated['category_type'], $validated['custom_category_name'], $validated['distance_option'], $validated['custom_distance_km']);
 
-        $category = Category::create($validated);
-        $category->event?->refreshAutomaticStatus();
+        $checkpointMapPath = null;
+
+        try {
+            if ($request->hasFile('checkpoint_map_image_upload')) {
+                $checkpointMapPath = $request->file('checkpoint_map_image_upload')
+                    ->store('categories/checkpoint-maps', 'public');
+                $validated['checkpoint_map_image'] = $checkpointMapPath;
+            }
+
+            unset($validated['checkpoint_map_image_upload']);
+
+            $category = DB::transaction(function () use ($validated) {
+                $category = Category::create($validated);
+                $category->event?->refreshAutomaticStatus();
+
+                return $category;
+            });
+        } catch (Throwable $exception) {
+            if ($checkpointMapPath) {
+                Storage::disk('public')->delete($checkpointMapPath);
+            }
+
+            throw $exception;
+        }
 
         return redirect()
             ->route('admin.categories.index', ['event_id' => $validated['event_id']])
@@ -174,6 +200,9 @@ class CategoryController extends Controller
             ]),
             'description' => ['nullable', 'string'],
             'qualification_notes' => ['nullable', 'string', 'max:5000'],
+            'requires_medical_certificate' => ['sometimes', 'boolean'],
+            'checkpoint_map_image_upload' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'remove_checkpoint_map_image' => ['sometimes', 'boolean'],
             'slot_limit' => ['nullable', 'integer', 'min:1'],
             'price_amount' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
             'price_currency' => ['required', 'string', 'size:3'],
@@ -238,8 +267,39 @@ class CategoryController extends Controller
 
         $this->applyPriceFields($validated);
 
-        $category->update($validated);
-        $category->event?->refreshAutomaticStatus();
+        if ($categoryInUse) {
+            $validated['requires_medical_certificate'] = $category->requiresMedicalCertificate();
+        }
+
+        $oldCheckpointMapPath = $category->checkpoint_map_image;
+        $newCheckpointMapPath = null;
+
+        try {
+            if ($request->hasFile('checkpoint_map_image_upload')) {
+                $newCheckpointMapPath = $request->file('checkpoint_map_image_upload')
+                    ->store('categories/checkpoint-maps', 'public');
+                $validated['checkpoint_map_image'] = $newCheckpointMapPath;
+            } elseif ($request->boolean('remove_checkpoint_map_image')) {
+                $validated['checkpoint_map_image'] = null;
+            }
+
+            unset($validated['checkpoint_map_image_upload'], $validated['remove_checkpoint_map_image']);
+
+            DB::transaction(function () use ($category, $validated) {
+                $category->update($validated);
+                $category->event?->refreshAutomaticStatus();
+            });
+        } catch (Throwable $exception) {
+            if ($newCheckpointMapPath) {
+                Storage::disk('public')->delete($newCheckpointMapPath);
+            }
+
+            throw $exception;
+        }
+
+        if ($oldCheckpointMapPath && $oldCheckpointMapPath !== $category->fresh()->checkpoint_map_image) {
+            Storage::disk('public')->delete($oldCheckpointMapPath);
+        }
 
         return redirect()
             ->route('admin.categories.index', ['event_id' => $category->event_id])
@@ -258,8 +318,14 @@ class CategoryController extends Controller
         }
 
         $event = $category->event;
+        $checkpointMapPath = $category->checkpoint_map_image;
 
         $category->delete();
+
+        if ($checkpointMapPath) {
+            Storage::disk('public')->delete($checkpointMapPath);
+        }
+
         $event?->refreshAutomaticStatus();
 
         return back()->with('success', $hasRecords

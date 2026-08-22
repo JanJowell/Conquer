@@ -291,6 +291,7 @@
                 'status' => 'open',
                 'description' => '',
                 'qualification_notes' => '',
+                'requires_medical_certificate' => false,
             ]];
         }
     @endphp
@@ -322,6 +323,9 @@
                             <div>
                                 <p class="font-semibold text-[#151b26]">{{ $existingCategory->name }}</p>
                                 <p class="mt-1 text-xs text-[#6d7685]">{{ number_format((float) $existingCategory->distance_km, 2) }} km{{ $existingCategory->slot_limit ? ' - ' . number_format($existingCategory->slot_limit) . ' slots' : '' }}</p>
+                                <p class="mt-1 text-xs {{ $existingCategory->checkpoint_map_image ? 'font-semibold text-emerald-700' : 'text-[#6d7685]' }}">
+                                    {{ $existingCategory->checkpoint_map_image ? 'Course map uploaded' : 'No course map' }}
+                                </p>
                             </div>
                             <p>{{ $existingCategory->scheduledStartAt()?->format('M j, g:i A') ?? 'Not set' }}</p>
                             <p>{{ $existingCategory->scheduledEndAt()?->format('M j, g:i A') ?? 'Not set' }}</p>
@@ -453,6 +457,25 @@
                             <label class="mb-2 block text-sm font-medium text-[#3d4757]">Slot Limit</label>
                             <input name="categories[{{ $index }}][slot_limit]" type="number" min="1" value="{{ $categoryRow['slot_limit'] ?? '' }}"
                                 class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
+                        </div>
+
+                        <div class="rounded-2xl border border-[#d9dee7] bg-[#fafbfc] p-4">
+                            <input type="hidden" name="categories[{{ $index }}][requires_medical_certificate]" value="0">
+                            <label class="flex cursor-pointer items-start gap-3">
+                                <input name="categories[{{ $index }}][requires_medical_certificate]" type="checkbox" value="1" @checked(filter_var($categoryRow['requires_medical_certificate'] ?? false, FILTER_VALIDATE_BOOLEAN))
+                                    class="mt-1 h-4 w-4 rounded border-[#c8cfda] text-[#151b26] focus:ring-[#151b26]">
+                                <span>
+                                    <span class="block text-sm font-semibold text-[#151b26]">Medical Certificate Required</span>
+                                    <span class="mt-1 block text-xs leading-5 text-[#6d7685]">Require participants to upload one when registering.</span>
+                                </span>
+                            </label>
+                        </div>
+
+                        <div class="md:col-span-2 rounded-2xl border border-[#d9dee7] bg-[#fafbfc] p-4">
+                            <label class="block text-sm font-semibold text-[#151b26]">Course / Checkpoint Map <span class="font-normal text-[#7a8495]">(optional)</span></label>
+                            <input name="categories[{{ $index }}][checkpoint_map_image_upload]" type="file" accept="image/jpeg,image/png,image/webp"
+                                class="mt-3 block w-full rounded-xl border border-[#d9dee7] bg-white px-3 py-2 text-sm text-[#3d4757] file:mr-3 file:rounded-lg file:border-0 file:bg-[#eef1f4] file:px-3 file:py-2 file:font-semibold file:text-[#151b26]">
+                            <p class="mt-2 text-xs leading-5 text-[#6d7685]">JPG, PNG, or WebP up to 5 MB. This map belongs only to this category.</p>
                         </div>
 
                         <div>
@@ -588,6 +611,23 @@
                     <div>
                         <label class="mb-2 block text-sm font-medium text-[#3d4757]">Slot Limit</label>
                         <input name="categories[__INDEX__][slot_limit]" type="number" min="1" class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
+                    </div>
+                    <div class="rounded-2xl border border-[#d9dee7] bg-[#fafbfc] p-4">
+                        <input type="hidden" name="categories[__INDEX__][requires_medical_certificate]" value="0">
+                        <label class="flex cursor-pointer items-start gap-3">
+                            <input name="categories[__INDEX__][requires_medical_certificate]" type="checkbox" value="1"
+                                class="mt-1 h-4 w-4 rounded border-[#c8cfda] text-[#151b26] focus:ring-[#151b26]">
+                            <span>
+                                <span class="block text-sm font-semibold text-[#151b26]">Medical Certificate Required</span>
+                                <span class="mt-1 block text-xs leading-5 text-[#6d7685]">Require participants to upload one when registering.</span>
+                            </span>
+                        </label>
+                    </div>
+                    <div class="md:col-span-2 rounded-2xl border border-[#d9dee7] bg-[#fafbfc] p-4">
+                        <label class="block text-sm font-semibold text-[#151b26]">Course / Checkpoint Map <span class="font-normal text-[#7a8495]">(optional)</span></label>
+                        <input name="categories[__INDEX__][checkpoint_map_image_upload]" type="file" accept="image/jpeg,image/png,image/webp"
+                            class="mt-3 block w-full rounded-xl border border-[#d9dee7] bg-white px-3 py-2 text-sm text-[#3d4757] file:mr-3 file:rounded-lg file:border-0 file:bg-[#eef1f4] file:px-3 file:py-2 file:font-semibold file:text-[#151b26]">
+                        <p class="mt-2 text-xs leading-5 text-[#6d7685]">JPG, PNG, or WebP up to 5 MB. This map belongs only to this category.</p>
                     </div>
                     <div>
                         <label class="mb-2 block text-sm font-medium text-[#3d4757]">Registration Fee</label>

@@ -16,24 +16,19 @@
     $pendingCount = $participantStatusCounts['pending'] ?? 0;
     $approvedCount = $participantStatusCounts['approved'] ?? 0;
     $checkedInCount = $participantStatusCounts['checked_in'] ?? 0;
+    $mappedCategoryCount = $event->categories->whereNotNull('checkpoint_map_image')->count();
     $workflowItems = collect([
         [
             'label' => 'Categories',
             'count' => $event->categories_count,
-            'detail' => $event->categories_count > 0 ? 'Race distances are configured' : 'Add race distances first',
+            'detail' => $event->categories_count > 0
+                ? $mappedCategoryCount.' of '.$event->categories_count.' course maps uploaded'
+                : 'Add race distances first',
             'href' => $event->categories_count > 0
                 ? route('admin.categories.index', ['event_id' => $event->id])
                 : route('admin.events.edit', $event),
             'enabled' => $canManage,
             'tone' => $event->categories_count > 0 ? 'ready' : 'attention',
-        ],
-        [
-            'label' => 'Checkpoints',
-            'count' => $event->checkpoints->count(),
-            'detail' => $event->checkpoints->count() > 0 ? 'Route support points are ready' : 'Add route support points',
-            'href' => route('admin.content.checkpoints', ['event_id' => $event->id]),
-            'enabled' => $canManage,
-            'tone' => $event->checkpoints->count() > 0 ? 'ready' : 'attention',
         ],
         [
             'label' => 'Pending Participants',
@@ -380,7 +375,6 @@
                 <div class="mt-5 space-y-3">
                     @if ($canManage)
                         <a href="{{ route('admin.categories.index', ['event_id' => $event->id]) }}" class="block rounded-2xl border border-[#d9dee7] px-4 py-3 text-sm font-semibold text-[#151b26] transition hover:bg-[#f7f8fa]">Categories</a>
-                        <a href="{{ route('admin.content.checkpoints', ['event_id' => $event->id]) }}" class="block rounded-2xl border border-[#d9dee7] px-4 py-3 text-sm font-semibold text-[#151b26] transition hover:bg-[#f7f8fa]">Checkpoints</a>
                         <a href="{{ route('admin.participants.index', ['event_id' => $event->id]) }}" class="block rounded-2xl border border-[#d9dee7] px-4 py-3 text-sm font-semibold text-[#151b26] transition hover:bg-[#f7f8fa]">Participants</a>
                         <a href="{{ route('admin.check-in.index', ['event_id' => $event->id]) }}" class="block rounded-2xl border border-[#d9dee7] px-4 py-3 text-sm font-semibold text-[#151b26] transition hover:bg-[#f7f8fa]">Check-in</a>
                         <a href="{{ route('admin.results.index', ['event_id' => $event->id]) }}" class="block rounded-2xl border border-[#d9dee7] px-4 py-3 text-sm font-semibold text-[#151b26] transition hover:bg-[#f7f8fa]">Results</a>
@@ -393,15 +387,23 @@
             </section>
 
             <section class="rounded-3xl border border-[#d9dee7] bg-white p-6 shadow-sm">
-                <h2 class="text-xl font-semibold tracking-tight text-[#151b26]">Checkpoints</h2>
+                <h2 class="text-xl font-semibold tracking-tight text-[#151b26]">Course / Checkpoint Maps</h2>
                 <div class="mt-5 space-y-3">
-                    @forelse ($event->checkpoints->take(5) as $checkpoint)
+                    @forelse ($event->categories->take(5) as $category)
                         <div class="rounded-2xl border border-[#eef1f4] p-4">
-                            <p class="text-sm font-semibold text-[#151b26]">{{ $checkpoint->name }}</p>
-                            <p class="mt-1 text-xs text-[#6d7685]">{{ $checkpoint->location ?: str($checkpoint->type)->replace('_', ' ')->title() }}</p>
+                            <p class="text-sm font-semibold text-[#151b26]">{{ $category->name }}</p>
+                            @if ($category->checkpoint_map_image)
+                                <a href="{{ asset('storage/'.$category->checkpoint_map_image) }}" target="_blank" rel="noopener" class="mt-3 block overflow-hidden rounded-xl border border-[#d9dee7] bg-[#fafbfc]">
+                                    <img src="{{ asset('storage/'.$category->checkpoint_map_image) }}" alt="{{ $category->name }} course and checkpoint map" class="max-h-48 w-full object-contain">
+                                </a>
+                            @elseif ($canManage)
+                                <a href="{{ route('admin.categories.edit', $category) }}" class="mt-2 inline-flex text-xs font-semibold text-[#151b26]">Upload a course map</a>
+                            @else
+                                <p class="mt-1 text-xs text-[#6d7685]">No course map uploaded.</p>
+                            @endif
                         </div>
                     @empty
-                        <p class="text-sm text-[#6d7685]">No checkpoints configured.</p>
+                        <p class="text-sm text-[#6d7685]">Add a category before uploading a course map.</p>
                     @endforelse
                 </div>
             </section>

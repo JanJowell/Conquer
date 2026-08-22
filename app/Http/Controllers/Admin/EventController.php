@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -88,7 +89,6 @@ class EventController extends Controller
             'manager',
             'paymentMethods',
             'categories' => fn ($query) => $query->withCount('registrations')->orderBy('distance_km'),
-            'checkpoints' => fn ($query) => $query->orderBy('order')->orderBy('name'),
             'announcements' => fn ($query) => $query->latest()->take(5),
         ])->loadCount(['categories', 'registrations', 'raceResults']);
 
@@ -158,6 +158,8 @@ class EventController extends Controller
             'categories.*.scheduled_end_time' => ['required', 'date_format:H:i'],
             'categories.*.description' => ['nullable', 'string'],
             'categories.*.qualification_notes' => ['nullable', 'string', 'max:5000'],
+            'categories.*.requires_medical_certificate' => ['sometimes', 'boolean'],
+            'categories.*.checkpoint_map_image_upload' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'categories.*.slot_limit' => ['nullable', 'integer', 'min:1'],
             'categories.*.price_amount' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
             'categories.*.price_currency' => ['required', 'string', 'size:3'],
@@ -294,6 +296,8 @@ class EventController extends Controller
             'categories.*.scheduled_end_time' => ['required', 'date_format:H:i'],
             'categories.*.description' => ['nullable', 'string'],
             'categories.*.qualification_notes' => ['nullable', 'string', 'max:5000'],
+            'categories.*.requires_medical_certificate' => ['sometimes', 'boolean'],
+            'categories.*.checkpoint_map_image_upload' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'categories.*.slot_limit' => ['nullable', 'integer', 'min:1'],
             'categories.*.price_amount' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
             'categories.*.price_currency' => ['required', 'string', 'size:3'],
@@ -620,30 +624,50 @@ class EventController extends Controller
 
     private function createCategoriesForEvent(Event $event, array $rows): void
     {
-        foreach ($rows as $row) {
-            $typeDetails = $this->normalizedCategoryTypeDetails($event->interest_type, $row['type_details'] ?? []);
-            $distanceKm = Category::distanceFromTypeDetails($event->interest_type, $typeDetails)
-                ?? $this->distanceValue($row);
+        $storedCheckpointMaps = [];
 
-            $event->categories()->create([
-                'name' => $this->nameWithDistance($this->categoryTypeName($row), $distanceKm),
-                'distance_km' => $distanceKm,
-                'type_details' => $typeDetails ?: null,
-                'description' => $row['description'] ?? null,
-                'qualification_notes' => $row['qualification_notes'] ?? null,
-                'slot_limit' => $row['slot_limit'] ?? null,
-                'price_cents' => (int) round((float) ($row['price_amount'] ?? 0) * 100),
-                'price_currency' => strtoupper($row['price_currency'] ?? 'PHP'),
-                'payment_provider' => $row['payment_provider'] ?? null,
-                'payment_account_name' => $row['payment_account_name'] ?? null,
-                'payment_account_number' => $row['payment_account_number'] ?? null,
-                'payment_instructions' => $row['payment_instructions'] ?? null,
-                'status' => $row['status'] ?? 'open',
-                'scheduled_start_date' => $row['scheduled_start_date'],
-                'scheduled_start_time' => $row['scheduled_start_time'],
-                'scheduled_end_date' => $row['scheduled_end_date'],
-                'scheduled_end_time' => $row['scheduled_end_time'],
-            ]);
+        try {
+            foreach ($rows as $row) {
+                $typeDetails = $this->normalizedCategoryTypeDetails($event->interest_type, $row['type_details'] ?? []);
+                $distanceKm = Category::distanceFromTypeDetails($event->interest_type, $typeDetails)
+                    ?? $this->distanceValue($row);
+                $checkpointMapPath = null;
+
+                if (($row['checkpoint_map_image_upload'] ?? null) instanceof \Illuminate\Http\UploadedFile) {
+                    $checkpointMapPath = $row['checkpoint_map_image_upload']
+                        ->store('categories/checkpoint-maps', 'public');
+                    $storedCheckpointMaps[] = $checkpointMapPath;
+                }
+
+                $event->categories()->create([
+                    'name' => $this->nameWithDistance($this->categoryTypeName($row), $distanceKm),
+                    'distance_km' => $distanceKm,
+                    'type_details' => $typeDetails ?: null,
+                    'description' => $row['description'] ?? null,
+                    'qualification_notes' => $row['qualification_notes'] ?? null,
+                    'requires_medical_certificate' => filter_var(
+                        $row['requires_medical_certificate'] ?? false,
+                        FILTER_VALIDATE_BOOLEAN
+                    ),
+                    'checkpoint_map_image' => $checkpointMapPath,
+                    'slot_limit' => $row['slot_limit'] ?? null,
+                    'price_cents' => (int) round((float) ($row['price_amount'] ?? 0) * 100),
+                    'price_currency' => strtoupper($row['price_currency'] ?? 'PHP'),
+                    'payment_provider' => $row['payment_provider'] ?? null,
+                    'payment_account_name' => $row['payment_account_name'] ?? null,
+                    'payment_account_number' => $row['payment_account_number'] ?? null,
+                    'payment_instructions' => $row['payment_instructions'] ?? null,
+                    'status' => $row['status'] ?? 'open',
+                    'scheduled_start_date' => $row['scheduled_start_date'],
+                    'scheduled_start_time' => $row['scheduled_start_time'],
+                    'scheduled_end_date' => $row['scheduled_end_date'],
+                    'scheduled_end_time' => $row['scheduled_end_time'],
+                ]);
+            }
+        } catch (\Throwable $exception) {
+            Storage::disk('public')->delete($storedCheckpointMaps);
+
+            throw $exception;
         }
     }
 

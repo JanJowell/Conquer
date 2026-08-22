@@ -47,7 +47,6 @@
         ['label' => 'User Management', 'href' => '/admin/users', 'icon' => 'fa-users-gear', 'desc' => 'Manage roles, access, and account status'],
         ['label' => 'Community Moderation', 'href' => '/admin/content/community-posts', 'icon' => 'fa-comments', 'desc' => 'Review reports and flagged content'],
         ['label' => 'Training Modules', 'href' => '/admin/content/training-modules', 'icon' => 'fa-graduation-cap', 'desc' => 'Keep onboarding materials current'],
-        ['label' => 'Checkpoint Management', 'href' => '/admin/content/checkpoints', 'icon' => 'fa-location-dot', 'desc' => 'Maintain route and station details'],
         ['label' => 'Security Center', 'href' => '/admin/security/dashboard', 'icon' => 'fa-shield-halved', 'desc' => 'Monitor threats and policy actions'],
     ];
 

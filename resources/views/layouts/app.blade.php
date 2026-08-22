@@ -31,7 +31,6 @@
                     ['label' => 'User Management', 'href' => '/admin/users', 'active' => request()->is('admin/users*'), 'icon' => 'fa-users'],
                     ['label' => 'Community', 'href' => '/admin/content/community-posts', 'active' => request()->is('admin/content/community-posts*'), 'icon' => 'fa-comments'],
                     ['label' => 'Training', 'href' => '/admin/content/training-modules', 'active' => request()->is('admin/content/training-modules*'), 'icon' => 'fa-graduation-cap'],
-                    ['label' => 'Checkpoints', 'href' => '/admin/content/checkpoints', 'active' => request()->is('admin/content/checkpoints*'), 'icon' => 'fa-location-dot'],
                     ['label' => 'Security', 'href' => '/admin/security/dashboard', 'active' => request()->is('admin/security*'), 'icon' => 'fa-shield-halved'],
                     ['label' => 'Notifications', 'href' => '/admin/notifications', 'active' => request()->is('admin/notifications*'), 'icon' => 'fa-bell'],
                 ],

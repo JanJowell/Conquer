@@ -39,6 +39,9 @@ class CategoryResource extends JsonResource
             'type_details' => $this->resolvedTypeDetails(),
             'type_detail_items' => $this->formattedTypeDetails(),
             'requires_medical_certificate' => $this->requiresMedicalCertificate(),
+            'checkpoint_map_image_url' => $this->checkpoint_map_image
+                ? asset('storage/'.$this->checkpoint_map_image)
+                : null,
             'description' => $this->description,
             'qualification_notes' => $this->qualification_notes,
             'slot_limit' => $this->slot_limit,

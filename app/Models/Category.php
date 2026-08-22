@@ -23,6 +23,8 @@ class Category extends Model
         'type_details',
         'description',
         'qualification_notes',
+        'requires_medical_certificate',
+        'checkpoint_map_image',
         'slot_limit',
         'price_cents',
         'price_currency',
@@ -44,6 +46,7 @@ class Category extends Model
         return [
             'distance_km' => 'decimal:2',
             'type_details' => 'array',
+            'requires_medical_certificate' => 'boolean',
             'slot_limit' => 'integer',
             'price_cents' => 'integer',
             'scheduled_start_date' => 'date',
@@ -123,7 +126,7 @@ class Category extends Model
 
     public function requiresMedicalCertificate(): bool
     {
-        return $this->distance_km !== null && (float) $this->distance_km >= 50.0;
+        return (bool) $this->requires_medical_certificate;
     }
 
     public function typeDetailSchema(): array

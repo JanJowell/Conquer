@@ -364,7 +364,6 @@
                                         @php
                                             $missingItems = collect([
                                                 'Categories' => $event->categories_count === 0,
-                                                'Checkpoints' => $event->checkpoints_count === 0,
                                                 'Announcements' => $event->published_announcements_count === 0,
                                                 'Results' => $event->checked_in_registrations_count > 0 && $event->race_results_count === 0,
                                             ])->filter()->keys();
@@ -378,7 +377,6 @@
                                             <td class="border-y border-white/60 bg-white/40 px-4 py-4 backdrop-blur-xl">
                                                 <div class="space-y-1 text-xs font-medium text-slate-500">
                                                     <p>{{ number_format($event->categories_count) }} categories</p>
-                                                    <p>{{ number_format($event->checkpoints_count) }} checkpoints</p>
                                                     <p>{{ number_format($event->published_announcements_count) }} announcements</p>
                                                 </div>
                                             </td>

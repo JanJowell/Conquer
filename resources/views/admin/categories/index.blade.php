@@ -74,6 +74,11 @@
                                 <td class="px-6 py-5">
                                     <p class="font-semibold text-[#151b26]">{{ $category->name }}</p>
                                     <p class="mt-1 text-xs text-[#6d7685]">{{ $category->description ?: 'No description provided' }}</p>
+                                    @if ($category->checkpoint_map_image)
+                                        <a href="{{ asset('storage/'.$category->checkpoint_map_image) }}" target="_blank" rel="noopener" class="mt-2 inline-flex text-xs font-semibold text-emerald-700">View course map</a>
+                                    @else
+                                        <p class="mt-2 text-xs text-[#6d7685]">No course map uploaded</p>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-5">{{ $category->event?->title ?: 'Removed event' }}</td>
                                 <td class="px-6 py-5">

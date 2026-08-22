@@ -46,6 +46,7 @@ function readinessCategory(Event $event, array $overrides = []): Category
         'event_id' => $event->id,
         'name' => '50K Open',
         'distance_km' => 50,
+        'requires_medical_certificate' => true,
         'type_details' => ['mandatory_gear' => 'Hydration vest, whistle, and headlamp'],
         'qualification_notes' => "Must be at least 18 years old.\nPrevious trail experience is required.",
         'scheduled_start_time' => '06:30',
@@ -131,6 +132,7 @@ test('an approved complete registration is ready for event day check in', functi
     $category = readinessCategory($event, [
         'name' => '10K Open',
         'distance_km' => 10,
+        'requires_medical_certificate' => false,
         'type_details' => null,
         'qualification_notes' => null,
     ]);
@@ -158,6 +160,7 @@ test('completed registration exposes its result and issued e badges', function (
     $category = readinessCategory($event, [
         'name' => '10K Open',
         'distance_km' => 10,
+        'requires_medical_certificate' => false,
         'type_details' => null,
     ]);
     $registration = readinessRegistration($runner, $event, $category, [

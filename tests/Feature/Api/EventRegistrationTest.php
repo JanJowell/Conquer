@@ -376,13 +376,14 @@ test('mobile registration requires waiver and first aid confirmation', function 
         ->assertJsonValidationErrors(['first_aid_kit_confirmed', 'waiver_accepted']);
 });
 
-test('mobile registration requires a medical certificate for 50km and above', function () {
+test('mobile registration requires a medical certificate when the category requires it', function () {
     $token = 'ultra-compliance-token';
     mobileUserWithToken($token);
     [$event, $category] = openEventWithCategory();
     $category->update([
         'name' => '50K Ultra',
         'distance_km' => 50,
+        'requires_medical_certificate' => true,
     ]);
 
     $this
@@ -405,6 +406,7 @@ test('mobile registration stores medical certificate and waiver details', functi
     $category->update([
         'name' => '50K Ultra',
         'distance_km' => 50,
+        'requires_medical_certificate' => true,
     ]);
 
     $response = $this
