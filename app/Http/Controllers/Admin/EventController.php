@@ -157,6 +157,7 @@ class EventController extends Controller
             'categories.*.scheduled_end_date' => ['required', 'date'],
             'categories.*.scheduled_end_time' => ['required', 'date_format:H:i'],
             'categories.*.description' => ['nullable', 'string'],
+            'categories.*.qualification_notes' => ['nullable', 'string', 'max:5000'],
             'categories.*.slot_limit' => ['nullable', 'integer', 'min:1'],
             'categories.*.price_amount' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
             'categories.*.price_currency' => ['required', 'string', 'size:3'],
@@ -292,6 +293,7 @@ class EventController extends Controller
             'categories.*.scheduled_end_date' => ['required', 'date'],
             'categories.*.scheduled_end_time' => ['required', 'date_format:H:i'],
             'categories.*.description' => ['nullable', 'string'],
+            'categories.*.qualification_notes' => ['nullable', 'string', 'max:5000'],
             'categories.*.slot_limit' => ['nullable', 'integer', 'min:1'],
             'categories.*.price_amount' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
             'categories.*.price_currency' => ['required', 'string', 'size:3'],
@@ -501,7 +503,13 @@ class EventController extends Controller
         $rules = ['categories.*.type_details' => ['required', 'array']];
 
         foreach ($schema as $key => $definition) {
-            $rules["categories.*.type_details.{$key}"] = $definition['rules'];
+            $fieldRules = $definition['rules'];
+
+            if (($definition['type'] ?? null) === 'select' && isset($definition['options'])) {
+                $fieldRules[] = Rule::in($definition['options']);
+            }
+
+            $rules["categories.*.type_details.{$key}"] = $fieldRules;
         }
 
         return $rules;
@@ -589,7 +597,7 @@ class EventController extends Controller
             return true;
         }
 
-        foreach (['category_type', 'custom_category_name', 'distance_option', 'custom_distance_km', 'description', 'slot_limit', 'payment_provider', 'payment_account_name', 'payment_account_number', 'payment_instructions'] as $field) {
+        foreach (['category_type', 'custom_category_name', 'distance_option', 'custom_distance_km', 'description', 'qualification_notes', 'slot_limit', 'payment_provider', 'payment_account_name', 'payment_account_number', 'payment_instructions'] as $field) {
             if (filled($row[$field] ?? null)) {
                 return true;
             }
@@ -622,6 +630,7 @@ class EventController extends Controller
                 'distance_km' => $distanceKm,
                 'type_details' => $typeDetails ?: null,
                 'description' => $row['description'] ?? null,
+                'qualification_notes' => $row['qualification_notes'] ?? null,
                 'slot_limit' => $row['slot_limit'] ?? null,
                 'price_cents' => (int) round((float) ($row['price_amount'] ?? 0) * 100),
                 'price_currency' => strtoupper($row['price_currency'] ?? 'PHP'),

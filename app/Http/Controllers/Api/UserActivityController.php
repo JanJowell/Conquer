@@ -13,7 +13,7 @@ class UserActivityController extends Controller
     public function registrations(Request $request): JsonResponse
     {
         $registrations = $request->user()->registrations()
-            ->with(['event', 'category', 'latestPayment'])
+            ->with(['event', 'category.event', 'latestPayment', 'raceResult', 'issuedEBadges.badge'])
             ->latest()
             ->get();
 

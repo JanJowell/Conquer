@@ -5,7 +5,11 @@
 @section('content')
     @php
         $categoryTypeDetailSchema = config("conquer.event_category_type_details.{$category->event?->interest_type}", []);
-        $usesSegmentedDistances = $categoryTypeDetailSchema !== [];
+        $usesSegmentedDistances = in_array($category->event?->interest_type, ['Triathlon', 'Duathlon'], true);
+        $resolvedCategoryDetails = $category->resolvedTypeDetails();
+        $mutableCategoryTypeDetailSchema = collect($categoryTypeDetailSchema)
+            ->reject(fn (array $definition) => $definition['locked_when_in_use'] ?? false)
+            ->all();
     @endphp
     <div class="mx-auto max-w-4xl space-y-6">
         <div>
@@ -22,7 +26,7 @@
 
         @if ($categoryInUse)
             <div class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800">
-                This category already has registrations or results, so distance and type are locked. You can still update its scheduled gun start and cutoff/end time before the race begins, along with status, slots, fee, and description.
+                This category already has registrations or results, so distance and type are locked. You can still update category details such as difficulty and gear, its scheduled gun start and cutoff/end time before the race begins, along with status, slots, fee, and description.
             </div>
         @endif
 
@@ -101,24 +105,68 @@
                             class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none">
                     </div>
 
-                    @if ($usesSegmentedDistances)
+                    @if ($categoryTypeDetailSchema !== [])
                         <div class="md:col-span-2 rounded-2xl border border-[#d9dee7] bg-[#fafbfc] p-4">
-                            <p class="mb-4 text-sm font-semibold text-[#151b26]">{{ $category->event->interest_type }} Category Distances</p>
+                            <p class="mb-4 text-sm font-semibold text-[#151b26]">{{ $category->event->interest_type }} Category Details</p>
                             <div class="grid gap-4 md:grid-cols-3">
                                 @foreach ($categoryTypeDetailSchema as $detailKey => $definition)
-                                    <div>
+                                    @php($detailRequired = in_array('required', $definition['rules'] ?? [], true))
+                                    <div class="{{ ($definition['type'] ?? 'number') === 'textarea' ? 'md:col-span-3' : '' }}">
                                         <label for="type_details_{{ $detailKey }}" class="mb-2 block text-sm font-medium text-[#3d4757]">{{ $definition['label'] }}</label>
-                                        <div class="relative">
-                                            <input id="type_details_{{ $detailKey }}" name="type_details[{{ $detailKey }}]" type="number" min="0.01" step="0.01" value="{{ old("type_details.{$detailKey}", $category->type_details[$detailKey] ?? null) }}" required
-                                                class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 pr-12 text-sm text-[#151b26] outline-none">
-                                            <span class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-[#7a8495]">{{ $definition['suffix'] }}</span>
-                                        </div>
+                                        @if (($definition['type'] ?? 'number') === 'textarea')
+                                            <textarea id="type_details_{{ $detailKey }}" name="type_details[{{ $detailKey }}]" rows="3" placeholder="{{ $definition['placeholder'] ?? '' }}" @if ($detailRequired) required @endif
+                                                class="w-full rounded-2xl border border-[#d9dee7] bg-white px-4 py-3 text-sm text-[#151b26] outline-none">{{ old("type_details.{$detailKey}", $resolvedCategoryDetails[$detailKey] ?? null) }}</textarea>
+                                        @elseif (($definition['type'] ?? 'number') === 'select')
+                                            <select id="type_details_{{ $detailKey }}" name="type_details[{{ $detailKey }}]" @if ($detailRequired) required @endif
+                                                class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
+                                                <option value="">Select {{ strtolower($definition['label']) }}</option>
+                                                @foreach (($definition['options'] ?? []) as $option)
+                                                    <option value="{{ $option }}" @selected(old("type_details.{$detailKey}", $resolvedCategoryDetails[$detailKey] ?? null) === $option)>{{ $option }}</option>
+                                                @endforeach
+                                            </select>
+                                        @else
+                                            <div class="relative">
+                                                <input id="type_details_{{ $detailKey }}" name="type_details[{{ $detailKey }}]" type="number" min="0.01" step="0.01" value="{{ old("type_details.{$detailKey}", $resolvedCategoryDetails[$detailKey] ?? null) }}" @if ($detailRequired) required @endif
+                                                    class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 {{ isset($definition['suffix']) ? 'pr-12' : '' }} text-sm text-[#151b26] outline-none">
+                                                @if (isset($definition['suffix']))
+                                                    <span class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-[#7a8495]">{{ $definition['suffix'] }}</span>
+                                                @endif
+                                            </div>
+                                        @endif
                                     </div>
                                 @endforeach
                             </div>
-                            <p class="mt-3 text-xs text-[#6d7685]">The total category distance is calculated automatically from these segments.</p>
+                            @if ($usesSegmentedDistances)
+                                <p class="mt-3 text-xs text-[#6d7685]">The total category distance is calculated automatically from these segments.</p>
+                            @endif
                         </div>
                     @endif
+                @endif
+
+                @if ($categoryInUse && $mutableCategoryTypeDetailSchema !== [])
+                    <div class="md:col-span-2 rounded-2xl border border-[#d9dee7] bg-[#fafbfc] p-4">
+                        <p class="mb-4 text-sm font-semibold text-[#151b26]">{{ $category->event->interest_type }} Category Details</p>
+                        <div class="grid gap-4 md:grid-cols-2">
+                            @foreach ($mutableCategoryTypeDetailSchema as $detailKey => $definition)
+                                @php($detailRequired = in_array('required', $definition['rules'] ?? [], true))
+                                <div class="{{ ($definition['type'] ?? 'textarea') === 'textarea' ? 'md:col-span-2' : '' }}">
+                                    <label for="type_details_{{ $detailKey }}" class="mb-2 block text-sm font-medium text-[#3d4757]">{{ $definition['label'] }}</label>
+                                    @if (($definition['type'] ?? 'textarea') === 'select')
+                                        <select id="type_details_{{ $detailKey }}" name="type_details[{{ $detailKey }}]" @if ($detailRequired) required @endif
+                                            class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
+                                            <option value="">Select {{ strtolower($definition['label']) }}</option>
+                                            @foreach (($definition['options'] ?? []) as $option)
+                                                <option value="{{ $option }}" @selected(old("type_details.{$detailKey}", $resolvedCategoryDetails[$detailKey] ?? null) === $option)>{{ $option }}</option>
+                                            @endforeach
+                                        </select>
+                                    @else
+                                        <textarea id="type_details_{{ $detailKey }}" name="type_details[{{ $detailKey }}]" rows="3" placeholder="{{ $definition['placeholder'] ?? '' }}" @if ($detailRequired) required @endif
+                                            class="w-full rounded-2xl border border-[#d9dee7] bg-white px-4 py-3 text-sm text-[#151b26] outline-none">{{ old("type_details.{$detailKey}", $resolvedCategoryDetails[$detailKey] ?? null) }}</textarea>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
                 @endif
 
                 <div>
@@ -201,6 +249,13 @@
                 <div class="md:col-span-2">
                     <label for="description" class="mb-2 block text-sm font-medium text-[#3d4757]">Description</label>
                     <textarea id="description" name="description" rows="4" class="w-full rounded-2xl border border-[#d9dee7] px-4 py-3 text-sm text-[#151b26] outline-none">{{ old('description', $category->description) }}</textarea>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label for="qualification_notes" class="mb-2 block text-sm font-medium text-[#3d4757]">Qualification / Eligibility Notes <span class="font-normal text-[#7a8495]">(optional)</span></label>
+                    <textarea id="qualification_notes" name="qualification_notes" rows="4" maxlength="5000" placeholder="e.g. Must be at least 18 years old and have previous trail experience."
+                        class="w-full rounded-2xl border border-[#d9dee7] px-4 py-3 text-sm text-[#151b26] outline-none">{{ old('qualification_notes', $category->qualification_notes) }}</textarea>
+                    <p class="mt-2 text-xs text-[#6d7685]">Shown to participants before they register for this category.</p>
                 </div>
             </div>
 

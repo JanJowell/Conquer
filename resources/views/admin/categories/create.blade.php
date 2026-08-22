@@ -13,8 +13,13 @@
         $eventEndTimes = $events->mapWithKeys(fn ($item) => [(string) $item->id => $item->end_time?->format('H:i')]);
         $eventTypes = $events->mapWithKeys(fn ($item) => [(string) $item->id => $item->interest_type]);
         $categoryTypeDetailSchemas = config('conquer.event_category_type_details', []);
+        $eventCategoryTypeDetails = $events->mapWithKeys(function ($item) use ($categoryTypeDetailSchemas) {
+            $detailKeys = array_keys($categoryTypeDetailSchemas[$item->interest_type] ?? []);
+
+            return [(string) $item->id => collect($item->type_details ?? [])->only($detailKeys)->all()];
+        });
         $selectedEventType = $selectedCategoryEvent?->interest_type;
-        $usesSegmentedDistances = isset($categoryTypeDetailSchemas[$selectedEventType]);
+        $usesSegmentedDistances = in_array($selectedEventType, ['Triathlon', 'Duathlon'], true);
     @endphp
     <div class="mx-auto max-w-4xl space-y-6">
         <div>
@@ -92,19 +97,46 @@
 
                 @foreach ($categoryTypeDetailSchemas as $eventType => $detailSchema)
                     <div data-category-type-details="{{ $eventType }}" class="md:col-span-2 rounded-2xl border border-[#d9dee7] bg-[#fafbfc] p-4 {{ $selectedEventType === $eventType ? '' : 'hidden' }}">
-                        <p class="mb-4 text-sm font-semibold text-[#151b26]">{{ $eventType }} Category Distances</p>
+                        <p class="mb-4 text-sm font-semibold text-[#151b26]">{{ $eventType }} Category Details</p>
                         <div class="grid gap-4 md:grid-cols-3">
                             @foreach ($detailSchema as $detailKey => $definition)
-                                <div>
+                                @php
+                                    $detailValue = old("type_details.{$detailKey}",
+                                        $selectedCategoryEvent?->interest_type === $eventType
+                                            ? data_get($selectedCategoryEvent?->type_details, $detailKey)
+                                            : null
+                                    );
+                                    $detailRequired = in_array('required', $definition['rules'] ?? [], true);
+                                @endphp
+                                <div class="{{ ($definition['type'] ?? 'number') === 'textarea' ? 'md:col-span-3' : '' }}">
                                     <label for="type_details_{{ str($eventType)->slug('_') }}_{{ $detailKey }}" class="mb-2 block text-sm font-medium text-[#3d4757]">{{ $definition['label'] }}</label>
-                                    <div class="relative">
-                                        <input id="type_details_{{ str($eventType)->slug('_') }}_{{ $detailKey }}" name="type_details[{{ $detailKey }}]" type="number" min="0.01" step="0.01" value="{{ old("type_details.{$detailKey}") }}"
-                                            class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 pr-12 text-sm text-[#151b26] outline-none">
-                                        <span class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-[#7a8495]">{{ $definition['suffix'] }}</span>
-                                    </div>
+                                    @if (($definition['type'] ?? 'number') === 'textarea')
+                                        <textarea id="type_details_{{ str($eventType)->slug('_') }}_{{ $detailKey }}" name="type_details[{{ $detailKey }}]" rows="3" data-category-detail-key="{{ $detailKey }}"
+                                            placeholder="{{ $definition['placeholder'] ?? '' }}" @if ($detailRequired) required @endif
+                                            class="w-full rounded-2xl border border-[#d9dee7] bg-white px-4 py-3 text-sm text-[#151b26] outline-none">{{ $detailValue }}</textarea>
+                                    @elseif (($definition['type'] ?? 'number') === 'select')
+                                        <select id="type_details_{{ str($eventType)->slug('_') }}_{{ $detailKey }}" name="type_details[{{ $detailKey }}]" data-category-detail-key="{{ $detailKey }}" @if ($detailRequired) required @endif
+                                            class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
+                                            <option value="">Select {{ strtolower($definition['label']) }}</option>
+                                            @foreach (($definition['options'] ?? []) as $option)
+                                                <option value="{{ $option }}" @selected($detailValue === $option)>{{ $option }}</option>
+                                            @endforeach
+                                        </select>
+                                    @else
+                                        <div class="relative">
+                                            <input id="type_details_{{ str($eventType)->slug('_') }}_{{ $detailKey }}" name="type_details[{{ $detailKey }}]" type="number" min="0.01" step="0.01" value="{{ $detailValue }}" data-category-detail-key="{{ $detailKey }}" @if ($detailRequired) required @endif
+                                                class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 {{ isset($definition['suffix']) ? 'pr-12' : '' }} text-sm text-[#151b26] outline-none">
+                                            @if (isset($definition['suffix']))
+                                                <span class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-[#7a8495]">{{ $definition['suffix'] }}</span>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </div>
                             @endforeach
                         </div>
+                        @if (in_array($eventType, ['Triathlon', 'Duathlon'], true))
+                            <p class="mt-3 text-xs text-[#6d7685]">The total category distance is calculated automatically from these segments.</p>
+                        @endif
                     </div>
                 @endforeach
 
@@ -163,6 +195,13 @@
                     <label for="description" class="mb-2 block text-sm font-medium text-[#3d4757]">Description</label>
                     <textarea id="description" name="description" rows="4" class="w-full rounded-2xl border border-[#d9dee7] px-4 py-3 text-sm text-[#151b26] outline-none">{{ old('description') }}</textarea>
                 </div>
+
+                <div class="md:col-span-2">
+                    <label for="qualification_notes" class="mb-2 block text-sm font-medium text-[#3d4757]">Qualification / Eligibility Notes <span class="font-normal text-[#7a8495]">(optional)</span></label>
+                    <textarea id="qualification_notes" name="qualification_notes" rows="4" maxlength="5000" placeholder="e.g. Must be at least 18 years old and have previous trail experience."
+                        class="w-full rounded-2xl border border-[#d9dee7] px-4 py-3 text-sm text-[#151b26] outline-none">{{ old('qualification_notes') }}</textarea>
+                    <p class="mt-2 text-xs text-[#6d7685]">Shown to participants before they register for this category.</p>
+                </div>
             </div>
 
             <div class="mt-6 flex flex-wrap gap-3">
@@ -184,6 +223,7 @@
         const eventStartTimes = @json($eventStartTimes);
         const eventEndTimes = @json($eventEndTimes);
         const eventTypes = @json($eventTypes);
+        const eventCategoryTypeDetails = @json($eventCategoryTypeDetails);
         const scheduledStartDate = document.getElementById('scheduled_start_date');
         const scheduledStartTime = document.getElementById('scheduled_start_time');
         const scheduledEndDate = document.getElementById('scheduled_end_date');
@@ -203,13 +243,13 @@
                 const customWrapper = wrapper.id === 'custom-distance-wrapper';
                 const visible = ! usesSegmentedDistances && (! customWrapper || distanceOption?.value === 'custom');
                 wrapper.classList.toggle('hidden', ! visible);
-                wrapper.querySelectorAll('input, select').forEach((field) => field.disabled = ! visible);
+                wrapper.querySelectorAll('input, select, textarea').forEach((field) => field.disabled = ! visible);
             });
 
             categoryTypeDetailPanels.forEach((panel) => {
                 const active = panel.dataset.categoryTypeDetails === eventType;
                 panel.classList.toggle('hidden', ! active);
-                panel.querySelectorAll('input').forEach((field) => field.disabled = ! active);
+                panel.querySelectorAll('input, select, textarea').forEach((field) => field.disabled = ! active);
             });
         };
 
@@ -233,6 +273,13 @@
             if (scheduledEndTime) {
                 scheduledEndTime.value = eventEndTimes[eventSelect.value] || '';
             }
+
+            const legacyDetails = eventCategoryTypeDetails[eventSelect.value] || {};
+            categoryTypeDetailPanels.forEach((panel) => {
+                panel.querySelectorAll('[data-category-detail-key]').forEach((field) => {
+                    field.value = legacyDetails[field.dataset.categoryDetailKey] || '';
+                });
+            });
 
             refreshCategoryDistanceFields();
         });

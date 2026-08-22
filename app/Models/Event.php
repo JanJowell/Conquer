@@ -198,6 +198,20 @@ class Event extends Model
             $errors[] = 'add at least one open category';
         }
 
+        $categoryDetailSchema = config("conquer.event_category_type_details.{$interestType}", []);
+        $requiredCategoryDetails = collect($categoryDetailSchema)
+            ->filter(fn (array $definition) => $definition['required_for_publication'] ?? false);
+
+        if ($requiredCategoryDetails->isNotEmpty() && $this->exists) {
+            $openCategories = $this->categories()->where('status', 'open')->with('event')->get();
+
+            foreach ($requiredCategoryDetails as $key => $definition) {
+                if ($openCategories->contains(fn (Category $category) => blank($category->resolvedTypeDetails()[$key] ?? null))) {
+                    $errors[] = 'add '.strtolower($definition['label']).' to every open category';
+                }
+            }
+        }
+
         $paidOpenCategories = $this->categories()
             ->where('status', 'open')
             ->where('price_cents', '>', 0)

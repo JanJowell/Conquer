@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Api;
 
+use App\Services\RegistrationReadiness;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -45,6 +46,7 @@ class RegistrationResource extends JsonResource
                 'paid_at' => optional($this->latestPayment->paid_at)?->toISOString(),
             ] : null),
             'registered_at' => optional($this->registered_at)?->toISOString(),
+            'readiness' => app(RegistrationReadiness::class)->for($this->resource),
             'event' => new EventResource($this->whenLoaded('event')),
             'category' => new CategoryResource($this->whenLoaded('category')),
         ];

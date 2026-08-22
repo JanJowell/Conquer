@@ -22,6 +22,7 @@ class Category extends Model
         'distance_km',
         'type_details',
         'description',
+        'qualification_notes',
         'slot_limit',
         'price_cents',
         'price_currency',
@@ -132,9 +133,11 @@ class Category extends Model
 
     public function formattedTypeDetails(): array
     {
+        $details = $this->resolvedTypeDetails();
+
         return collect($this->typeDetailSchema())
-            ->map(function (array $definition, string $key) {
-                $value = is_array($this->type_details) ? ($this->type_details[$key] ?? null) : null;
+            ->map(function (array $definition, string $key) use ($details) {
+                $value = $details[$key] ?? null;
 
                 if (! filled($value)) {
                     return null;
@@ -148,6 +151,22 @@ class Category extends Model
             })
             ->filter()
             ->values()
+            ->all();
+    }
+
+    public function resolvedTypeDetails(): array
+    {
+        $categoryDetails = is_array($this->type_details) ? $this->type_details : [];
+        $eventDetails = is_array($this->event?->type_details) ? $this->event->type_details : [];
+
+        return collect($this->typeDetailSchema())
+            ->mapWithKeys(function (array $definition, string $key) use ($categoryDetails, $eventDetails) {
+                $value = filled($categoryDetails[$key] ?? null)
+                    ? $categoryDetails[$key]
+                    : ($eventDetails[$key] ?? null);
+
+                return filled($value) ? [$key => $value] : [];
+            })
             ->all();
     }
 

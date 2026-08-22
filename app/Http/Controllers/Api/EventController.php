@@ -47,7 +47,7 @@ class EventController extends Controller
                 $query->with([
                     'currentUserRegistrations' => fn ($registrationQuery) => $registrationQuery
                         ->where('user_id', $user->id)
-                        ->with(['category.event.paymentMethods', 'latestPayment'])
+                        ->with(['category.event.paymentMethods', 'latestPayment', 'raceResult', 'issuedEBadges.badge'])
                         ->latest('registered_at'),
                 ]);
             })
@@ -130,7 +130,7 @@ class EventController extends Controller
             $event->load([
                 'currentUserRegistrations' => fn ($query) => $query
                     ->where('user_id', $user->id)
-                    ->with(['category.event.paymentMethods', 'latestPayment'])
+                    ->with(['category.event.paymentMethods', 'latestPayment', 'raceResult', 'issuedEBadges.badge'])
                     ->latest('registered_at'),
             ]);
         }
@@ -279,7 +279,13 @@ class EventController extends Controller
 
         return response()->json([
             'message' => $existingRegistration ? 'Registration submitted again for review.' : 'Successfully registered.',
-            'data' => new RegistrationResource($registration->load(['event', 'category', 'latestPayment'])),
+            'data' => new RegistrationResource($registration->load([
+                'event',
+                'category.event',
+                'latestPayment',
+                'raceResult',
+                'issuedEBadges.badge',
+            ])),
         ], $existingRegistration ? 200 : 201);
     }
 

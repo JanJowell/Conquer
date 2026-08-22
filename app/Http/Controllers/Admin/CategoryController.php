@@ -90,6 +90,7 @@ class CategoryController extends Controller
             'scheduled_end_date' => ['required', 'date'],
             'scheduled_end_time' => ['required', 'date_format:H:i'],
             'description' => ['nullable', 'string'],
+            'qualification_notes' => ['nullable', 'string', 'max:5000'],
             'slot_limit' => ['nullable', 'integer', 'min:1'],
             'price_amount' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
             'price_currency' => ['required', 'string', 'size:3'],
@@ -172,6 +173,7 @@ class CategoryController extends Controller
                 'scheduled_end_time' => ['required', 'date_format:H:i'],
             ]),
             'description' => ['nullable', 'string'],
+            'qualification_notes' => ['nullable', 'string', 'max:5000'],
             'slot_limit' => ['nullable', 'integer', 'min:1'],
             'price_amount' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
             'price_currency' => ['required', 'string', 'size:3'],
@@ -189,6 +191,11 @@ class CategoryController extends Controller
                 'distance_option' => [Rule::requiredIf(! $usesSegmentedDistances), 'nullable', Rule::in(array_keys($this->distanceOptions()))],
                 'custom_distance_km' => ['nullable', 'required_if:distance_option,custom', 'numeric', 'min:0.01'],
                 ...$this->categoryTypeDetailValidationRules($category->event?->interest_type),
+                ...$rules,
+            ];
+        } else {
+            $rules = [
+                ...$this->categoryTypeDetailValidationRules($category->event?->interest_type, true),
                 ...$rules,
             ];
         }
@@ -214,6 +221,19 @@ class CategoryController extends Controller
                 ?? $this->distanceValue($validated);
             $validated['name'] = $this->nameWithDistance($this->categoryTypeName($validated), (float) $validated['distance_km']);
             unset($validated['category_type'], $validated['custom_category_name'], $validated['distance_option'], $validated['custom_distance_km']);
+        } elseif (array_key_exists('type_details', $validated)) {
+            $mutableKeys = collect(config("conquer.event_category_type_details.{$category->event?->interest_type}", []))
+                ->reject(fn (array $definition) => $definition['locked_when_in_use'] ?? false)
+                ->keys()
+                ->all();
+            $submittedDetails = $this->normalizedCategoryTypeDetails(
+                $category->event?->interest_type,
+                $validated['type_details']
+            );
+            $validated['type_details'] = [
+                ...(is_array($category->type_details) ? $category->type_details : []),
+                ...collect($submittedDetails)->only($mutableKeys)->all(),
+            ];
         }
 
         $this->applyPriceFields($validated);
@@ -347,9 +367,13 @@ class CategoryController extends Controller
         return in_array($eventType, ['Triathlon', 'Duathlon'], true);
     }
 
-    private function categoryTypeDetailValidationRules(?string $eventType): array
+    private function categoryTypeDetailValidationRules(?string $eventType, bool $onlyMutable = false): array
     {
-        $schema = config("conquer.event_category_type_details.{$eventType}", []);
+        $schema = collect(config("conquer.event_category_type_details.{$eventType}", []))
+            ->when($onlyMutable, fn ($definitions) => $definitions->reject(
+                fn (array $definition) => $definition['locked_when_in_use'] ?? false
+            ))
+            ->all();
 
         if ($schema === []) {
             return [];
@@ -358,7 +382,13 @@ class CategoryController extends Controller
         $rules = ['type_details' => ['required', 'array']];
 
         foreach ($schema as $key => $definition) {
-            $rules["type_details.{$key}"] = $definition['rules'];
+            $fieldRules = $definition['rules'];
+
+            if (($definition['type'] ?? null) === 'select' && isset($definition['options'])) {
+                $fieldRules[] = Rule::in($definition['options']);
+            }
+
+            $rules["type_details.{$key}"] = $fieldRules;
         }
 
         return $rules;

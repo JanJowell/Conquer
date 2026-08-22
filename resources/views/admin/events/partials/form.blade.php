@@ -290,6 +290,7 @@
                 'price_currency' => 'PHP',
                 'status' => 'open',
                 'description' => '',
+                'qualification_notes' => '',
             ]];
         }
     @endphp
@@ -381,20 +382,44 @@
 
                         @foreach ($categoryTypeDetailSchemas as $eventType => $detailSchema)
                             <div data-category-type-details="{{ $eventType }}" class="md:col-span-2 rounded-2xl border border-[#d9dee7] bg-[#fafbfc] p-4 {{ $selectedEventType === $eventType ? '' : 'hidden' }}">
-                                <p class="mb-4 text-sm font-semibold text-[#151b26]">{{ $eventType }} Category Distances</p>
+                                <p class="mb-4 text-sm font-semibold text-[#151b26]">{{ $eventType }} Category Details</p>
                                 <div class="grid gap-4 md:grid-cols-3">
                                     @foreach ($detailSchema as $detailKey => $definition)
-                                        <div>
+                                        @php
+                                            $legacyDetailValue = $event?->interest_type === $eventType
+                                                ? data_get($event?->type_details, $detailKey)
+                                                : null;
+                                            $detailValue = data_get($categoryRow, "type_details.{$detailKey}", $legacyDetailValue);
+                                            $detailRequired = in_array('required', $definition['rules'] ?? [], true);
+                                        @endphp
+                                        <div class="{{ ($definition['type'] ?? 'number') === 'textarea' ? 'md:col-span-3' : '' }}">
                                             <label class="mb-2 block text-sm font-medium text-[#3d4757]">{{ $definition['label'] }}</label>
-                                            <div class="relative">
-                                                <input name="categories[{{ $index }}][type_details][{{ $detailKey }}]" type="number" min="0.01" step="0.01" value="{{ data_get($categoryRow, "type_details.{$detailKey}") }}"
-                                                    class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 pr-12 text-sm text-[#151b26] outline-none">
-                                                <span class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-[#7a8495]">{{ $definition['suffix'] }}</span>
-                                            </div>
+                                            @if (($definition['type'] ?? 'number') === 'textarea')
+                                                <textarea name="categories[{{ $index }}][type_details][{{ $detailKey }}]" rows="3" placeholder="{{ $definition['placeholder'] ?? '' }}" @if ($detailRequired) required @endif
+                                                    class="w-full rounded-2xl border border-[#d9dee7] bg-white px-4 py-3 text-sm text-[#151b26] outline-none">{{ $detailValue }}</textarea>
+                                            @elseif (($definition['type'] ?? 'number') === 'select')
+                                                <select name="categories[{{ $index }}][type_details][{{ $detailKey }}]" @if ($detailRequired) required @endif
+                                                    class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
+                                                    <option value="">Select {{ strtolower($definition['label']) }}</option>
+                                                    @foreach (($definition['options'] ?? []) as $option)
+                                                        <option value="{{ $option }}" @selected($detailValue === $option)>{{ $option }}</option>
+                                                    @endforeach
+                                                </select>
+                                            @else
+                                                <div class="relative">
+                                                    <input name="categories[{{ $index }}][type_details][{{ $detailKey }}]" type="number" min="0.01" step="0.01" value="{{ $detailValue }}" @if ($detailRequired) required @endif
+                                                        class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 {{ isset($definition['suffix']) ? 'pr-12' : '' }} text-sm text-[#151b26] outline-none">
+                                                    @if (isset($definition['suffix']))
+                                                        <span class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-[#7a8495]">{{ $definition['suffix'] }}</span>
+                                                    @endif
+                                                </div>
+                                            @endif
                                         </div>
                                     @endforeach
                                 </div>
-                                <p class="mt-3 text-xs text-[#6d7685]">The total category distance is calculated automatically from these segments.</p>
+                                @if (in_array($eventType, ['Triathlon', 'Duathlon'], true))
+                                    <p class="mt-3 text-xs text-[#6d7685]">The total category distance is calculated automatically from these segments.</p>
+                                @endif
                             </div>
                         @endforeach
 
@@ -454,6 +479,12 @@
                             <label class="mb-2 block text-sm font-medium text-[#3d4757]">Description</label>
                             <textarea name="categories[{{ $index }}][description]" rows="3" class="w-full rounded-2xl border border-[#d9dee7] bg-white px-4 py-3 text-sm text-[#151b26] outline-none">{{ $categoryRow['description'] ?? '' }}</textarea>
                         </div>
+                        <div class="md:col-span-2">
+                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Qualification / Eligibility Notes <span class="font-normal text-[#7a8495]">(optional)</span></label>
+                            <textarea name="categories[{{ $index }}][qualification_notes]" rows="3" maxlength="5000" placeholder="e.g. Must be at least 18 years old and have previous race experience."
+                                class="w-full rounded-2xl border border-[#d9dee7] bg-white px-4 py-3 text-sm text-[#151b26] outline-none">{{ $categoryRow['qualification_notes'] ?? '' }}</textarea>
+                            <p class="mt-2 text-xs text-[#6d7685]">Shown to participants before they register for this category.</p>
+                        </div>
                     </div>
                 </div>
             @endforeach
@@ -497,20 +528,43 @@
                     </div>
                     @foreach ($categoryTypeDetailSchemas as $eventType => $detailSchema)
                         <div data-category-type-details="{{ $eventType }}" class="hidden md:col-span-2 rounded-2xl border border-[#d9dee7] bg-[#fafbfc] p-4">
-                            <p class="mb-4 text-sm font-semibold text-[#151b26]">{{ $eventType }} Category Distances</p>
+                            <p class="mb-4 text-sm font-semibold text-[#151b26]">{{ $eventType }} Category Details</p>
                             <div class="grid gap-4 md:grid-cols-3">
                                 @foreach ($detailSchema as $detailKey => $definition)
-                                    <div>
+                                    @php
+                                        $templateDetailValue = $event?->interest_type === $eventType
+                                            ? data_get($event?->type_details, $detailKey)
+                                            : null;
+                                        $detailRequired = in_array('required', $definition['rules'] ?? [], true);
+                                    @endphp
+                                    <div class="{{ ($definition['type'] ?? 'number') === 'textarea' ? 'md:col-span-3' : '' }}">
                                         <label class="mb-2 block text-sm font-medium text-[#3d4757]">{{ $definition['label'] }}</label>
-                                        <div class="relative">
-                                            <input name="categories[__INDEX__][type_details][{{ $detailKey }}]" type="number" min="0.01" step="0.01"
-                                                class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 pr-12 text-sm text-[#151b26] outline-none">
-                                            <span class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-[#7a8495]">{{ $definition['suffix'] }}</span>
-                                        </div>
+                                        @if (($definition['type'] ?? 'number') === 'textarea')
+                                            <textarea name="categories[__INDEX__][type_details][{{ $detailKey }}]" rows="3" placeholder="{{ $definition['placeholder'] ?? '' }}" @if ($detailRequired) required @endif
+                                                class="w-full rounded-2xl border border-[#d9dee7] bg-white px-4 py-3 text-sm text-[#151b26] outline-none">{{ $templateDetailValue }}</textarea>
+                                        @elseif (($definition['type'] ?? 'number') === 'select')
+                                            <select name="categories[__INDEX__][type_details][{{ $detailKey }}]" @if ($detailRequired) required @endif
+                                                class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
+                                                <option value="">Select {{ strtolower($definition['label']) }}</option>
+                                                @foreach (($definition['options'] ?? []) as $option)
+                                                    <option value="{{ $option }}" @selected($templateDetailValue === $option)>{{ $option }}</option>
+                                                @endforeach
+                                            </select>
+                                        @else
+                                            <div class="relative">
+                                                <input name="categories[__INDEX__][type_details][{{ $detailKey }}]" type="number" min="0.01" step="0.01" value="{{ $templateDetailValue }}" @if ($detailRequired) required @endif
+                                                    class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 {{ isset($definition['suffix']) ? 'pr-12' : '' }} text-sm text-[#151b26] outline-none">
+                                                @if (isset($definition['suffix']))
+                                                    <span class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-[#7a8495]">{{ $definition['suffix'] }}</span>
+                                                @endif
+                                            </div>
+                                        @endif
                                     </div>
                                 @endforeach
                             </div>
-                            <p class="mt-3 text-xs text-[#6d7685]">The total category distance is calculated automatically from these segments.</p>
+                            @if (in_array($eventType, ['Triathlon', 'Duathlon'], true))
+                                <p class="mt-3 text-xs text-[#6d7685]">The total category distance is calculated automatically from these segments.</p>
+                            @endif
                         </div>
                     @endforeach
                     <div>
@@ -554,6 +608,12 @@
                     <div class="md:col-span-2">
                         <label class="mb-2 block text-sm font-medium text-[#3d4757]">Description</label>
                         <textarea name="categories[__INDEX__][description]" rows="3" class="w-full rounded-2xl border border-[#d9dee7] bg-white px-4 py-3 text-sm text-[#151b26] outline-none"></textarea>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Qualification / Eligibility Notes <span class="font-normal text-[#7a8495]">(optional)</span></label>
+                        <textarea name="categories[__INDEX__][qualification_notes]" rows="3" maxlength="5000" placeholder="e.g. Must be at least 18 years old and have previous race experience."
+                            class="w-full rounded-2xl border border-[#d9dee7] bg-white px-4 py-3 text-sm text-[#151b26] outline-none"></textarea>
+                        <p class="mt-2 text-xs text-[#6d7685]">Shown to participants before they register for this category.</p>
                     </div>
                 </div>
             </div>

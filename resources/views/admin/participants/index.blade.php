@@ -251,22 +251,34 @@
                                         </div>
                                         <p class="mt-2 text-xs text-[#6d7685]">Status and bib are managed from Check-in or Results.</p>
                                     @else
-                                        <form method="POST" action="{{ route('admin.participants.update', $participant) }}" class="grid gap-3 lg:grid-cols-2 lg:items-start">
+                                        <form method="POST" action="{{ route('admin.participants.update', $participant) }}"
+                                            class="grid gap-3 lg:grid-cols-2 lg:items-start"
+                                            data-registration-review-form
+                                            data-participant-name="{{ $participant->user?->name ?: 'Unknown participant' }}"
+                                            data-event-name="{{ $participant->event?->title ?: 'Deleted event' }}"
+                                            data-category-name="{{ $participant->category?->name ?: 'No category' }}"
+                                            data-payment-summary="{{ $participant->payment_currency ?? 'PHP' }} {{ number_format(($participant->payment_amount_cents ?? 0) / 100, 2) }} — {{ str($participant->payment_status ?? 'waived')->replace('_', ' ')->title() }}">
                                             @csrf
                                             @method('PATCH')
                                             @if ($participant->status !== 'approved')
                                                 <button type="submit" name="status" value="approved"
+                                                    data-registration-action
                                                     class="inline-flex h-10 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-xs font-semibold text-emerald-800 transition hover:bg-emerald-100">
                                                     Approve
                                                 </button>
                                             @endif
                                             @if ($participant->status !== 'rejected')
                                                 <button type="submit" name="status" value="rejected"
+                                                    data-registration-action
                                                     class="inline-flex h-10 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-4 text-xs font-semibold text-rose-800 transition hover:bg-rose-100">
                                                     Reject
                                                 </button>
                                                 <textarea name="rejection_reason" rows="2" placeholder="Reason required when rejected"
+                                                    maxlength="1000" data-rejection-reason aria-describedby="rejection-error-{{ $participant->id }}"
                                                     class="rounded-xl border border-[#d9dee7] px-3 py-2 text-sm text-[#151b26] outline-none lg:col-span-2">{{ $participant->rejection_reason }}</textarea>
+                                                <p id="rejection-error-{{ $participant->id }}" data-rejection-error class="hidden text-xs font-medium text-rose-700 lg:col-span-2">
+                                                    Enter a reason before rejecting this registration.
+                                                </p>
                                             @endif
                                         </form>
                                         @if ($participant->status === 'pending')
@@ -293,4 +305,173 @@
             </div>
         </div>
     </div>
+
+    <dialog id="registration-confirmation-dialog" aria-labelledby="registration-confirmation-title" aria-describedby="registration-confirmation-description"
+        class="w-[min(92vw,34rem)] rounded-3xl border border-[#d9dee7] bg-white p-0 text-[#151b26] shadow-2xl backdrop:bg-slate-950/50">
+        <div class="p-6">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#7a8495]">Confirm registration decision</p>
+                    <h2 id="registration-confirmation-title" class="mt-2 text-2xl font-semibold tracking-tight">Confirm registration</h2>
+                </div>
+                <button type="button" data-confirmation-cancel aria-label="Close confirmation"
+                    class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#d9dee7] text-lg text-[#6d7685] transition hover:bg-[#f7f8fa]">
+                    &times;
+                </button>
+            </div>
+
+            <p id="registration-confirmation-description" data-confirmation-description class="mt-3 text-sm leading-6 text-[#5e6878]"></p>
+
+            <dl class="mt-5 grid gap-3 rounded-2xl border border-[#eef1f4] bg-[#fafbfc] p-4 text-sm sm:grid-cols-2">
+                <div>
+                    <dt class="text-xs font-semibold uppercase tracking-[0.14em] text-[#7a8495]">Participant</dt>
+                    <dd data-confirmation-participant class="mt-1 font-semibold text-[#151b26]"></dd>
+                </div>
+                <div>
+                    <dt class="text-xs font-semibold uppercase tracking-[0.14em] text-[#7a8495]">Payment</dt>
+                    <dd data-confirmation-payment class="mt-1 font-semibold text-[#151b26]"></dd>
+                </div>
+                <div>
+                    <dt class="text-xs font-semibold uppercase tracking-[0.14em] text-[#7a8495]">Event</dt>
+                    <dd data-confirmation-event class="mt-1 font-semibold text-[#151b26]"></dd>
+                </div>
+                <div>
+                    <dt class="text-xs font-semibold uppercase tracking-[0.14em] text-[#7a8495]">Category</dt>
+                    <dd data-confirmation-category class="mt-1 font-semibold text-[#151b26]"></dd>
+                </div>
+                <div data-confirmation-reason-row class="hidden sm:col-span-2">
+                    <dt class="text-xs font-semibold uppercase tracking-[0.14em] text-[#7a8495]">Rejection reason</dt>
+                    <dd data-confirmation-reason class="mt-1 whitespace-pre-wrap font-medium text-rose-800"></dd>
+                </div>
+            </dl>
+
+            <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                <button type="button" data-confirmation-cancel
+                    class="inline-flex h-11 items-center justify-center rounded-2xl border border-[#d9dee7] px-5 text-sm font-semibold text-[#3d4757] transition hover:bg-[#f7f8fa]">
+                    Cancel
+                </button>
+                <button type="button" data-confirmation-submit
+                    class="inline-flex h-11 items-center justify-center rounded-2xl px-5 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-60">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </dialog>
+
+    <script>
+        (() => {
+            const dialog = document.querySelector('#registration-confirmation-dialog');
+            const confirmButton = dialog?.querySelector('[data-confirmation-submit]');
+            const title = dialog?.querySelector('#registration-confirmation-title');
+            const description = dialog?.querySelector('[data-confirmation-description]');
+            const participant = dialog?.querySelector('[data-confirmation-participant]');
+            const eventName = dialog?.querySelector('[data-confirmation-event]');
+            const category = dialog?.querySelector('[data-confirmation-category]');
+            const payment = dialog?.querySelector('[data-confirmation-payment]');
+            const reasonRow = dialog?.querySelector('[data-confirmation-reason-row]');
+            const reasonText = dialog?.querySelector('[data-confirmation-reason]');
+            let pendingForm = null;
+
+            const clearPendingConfirmation = () => {
+                pendingForm?.querySelector('[data-confirmed-status]')?.remove();
+                pendingForm = null;
+                if (confirmButton) confirmButton.disabled = false;
+            };
+
+            const closeConfirmation = () => {
+                dialog?.close();
+                clearPendingConfirmation();
+            };
+
+            document.querySelectorAll('[data-registration-review-form]').forEach((form) => {
+                const rejectionReason = form.querySelector('[data-rejection-reason]');
+                const rejectionError = form.querySelector('[data-rejection-error]');
+
+                rejectionReason?.addEventListener('input', () => {
+                    rejectionReason.setCustomValidity('');
+                    rejectionError?.classList.add('hidden');
+                });
+
+                form.addEventListener('submit', (event) => {
+                    if (form.dataset.confirmed === 'true') {
+                        form.querySelectorAll('[data-registration-action]').forEach((button) => {
+                            button.disabled = true;
+                        });
+                        return;
+                    }
+
+                    event.preventDefault();
+                    const action = event.submitter?.value;
+                    if (! ['approved', 'rejected'].includes(action)) return;
+
+                    const trimmedReason = rejectionReason?.value.trim() || '';
+                    if (action === 'rejected' && trimmedReason === '') {
+                        rejectionReason.setCustomValidity('Enter a reason before rejecting this registration.');
+                        rejectionError?.classList.remove('hidden');
+                        rejectionReason.reportValidity();
+                        rejectionReason.focus();
+                        return;
+                    }
+
+                    rejectionReason?.setCustomValidity('');
+                    rejectionError?.classList.add('hidden');
+                    pendingForm = form;
+
+                    const confirmedStatus = document.createElement('input');
+                    confirmedStatus.type = 'hidden';
+                    confirmedStatus.name = 'status';
+                    confirmedStatus.value = action;
+                    confirmedStatus.dataset.confirmedStatus = 'true';
+                    form.querySelector('[data-confirmed-status]')?.remove();
+                    form.appendChild(confirmedStatus);
+
+                    const approving = action === 'approved';
+                    title.textContent = approving ? 'Approve this registration?' : 'Reject this registration?';
+                    description.textContent = approving
+                        ? 'Approval confirms this participant for the category and assigns a bib number when needed.'
+                        : 'Rejection removes any assigned bib, sends the reason to the participant, and allows them to re-apply.';
+                    participant.textContent = form.dataset.participantName;
+                    eventName.textContent = form.dataset.eventName;
+                    category.textContent = form.dataset.categoryName;
+                    payment.textContent = form.dataset.paymentSummary;
+                    reasonRow.classList.toggle('hidden', approving);
+                    reasonText.textContent = approving ? '' : trimmedReason;
+                    confirmButton.textContent = approving ? 'Approve Registration' : 'Reject Registration';
+                    confirmButton.classList.toggle('bg-emerald-600', approving);
+                    confirmButton.classList.toggle('hover:bg-emerald-700', approving);
+                    confirmButton.classList.toggle('bg-rose-600', ! approving);
+                    confirmButton.classList.toggle('hover:bg-rose-700', ! approving);
+
+                    if (typeof dialog.showModal === 'function') {
+                        dialog.showModal();
+                    } else if (window.confirm(`${title.textContent}\n\n${description.textContent}`)) {
+                        form.dataset.confirmed = 'true';
+                        form.requestSubmit();
+                    } else {
+                        clearPendingConfirmation();
+                    }
+                });
+            });
+
+            dialog?.querySelectorAll('[data-confirmation-cancel]').forEach((button) => {
+                button.addEventListener('click', closeConfirmation);
+            });
+
+            dialog?.addEventListener('cancel', (event) => {
+                event.preventDefault();
+                closeConfirmation();
+            });
+
+            confirmButton?.addEventListener('click', () => {
+                if (! pendingForm) return;
+
+                const form = pendingForm;
+                confirmButton.disabled = true;
+                form.dataset.confirmed = 'true';
+                dialog.close();
+                form.requestSubmit();
+                pendingForm = null;
+            });
+        })();
+    </script>
 @endsection

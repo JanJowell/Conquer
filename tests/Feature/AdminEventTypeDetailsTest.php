@@ -33,6 +33,21 @@ function eventTypePayload(string $type, array $details): array
         unset($category['distance_option']);
     }
 
+    if ($type === 'Hiking') {
+        $category['type_details'] = [
+            'required_gear' => $details['required_gear'] ?? 'Hiking shoes and water',
+        ];
+        unset($details['required_gear']);
+    }
+
+    if ($type === 'Trail Run') {
+        $category['type_details'] = [
+            'trail_difficulty' => $details['trail_difficulty'] ?? null,
+            'mandatory_gear' => $details['mandatory_gear'] ?? 'Hydration vest and whistle',
+        ];
+        unset($details['trail_difficulty'], $details['mandatory_gear']);
+    }
+
     return [
         'title' => $type.' Championship',
         'description' => 'Complete event description.',
@@ -123,14 +138,27 @@ test('admin can store the correct structured details for each event type', funct
         ->assertSessionHasNoErrors();
 
     $event = Event::where('title', $type.' Championship')->firstOrFail();
+    $category = $event->categories()->firstOrFail();
     $resource = (new EventResource($event))->toArray(Request::create('/api/events'));
+    $expectedEventDetails = collect($details)
+        ->reject(fn ($value, string $key) => Event::typeDetailSchema($type)[$key]['category_owned'] ?? false)
+        ->all();
 
-    expect($event->type_details)->toMatchArray($details)
+    expect($event->type_details)->toMatchArray($expectedEventDetails)
         ->and($event->categorySectionLabel())->toBe($categoryLabel)
         ->and($event->status)->toBe('upcoming')
-        ->and($resource['type_details'])->toMatchArray($details)
+        ->and($resource['type_details'])->toMatchArray($expectedEventDetails)
         ->and($resource['category_label'])->toBe($categoryLabel)
         ->and($resource['type_detail_items'])->not->toBeEmpty();
+
+    if ($type === 'Hiking') {
+        expect($category->type_details['required_gear'])->toBe($details['required_gear']);
+    }
+
+    if ($type === 'Trail Run') {
+        expect($category->type_details['mandatory_gear'])->toBe($details['mandatory_gear'])
+            ->and($category->type_details['trail_difficulty'])->toBe($details['trail_difficulty']);
+    }
 })->with('event type details');
 
 test('type details reject invalid values for the selected event type', function () {
@@ -215,9 +243,14 @@ test('event form renders every type-specific field and dynamic category labels',
         ->assertDontSee('type_details[Cycling][route_distance_km]', false)
         ->assertDontSee('type_details[Hiking][trail_length_km]', false)
         ->assertDontSee('type_details[Marathon][distances]', false)
-        ->assertSee('type_details[Trail Run][mandatory_gear]', false)
+        ->assertDontSee('type_details[Hiking][required_gear]', false)
+        ->assertDontSee('type_details[Trail Run][trail_difficulty]', false)
+        ->assertDontSee('type_details[Trail Run][mandatory_gear]', false)
         ->assertDontSee('type_details[Triathlon][swim_distance_m]', false)
         ->assertDontSee('type_details[Duathlon][second_run_distance_km]', false)
+        ->assertSee('categories[0][type_details][required_gear]', false)
+        ->assertSee('categories[0][type_details][trail_difficulty]', false)
+        ->assertSee('categories[0][type_details][mandatory_gear]', false)
         ->assertSee('categories[0][type_details][swim_distance_m]', false)
         ->assertSee('categories[0][type_details][second_run_distance_km]', false);
 

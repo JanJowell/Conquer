@@ -29,7 +29,7 @@ class PaymentController extends Controller
             ], 403);
         }
 
-        $registration->load(['event', 'category', 'latestPayment']);
+        $registration->load(['event', 'category.event', 'latestPayment', 'raceResult', 'issuedEBadges.badge']);
         $payments = $registration->payments()
             ->latest()
             ->get();
@@ -149,7 +149,13 @@ class PaymentController extends Controller
             ]);
         });
 
-        $registration = $registration->fresh()->load(['event', 'category', 'latestPayment']);
+        $registration = $registration->fresh()->load([
+            'event',
+            'category.event',
+            'latestPayment',
+            'raceResult',
+            'issuedEBadges.badge',
+        ]);
 
         return response()->json([
             'message' => 'PayMongo checkout session created.',
@@ -254,7 +260,13 @@ class PaymentController extends Controller
         return response()->json([
             'message' => 'Payment proof submitted for admin review.',
             'data' => new RegistrationResource(
-                $registration->fresh()->load(['event', 'category', 'latestPayment'])
+                $registration->fresh()->load([
+                    'event',
+                    'category.event',
+                    'latestPayment',
+                    'raceResult',
+                    'issuedEBadges.badge',
+                ])
             ),
         ]);
     }
