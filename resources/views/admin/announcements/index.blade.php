@@ -95,13 +95,20 @@
                         @forelse ($announcements as $announcement)
                             <tr class="align-top">
                                 <td class="px-6 py-5">
-                                    <div class="flex flex-wrap items-center gap-2">
-                                        <p class="font-semibold text-[#151b26]">{{ $announcement->title }}</p>
-                                        @if ($announcement->is_auto_generated)
-                                            <span class="inline-flex rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-[11px] font-semibold text-sky-700">Auto</span>
+                                    <div class="flex items-start gap-3">
+                                        @if ($announcement->image_path)
+                                            <img src="{{ asset('storage/'.$announcement->image_path) }}" alt="" class="h-14 w-14 shrink-0 rounded-xl border border-slate-200 object-cover">
                                         @endif
+                                        <div class="min-w-0">
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <p class="font-semibold text-[#151b26]">{{ $announcement->title }}</p>
+                                                @if ($announcement->is_auto_generated)
+                                                    <span class="inline-flex rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-[11px] font-semibold text-sky-700">Auto</span>
+                                                @endif
+                                            </div>
+                                            <p class="mt-1 text-xs leading-6 text-[#6d7685]">{{ \Illuminate\Support\Str::limit($announcement->content, 110) }}</p>
+                                        </div>
                                     </div>
-                                    <p class="mt-1 text-xs leading-6 text-[#6d7685]">{{ \Illuminate\Support\Str::limit($announcement->content, 110) }}</p>
                                 </td>
                                 <td class="px-6 py-5">{{ $announcement->event?->title ?: 'General announcement' }}</td>
                                 <td class="px-6 py-5">{{ $announcement->published_at?->format('M d, Y h:i A') ?: 'Not published yet' }}</td>
@@ -166,7 +173,7 @@
         <button type="button" data-close-announcement-modal class="fixed inset-0 bg-slate-950/35 backdrop-blur-md" aria-label="Close dialog"></button>
 
         <div class="relative z-10 flex min-h-screen w-full items-start justify-center px-4 py-8 sm:px-6">
-            <form method="POST" action="{{ route('admin.announcements.store') }}" class="w-full max-w-4xl">
+            <form method="POST" action="{{ route('admin.announcements.store') }}" enctype="multipart/form-data" class="w-full max-w-4xl">
                 @csrf
                 <input type="hidden" name="_creating_announcement" value="1">
 
@@ -224,6 +231,12 @@
                                 @if($creatingAnnouncement) @error('content') <p class="mt-2 text-sm text-rose-600">{{ $message }}</p> @enderror @endif
                             </div>
 
+                            @include('admin.announcements._image-field', [
+                                'inputId' => 'create-announcement-image',
+                                'imagePath' => null,
+                                'showErrors' => $creatingAnnouncement,
+                            ])
+
                             <label class="inline-flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm">
                                 <input type="hidden" name="is_published" value="0">
                                 <input type="checkbox" name="is_published" value="1" @checked(old('is_published', true)) class="h-4 w-4 rounded border-slate-300 text-slate-950 focus:ring-slate-950">
@@ -258,7 +271,7 @@
             <button type="button" data-close-announcement-modal class="fixed inset-0 bg-slate-950/35 backdrop-blur-md" aria-label="Close dialog"></button>
 
             <div class="relative z-10 flex min-h-screen w-full items-start justify-center px-4 py-8 sm:px-6">
-                <form method="POST" action="{{ route('admin.announcements.update', $announcement) }}" class="w-full max-w-5xl">
+                <form method="POST" action="{{ route('admin.announcements.update', $announcement) }}" enctype="multipart/form-data" class="w-full max-w-5xl">
                     @csrf
                     @method('PUT')
                     <input type="hidden" name="_editing_announcement" value="{{ $announcement->id }}">
@@ -321,6 +334,12 @@
                                         @if($editingThisAnnouncement) @error('content') <p class="mt-2 text-sm text-rose-600">{{ $message }}</p> @enderror @endif
                                     </div>
 
+                                    @include('admin.announcements._image-field', [
+                                        'inputId' => 'edit-announcement-image-'.$announcement->id,
+                                        'imagePath' => $announcement->image_path,
+                                        'showErrors' => $editingThisAnnouncement,
+                                    ])
+
                                     <label class="inline-flex items-center gap-3 rounded-xl border border-white/60 bg-white/45 px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm backdrop-blur-xl">
                                         <input type="hidden" name="is_published" value="0">
                                         <input type="checkbox" name="is_published" value="1" @checked($editingThisAnnouncement ? old('is_published', $announcement->is_published) : $announcement->is_published) class="h-4 w-4 rounded border-slate-300 text-slate-950 focus:ring-slate-950">
@@ -347,6 +366,8 @@
             </div>
         </div>
     @endforeach
+
+    @include('admin.announcements._image-preview-script')
 
     <script>
         (function () {

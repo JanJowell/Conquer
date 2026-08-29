@@ -5,10 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Announcement;
 use App\Models\Event;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
 class AnnouncementController extends Controller
 {
@@ -73,15 +74,25 @@ class AnnouncementController extends Controller
         $validated = $this->validateAnnouncement($request);
 
         $isPublished = $request->boolean('is_published');
+        $imagePath = $request->file('image')?->store('announcements', 'public');
 
-        Announcement::create([
-            'event_id' => $validated['event_id'] ?? null,
-            'title' => $validated['title'],
-            'content' => $validated['content'],
-            'is_published' => $isPublished,
-            'published_at' => $isPublished ? now() : null,
-            'expires_at' => $validated['expires_at'] ?? null,
-        ]);
+        try {
+            Announcement::create([
+                'event_id' => $validated['event_id'] ?? null,
+                'title' => $validated['title'],
+                'content' => $validated['content'],
+                'image_path' => $imagePath,
+                'is_published' => $isPublished,
+                'published_at' => $isPublished ? now() : null,
+                'expires_at' => $validated['expires_at'] ?? null,
+            ]);
+        } catch (\Throwable $exception) {
+            if ($imagePath) {
+                Storage::disk('public')->delete($imagePath);
+            }
+
+            throw $exception;
+        }
 
         return redirect()->route('admin.announcements.index')->with('success', 'Announcement created successfully.');
     }
@@ -104,17 +115,34 @@ class AnnouncementController extends Controller
         $validated = $this->validateAnnouncement($request);
         $wasPublished = $announcement->is_published;
         $isPublished = $request->boolean('is_published');
+        $oldImagePath = $announcement->image_path;
+        $newImagePath = $request->file('image')?->store('announcements', 'public');
+        $imagePath = $newImagePath
+            ?? ($request->boolean('remove_image') ? null : $oldImagePath);
 
-        $announcement->update([
-            'event_id' => $validated['event_id'] ?? null,
-            'title' => $validated['title'],
-            'content' => $validated['content'],
-            'is_published' => $isPublished,
-            'published_at' => $isPublished
-                ? ($wasPublished ? ($announcement->published_at ?? now()) : now())
-                : null,
-            'expires_at' => $validated['expires_at'] ?? null,
-        ]);
+        try {
+            $announcement->update([
+                'event_id' => $validated['event_id'] ?? null,
+                'title' => $validated['title'],
+                'content' => $validated['content'],
+                'image_path' => $imagePath,
+                'is_published' => $isPublished,
+                'published_at' => $isPublished
+                    ? ($wasPublished ? ($announcement->published_at ?? now()) : now())
+                    : null,
+                'expires_at' => $validated['expires_at'] ?? null,
+            ]);
+        } catch (\Throwable $exception) {
+            if ($newImagePath) {
+                Storage::disk('public')->delete($newImagePath);
+            }
+
+            throw $exception;
+        }
+
+        if ($oldImagePath && $oldImagePath !== $imagePath) {
+            Storage::disk('public')->delete($oldImagePath);
+        }
 
         return redirect()->route('admin.announcements.index')->with('success', 'Announcement updated successfully.');
     }
@@ -147,7 +175,12 @@ class AnnouncementController extends Controller
     {
         abort_unless($this->canAccessAnnouncement($announcement), 403);
 
+        $imagePath = $announcement->image_path;
         $announcement->delete();
+
+        if ($imagePath) {
+            Storage::disk('public')->delete($imagePath);
+        }
 
         return back()->with('success', 'Announcement deleted successfully.');
     }
@@ -165,6 +198,8 @@ class AnnouncementController extends Controller
             ],
             'title' => ['required', 'string', 'max:255'],
             'content' => ['required', 'string'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'remove_image' => ['nullable', 'boolean'],
             'is_published' => ['nullable', 'boolean'],
             'expires_at' => ['nullable', 'date'],
         ]);

@@ -16,7 +16,7 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('admin.announcements.store') }}" class="rounded-2xl border border-[#d9dee7] bg-white p-6 shadow-sm">
+        <form method="POST" action="{{ route('admin.announcements.store') }}" enctype="multipart/form-data" class="rounded-2xl border border-[#d9dee7] bg-white p-6 shadow-sm">
             @csrf
 
             <div class="grid gap-5">
@@ -47,6 +47,11 @@
                     <textarea id="content" name="content" rows="6" class="w-full rounded-xl border border-[#d9dee7] px-4 py-3 text-sm text-[#151b26] outline-none transition focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]">{{ old('content') }}</textarea>
                 </div>
 
+                @include('admin.announcements._image-field', [
+                    'inputId' => 'announcement-image',
+                    'imagePath' => null,
+                ])
+
                 <label class="inline-flex items-center gap-3 rounded-xl border border-[#d9dee7] px-4 py-3 text-sm text-[#202733]">
                     <input type="hidden" name="is_published" value="0">
                     <input type="checkbox" name="is_published" value="1" @checked(old('is_published', true)) class="h-4 w-4 rounded border-[#cfd5de] text-[#151b26] focus:ring-[#151b26]">
@@ -71,4 +76,6 @@
             </div>
         </form>
     </div>
+
+    @include('admin.announcements._image-preview-script')
 @endsection

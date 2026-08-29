@@ -14,6 +14,7 @@ class Announcement extends Model
         'event_id',
         'title',
         'content',
+        'image_path',
         'is_published',
         'is_auto_generated',
         'published_at',
@@ -57,5 +58,4 @@ class Announcement extends Model
     {
         return $this->belongsTo(Event::class);
     }
-
 }

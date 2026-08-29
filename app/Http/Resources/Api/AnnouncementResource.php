@@ -14,6 +14,7 @@ class AnnouncementResource extends JsonResource
             'event_id' => $this->event_id,
             'title' => $this->title,
             'content' => $this->content,
+            'image_url' => $this->image_path ? asset('storage/'.$this->image_path) : null,
             'is_auto_generated' => $this->is_auto_generated,
             'published_at' => optional($this->published_at ?? $this->created_at)?->toISOString(),
             'expires_at' => optional($this->expires_at)?->toISOString(),

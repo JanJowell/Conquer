@@ -249,6 +249,9 @@
             <div class="grid gap-5 lg:grid-cols-2">
                 @forelse($announcements as $announcement)
                     <article class="rounded-3xl border border-white/70 bg-white/55 p-6 shadow-sm backdrop-blur-xl">
+                        @if ($announcement->image_path)
+                            <img src="{{ asset('storage/'.$announcement->image_path) }}" alt="{{ $announcement->title }}" class="mb-5 max-h-80 w-full rounded-2xl border border-white/70 bg-slate-100 object-contain">
+                        @endif
                         <div class="flex items-start gap-4">
                             <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-amber-200 bg-amber-100/80 text-amber-700">
                                 <i class="fas fa-bullhorn"></i>
