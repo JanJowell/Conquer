@@ -47,6 +47,9 @@ class RegistrationResource extends JsonResource
             ] : null),
             'registered_at' => optional($this->registered_at)?->toISOString(),
             'readiness' => app(RegistrationReadiness::class)->for($this->resource),
+            'feedback' => $this->feedback
+                ? new RegistrationFeedbackResource($this->feedback)
+                : null,
             'event' => new EventResource($this->whenLoaded('event')),
             'category' => new CategoryResource($this->whenLoaded('category')),
         ];

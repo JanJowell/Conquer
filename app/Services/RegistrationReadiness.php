@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Payment;
 use App\Models\Registration;
+use App\Models\RegistrationFeedback;
 
 class RegistrationReadiness
 {
@@ -13,11 +14,13 @@ class RegistrationReadiness
             'event',
             'category.event',
             'raceResult',
+            'feedback',
             'issuedEBadges.badge',
         ]);
 
         $category = $registration->category;
         $result = $registration->raceResult;
+        $feedback = $registration->feedback;
         $issuedBadges = $registration->issuedEBadges;
         $registrationStatus = (string) $registration->status;
         $isRejected = $registrationStatus === 'rejected';
@@ -126,6 +129,13 @@ class RegistrationReadiness
                     'completed' => $issuedBadges->isNotEmpty(),
                     'status' => $issuedBadges->isNotEmpty() ? 'available' : 'not_available',
                 ],
+                'feedback' => [
+                    'required' => $result !== null,
+                    'completed' => $feedback !== null,
+                    'status' => ! $result
+                        ? 'upcoming'
+                        : ($feedback ? 'complete' : 'action_required'),
+                ],
             ],
             'requirements' => [
                 'qualification_notes' => $category?->qualification_notes,
@@ -147,6 +157,14 @@ class RegistrationReadiness
                 'rank_category' => $result->rank_category,
                 'remarks' => $result->remarks,
             ] : null,
+            'feedback' => [
+                'required_after_completion' => true,
+                'has_submitted' => $feedback !== null,
+                'can_submit' => $result !== null && $feedback === null,
+                'can_edit' => $feedback?->canEdit() ?? false,
+                'edit_window_days' => RegistrationFeedback::EDIT_WINDOW_DAYS,
+                'editable_until' => optional($feedback?->editableUntil())?->toISOString(),
+            ],
             'e_badges' => [
                 'available' => $issuedBadges->isNotEmpty(),
                 'count' => $issuedBadges->count(),

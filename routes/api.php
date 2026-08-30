@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\DeviceTokenController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\RegistrationFeedbackController;
 use App\Http\Controllers\Api\SystemController;
 use App\Http\Controllers\Api\UserActivityController;
 use App\Http\Controllers\Internal\CommunityPostPurgeController;
@@ -57,6 +58,8 @@ Route::middleware(['mobile.auth', 'throttle:mobile-api'])->group(function () {
     Route::get('/registrations/{registration}/payments', [PaymentController::class, 'history']);
     Route::post('/registrations/{registration}/paymongo-checkout', [PaymentController::class, 'createPayMongoCheckout']);
     Route::post('/registrations/{registration}/payment-proof', [PaymentController::class, 'submitProof']);
+    Route::get('/registrations/{registration}/feedback', [RegistrationFeedbackController::class, 'show']);
+    Route::put('/registrations/{registration}/feedback', [RegistrationFeedbackController::class, 'upsert']);
     Route::get('/community-posts/feed', [ContentController::class, 'communityFeed']);
     Route::get('/community-posts/archived', [ContentController::class, 'archivedCommunityPosts']);
     Route::get('/community-posts/hidden', [ContentController::class, 'hiddenCommunityPosts']);

@@ -65,8 +65,7 @@ class Event extends Model
         mixed $startTime = null,
         mixed $endTime = null,
         mixed $eventEndDate = null
-    ): ?string
-    {
+    ): ?string {
         if ($status === 'draft') {
             return 'draft';
         }
@@ -297,8 +296,7 @@ class Event extends Model
             ->where('price_cents', '>', 0)
             ->get();
 
-        return $paidCategories->isNotEmpty() && $paidCategories->every(fn (Category $category) =>
-            filled($category->payment_provider)
+        return $paidCategories->isNotEmpty() && $paidCategories->every(fn (Category $category) => filled($category->payment_provider)
             && filled($category->payment_account_name)
             && (filled($category->payment_account_number) || filled($category->payment_instructions))
         );
@@ -322,6 +320,11 @@ class Event extends Model
     public function raceResults()
     {
         return $this->hasMany(RaceResult::class);
+    }
+
+    public function registrationFeedback()
+    {
+        return $this->hasMany(RegistrationFeedback::class);
     }
 
     public function eBadges()

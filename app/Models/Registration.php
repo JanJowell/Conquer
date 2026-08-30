@@ -72,6 +72,11 @@ class Registration extends Model
         return $this->hasOne(RaceResult::class);
     }
 
+    public function feedback()
+    {
+        return $this->hasOne(RegistrationFeedback::class);
+    }
+
     public function issuedEBadges()
     {
         return $this->hasMany(IssuedEBadge::class);

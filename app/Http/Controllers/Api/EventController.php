@@ -8,7 +8,6 @@ use App\Http\Resources\Api\RegistrationResource;
 use App\Models\Category;
 use App\Models\Event;
 use App\Models\Registration;
-use App\Models\User;
 use App\Services\CategoryRegistrationEligibility;
 use App\Services\MobileRecommendationContext;
 use Illuminate\Database\QueryException;
@@ -47,7 +46,7 @@ class EventController extends Controller
                 $query->with([
                     'currentUserRegistrations' => fn ($registrationQuery) => $registrationQuery
                         ->where('user_id', $user->id)
-                        ->with(['category.event.paymentMethods', 'latestPayment', 'raceResult', 'issuedEBadges.badge'])
+                        ->with(['category.event.paymentMethods', 'latestPayment', 'raceResult', 'feedback', 'issuedEBadges.badge'])
                         ->latest('registered_at'),
                 ]);
             })
@@ -130,7 +129,7 @@ class EventController extends Controller
             $event->load([
                 'currentUserRegistrations' => fn ($query) => $query
                     ->where('user_id', $user->id)
-                    ->with(['category.event.paymentMethods', 'latestPayment', 'raceResult', 'issuedEBadges.badge'])
+                    ->with(['category.event.paymentMethods', 'latestPayment', 'raceResult', 'feedback', 'issuedEBadges.badge'])
                     ->latest('registered_at'),
             ]);
         }
@@ -288,5 +287,4 @@ class EventController extends Controller
             ])),
         ], $existingRegistration ? 200 : 201);
     }
-
 }

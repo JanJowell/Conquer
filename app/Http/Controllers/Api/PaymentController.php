@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\RegistrationResource;
+use App\Models\EventPaymentMethod;
 use App\Models\Payment;
 use App\Models\Registration;
-use App\Models\EventPaymentMethod;
 use App\Services\PayMongoCheckoutService;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\JsonResponse;
@@ -17,9 +17,7 @@ use RuntimeException;
 
 class PaymentController extends Controller
 {
-    public function __construct(private readonly PayMongoCheckoutService $payMongo)
-    {
-    }
+    public function __construct(private readonly PayMongoCheckoutService $payMongo) {}
 
     public function history(Request $request, Registration $registration): JsonResponse
     {
@@ -29,7 +27,7 @@ class PaymentController extends Controller
             ], 403);
         }
 
-        $registration->load(['event', 'category.event', 'latestPayment', 'raceResult', 'issuedEBadges.badge']);
+        $registration->load(['event', 'category.event', 'latestPayment', 'raceResult', 'feedback', 'issuedEBadges.badge']);
         $payments = $registration->payments()
             ->latest()
             ->get();
@@ -215,8 +213,7 @@ class PaymentController extends Controller
                 ], 422);
             }
 
-            $selectedOption = $enabledOptions->first(fn (EventPaymentMethod $method) =>
-                strtolower($method->provider) === strtolower(trim((string) $validated['provider']))
+            $selectedOption = $enabledOptions->first(fn (EventPaymentMethod $method) => strtolower($method->provider) === strtolower(trim((string) $validated['provider']))
             );
 
             if (! $selectedOption || $selectedOption->isOnlineCheckout()) {

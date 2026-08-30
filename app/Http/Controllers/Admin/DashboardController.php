@@ -3,19 +3,20 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Carbon\Carbon;
-use Carbon\CarbonInterface;
-use App\Models\User;
-use App\Models\Event;
-use App\Models\Registration;
-use App\Models\RaceResult;
-use App\Models\Announcement;
 use App\Models\AdminActivityLog;
+use App\Models\Announcement;
 use App\Models\BannedIP;
 use App\Models\Checkpoint;
 use App\Models\CommunityPost;
 use App\Models\CommunityPostComment;
+use App\Models\Event;
+use App\Models\RaceResult;
+use App\Models\Registration;
+use App\Models\RegistrationFeedback;
 use App\Models\TrainingModule;
+use App\Models\User;
+use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -182,13 +183,13 @@ class DashboardController extends Controller
 
         if ($dashboardRole === User::ROLE_EXECUTIVE) {
             $eventHealth = Event::withCount([
-                    'categories',
-                    'registrations',
-                    'raceResults',
-                    'checkpoints',
-                    'announcements as published_announcements_count' => fn ($query) => $query->where('is_published', true),
-                    'registrations as checked_in_registrations_count' => fn ($query) => $query->whereIn('status', ['checked_in', 'completed']),
-                ])
+                'categories',
+                'registrations',
+                'raceResults',
+                'checkpoints',
+                'announcements as published_announcements_count' => fn ($query) => $query->where('is_published', true),
+                'registrations as checked_in_registrations_count' => fn ($query) => $query->whereIn('status', ['checked_in', 'completed']),
+            ])
                 ->whereDate('event_date', '>=', now()->toDateString())
                 ->orderBy('event_date')
                 ->take(8)
@@ -258,7 +259,7 @@ class DashboardController extends Controller
 
         $user = auth()->user();
         abort_if($type === 'users' && ! $user->hasAdminRole([User::ROLE_SUPER_ADMIN, User::ROLE_EXECUTIVE]), 403);
-        $filename = "racetech-{$type}-report-" . now()->format('Ymd-His') . '.csv';
+        $filename = "racetech-{$type}-report-".now()->format('Ymd-His').'.csv';
 
         return response()->streamDownload(function () use ($type, $user) {
             $handle = fopen('php://output', 'w');
@@ -283,14 +284,21 @@ class DashboardController extends Controller
                 $query->whereIn('event_id', $user->managedEventIds());
             })
             ->latest()
-            ->paginate(12);
+            ->paginate(12, ['*'], 'community_page');
+
+        $recentEventFeedback = RegistrationFeedback::with(['user', 'event', 'category'])
+            ->when($user->managesAssignedEventsOnly(), function ($query) use ($user) {
+                $query->whereIn('event_id', $user->managedEventIds());
+            })
+            ->latest('submitted_at')
+            ->paginate(12, ['*'], 'ratings_page');
 
         $feedbackInsights = $this->buildFeedbackInsights(
             $user->managedEventIds(),
             $user->managesAssignedEventsOnly()
         );
 
-        return view('admin.feedback-insights', compact('recentFeedback', 'feedbackInsights'));
+        return view('admin.feedback-insights', compact('recentFeedback', 'recentEventFeedback', 'feedbackInsights'));
     }
 
     private function buildSeries($growthStart, int $overviewDays, $source)
@@ -316,6 +324,14 @@ class DashboardController extends Controller
             ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
                 $query->whereBetween('created_at', [$startDate, $endDate]);
             });
+        $ratingQuery = RegistrationFeedback::query()
+            ->when($scopeToManagedEvents, function ($query) use ($managedEventIds) {
+                $query->whereIn('event_id', $managedEventIds);
+            })
+            ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
+                $query->whereBetween('submitted_at', [$startDate, $endDate]);
+            });
+        $structuredFeedbackCount = (clone $ratingQuery)->count();
 
         $complaintKeywords = ['late', 'delay', 'confusing', 'issue', 'problem', 'crowded', 'spam'];
         $suggestionKeywords = ['improve', 'suggest', 'better', 'please add', 'would like', 'more'];
@@ -338,7 +354,15 @@ class DashboardController extends Controller
             'complaints' => $this->countKeywordMatches($postQuery, $complaintKeywords),
             'suggestions' => $this->countKeywordMatches($postQuery, $suggestionKeywords),
             'positive_mentions' => $this->countKeywordMatches($postQuery, $positiveKeywords),
-            'ratings_available' => false,
+            'ratings_available' => $structuredFeedbackCount > 0,
+            'structured_feedback_count' => $structuredFeedbackCount,
+            'average_overall_rating' => (clone $ratingQuery)->avg('overall_rating'),
+            'average_organization_rating' => (clone $ratingQuery)->avg('organization_rating'),
+            'average_route_rating' => (clone $ratingQuery)->avg('route_rating'),
+            'average_safety_rating' => (clone $ratingQuery)->avg('safety_rating'),
+            'average_experience_rating' => (clone $ratingQuery)->avg('experience_rating'),
+            'structured_feedback_events' => (clone $ratingQuery)->distinct('event_id')->count('event_id'),
+            'structured_comments_count' => (clone $ratingQuery)->whereNotNull('comment')->where('comment', '!=', '')->count(),
         ];
     }
 
@@ -347,7 +371,7 @@ class DashboardController extends Controller
         return (clone $query)
             ->where(function ($keywordQuery) use ($keywords) {
                 foreach ($keywords as $keyword) {
-                    $keywordQuery->orWhere('content', 'like', '%' . $keyword . '%');
+                    $keywordQuery->orWhere('content', 'like', '%'.$keyword.'%');
                 }
             })
             ->count();

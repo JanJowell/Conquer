@@ -12,10 +12,15 @@ class User extends Authenticatable
     use HasFactory, Notifiable, TwoFactorAuthenticatable;
 
     public const ROLE_SUPER_ADMIN = 'super_admin';
+
     public const ROLE_EXECUTIVE = 'executive';
+
     public const ROLE_CONTENT_MODERATOR = 'content_moderator';
+
     public const ROLE_EVENT_MANAGER = 'event_manager';
+
     public const ROLE_RUNNER = 'runner';
+
     public const ROLE_LEGACY_ADMIN = 'admin';
 
     protected $fillable = [
@@ -76,6 +81,11 @@ class User extends Authenticatable
         return $this->hasMany(RaceResult::class);
     }
 
+    public function registrationFeedback()
+    {
+        return $this->hasMany(RegistrationFeedback::class);
+    }
+
     public function issuedEBadges()
     {
         return $this->hasMany(IssuedEBadge::class);
@@ -89,10 +99,10 @@ class User extends Authenticatable
     public function initials(): string
     {
         return collect(explode(' ', trim($this->name)))
-           ->filter()
-           ->map(fn ($word) => strtoupper(substr($word, 0, 1)))
-           ->take(2)
-           ->implode('');
+            ->filter()
+            ->map(fn ($word) => strtoupper(substr($word, 0, 1)))
+            ->take(2)
+            ->implode('');
     }
 
     public function adminActivityLogs()
