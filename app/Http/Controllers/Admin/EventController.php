@@ -235,13 +235,17 @@ class EventController extends Controller
         $categoryTypes = $this->categoryTypes();
         $distanceOptions = $this->distanceOptions();
         $paymentMethods = EventPaymentMethod::providers();
+        $categoryRows = $event->categories
+            ->map(fn (Category $category) => $this->categoryRowForEditing($category))
+            ->values()
+            ->all();
 
         $managers = User::query()
             ->whereIn('role', [User::ROLE_EVENT_MANAGER, User::ROLE_LEGACY_ADMIN])
             ->orderBy('name')
             ->get(['id', 'name', 'email']);
 
-        return view('admin.events.edit', compact('event', 'interestTypes', 'managers', 'categoryTypes', 'distanceOptions', 'paymentMethods'));
+        return view('admin.events.edit', compact('event', 'interestTypes', 'managers', 'categoryTypes', 'distanceOptions', 'paymentMethods', 'categoryRows'));
     }
 
     public function update(Request $request, Event $event): RedirectResponse
@@ -286,6 +290,9 @@ class EventController extends Controller
             'payment_methods.*.instructions' => ['nullable', 'string', 'max:5000'],
             'payment_methods.*.is_enabled' => ['nullable', 'boolean'],
             'categories' => ['nullable', 'array'],
+            'categories.*.id' => ['nullable', 'integer', Rule::exists('categories', 'id')->where(
+                fn ($query) => $query->where('event_id', $event->id)
+            )],
             'categories.*.category_type' => ['required', Rule::in(array_keys($this->categoryTypes()))],
             'categories.*.custom_category_name' => ['nullable', 'required_if:categories.*.category_type,custom', 'string', 'max:255'],
             'categories.*.distance_option' => [Rule::requiredIf(! $usesSegmentedDistances), 'nullable', Rule::in(array_keys($this->distanceOptions()))],
@@ -352,7 +359,7 @@ class EventController extends Controller
                 $this->syncPaymentMethods($event, $paymentMethodRows);
             }
 
-            $this->createCategoriesForEvent($event, $categoryRows);
+            $this->updateOrCreateCategoriesForEvent($event, $categoryRows);
             $event->refreshAutomaticStatus();
         });
 
@@ -671,6 +678,127 @@ class EventController extends Controller
         }
     }
 
+    private function updateOrCreateCategoriesForEvent(Event $event, array $rows): void
+    {
+        $newRows = [];
+
+        foreach ($rows as $row) {
+            if (blank($row['id'] ?? null)) {
+                $newRows[] = $row;
+
+                continue;
+            }
+
+            $category = $event->categories()->findOrFail((int) $row['id']);
+            $categoryInUse = $category->registrations()->exists() || $category->raceResults()->exists();
+            $typeDetails = $this->normalizedCategoryTypeDetails($event->interest_type, $row['type_details'] ?? []);
+            $distanceKm = Category::distanceFromTypeDetails($event->interest_type, $typeDetails)
+                ?? $this->distanceValue($row);
+
+            $attributes = [
+                'name' => $this->nameWithDistance($this->categoryTypeName($row), $distanceKm),
+                'distance_km' => $distanceKm,
+                'type_details' => $typeDetails ?: null,
+                'description' => $row['description'] ?? null,
+                'qualification_notes' => $row['qualification_notes'] ?? null,
+                'requires_medical_certificate' => filter_var(
+                    $row['requires_medical_certificate'] ?? false,
+                    FILTER_VALIDATE_BOOLEAN
+                ),
+                'slot_limit' => $row['slot_limit'] ?? null,
+                'price_cents' => (int) round((float) ($row['price_amount'] ?? 0) * 100),
+                'price_currency' => strtoupper($row['price_currency'] ?? 'PHP'),
+                'payment_provider' => $row['payment_provider'] ?? null,
+                'payment_account_name' => $row['payment_account_name'] ?? null,
+                'payment_account_number' => $row['payment_account_number'] ?? null,
+                'payment_instructions' => $row['payment_instructions'] ?? null,
+                'status' => $row['status'] ?? 'open',
+                'scheduled_start_date' => $row['scheduled_start_date'],
+                'scheduled_start_time' => $row['scheduled_start_time'],
+                'scheduled_end_date' => $row['scheduled_end_date'],
+                'scheduled_end_time' => $row['scheduled_end_time'],
+            ];
+
+            if ($categoryInUse) {
+                $mutableTypeDetailKeys = collect(config("conquer.event_category_type_details.{$event->interest_type}", []))
+                    ->reject(fn (array $definition) => $definition['locked_when_in_use'] ?? false)
+                    ->keys();
+
+                $attributes['name'] = $category->name;
+                $attributes['distance_km'] = $category->distance_km;
+                $attributes['requires_medical_certificate'] = $category->requiresMedicalCertificate();
+                $attributes['type_details'] = [
+                    ...(is_array($category->type_details) ? $category->type_details : []),
+                    ...collect($typeDetails)->only($mutableTypeDetailKeys)->all(),
+                ];
+            }
+
+            if ($category->started_at) {
+                foreach (['scheduled_start_date', 'scheduled_start_time', 'scheduled_end_date', 'scheduled_end_time'] as $scheduleField) {
+                    unset($attributes[$scheduleField]);
+                }
+            }
+
+            $category->update($attributes);
+        }
+
+        $this->createCategoriesForEvent($event, $newRows);
+    }
+
+    private function categoryRowForEditing(Category $category): array
+    {
+        $categoryType = $this->categoryTypeFromName($category);
+        $distanceOption = $this->distanceOptionFromValue((float) $category->distance_km);
+
+        return [
+            'id' => $category->id,
+            'category_type' => $categoryType['key'],
+            'custom_category_name' => $categoryType['custom'],
+            'distance_option' => $distanceOption,
+            'custom_distance_km' => $distanceOption === 'custom' ? $category->distance_km : null,
+            'type_details' => $category->resolvedTypeDetails(),
+            'scheduled_start_date' => ($category->scheduled_start_date ?? $category->event?->event_date)?->format('Y-m-d'),
+            'scheduled_start_time' => $category->scheduled_start_time?->format('H:i') ?? $category->event?->start_time?->format('H:i'),
+            'scheduled_end_date' => ($category->scheduled_end_date ?? $category->scheduled_start_date ?? $category->event?->event_date)?->format('Y-m-d'),
+            'scheduled_end_time' => $category->scheduled_end_time?->format('H:i') ?? $category->event?->end_time?->format('H:i'),
+            'slot_limit' => $category->slot_limit,
+            'price_amount' => number_format(($category->price_cents ?? 0) / 100, 2, '.', ''),
+            'price_currency' => $category->price_currency ?? 'PHP',
+            'payment_provider' => $category->payment_provider,
+            'payment_account_name' => $category->payment_account_name,
+            'payment_account_number' => $category->payment_account_number,
+            'payment_instructions' => $category->payment_instructions,
+            'status' => $category->status,
+            'description' => $category->description,
+            'qualification_notes' => $category->qualification_notes,
+            'requires_medical_certificate' => $category->requiresMedicalCertificate(),
+            'checkpoint_map_image' => $category->checkpoint_map_image,
+        ];
+    }
+
+    /** @return array{key: string, custom: ?string} */
+    private function categoryTypeFromName(Category $category): array
+    {
+        $distanceLabel = $this->distanceLabel((float) $category->distance_km) ?? '';
+        $typeName = trim(preg_replace('/^'.preg_quote($distanceLabel, '/').'\s*/i', '', $category->name));
+        $matchedKey = collect($this->categoryTypes())
+            ->filter(fn (string $label, string $key) => $key !== 'custom' && strtolower($label) === strtolower($typeName))
+            ->keys()
+            ->first();
+
+        return [
+            'key' => $matchedKey ?: 'custom',
+            'custom' => $matchedKey ? null : $typeName,
+        ];
+    }
+
+    private function distanceOptionFromValue(float $distanceKm): string
+    {
+        $distance = rtrim(rtrim(number_format($distanceKm, 2, '.', ''), '0'), '.');
+
+        return array_key_exists($distance, $this->distanceOptions()) ? $distance : 'custom';
+    }
+
     private function categorySetupErrors(array $rows, array $eventSchedule): array
     {
         $errors = [];
@@ -711,17 +839,22 @@ class EventController extends Controller
     private function existingCategoryScheduleErrors(Event $event, array $eventSchedule): array
     {
         $event->loadMissing('categories');
+        $submittedRows = collect($eventSchedule['categories'] ?? [])
+            ->filter(fn (array $row) => filled($row['id'] ?? null))
+            ->keyBy(fn (array $row) => (int) $row['id']);
 
         foreach ($event->categories as $category) {
             if (! $category->scheduledStartAt() && ! $category->scheduledEndAt()) {
                 continue;
             }
 
+            $submittedRow = $category->started_at ? null : $submittedRows->get($category->id);
+
             $scheduleError = $this->scheduleWindowError(
-                $category->scheduled_start_date?->format('Y-m-d') ?? $event->event_date?->format('Y-m-d'),
-                $category->scheduled_start_time?->format('H:i') ?? $event->start_time?->format('H:i'),
-                $category->scheduled_end_date?->format('Y-m-d') ?? $category->scheduled_start_date?->format('Y-m-d') ?? $event->event_date?->format('Y-m-d'),
-                $category->scheduled_end_time?->format('H:i') ?? $event->end_time?->format('H:i'),
+                $submittedRow['scheduled_start_date'] ?? $category->scheduled_start_date?->format('Y-m-d') ?? $event->event_date?->format('Y-m-d'),
+                $submittedRow['scheduled_start_time'] ?? $category->scheduled_start_time?->format('H:i') ?? $event->start_time?->format('H:i'),
+                $submittedRow['scheduled_end_date'] ?? $category->scheduled_end_date?->format('Y-m-d') ?? $category->scheduled_start_date?->format('Y-m-d') ?? $event->event_date?->format('Y-m-d'),
+                $submittedRow['scheduled_end_time'] ?? $category->scheduled_end_time?->format('H:i') ?? $event->end_time?->format('H:i'),
                 $eventSchedule['event_date'] ?? null,
                 $eventSchedule['start_time'] ?? null,
                 $eventSchedule['event_end_date'] ?? null,

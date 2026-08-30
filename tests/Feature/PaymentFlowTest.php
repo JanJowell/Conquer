@@ -161,6 +161,43 @@ test('admin can mark paid registration as paid and approve participant', functio
     expect($registration->latestPayment()->first()->provider_reference)->toBe('GCASH-PAID-1');
 });
 
+test('refunding a checked-in participant preserves participation status bib and race kit record', function () {
+    $admin = User::factory()->create();
+    $runner = User::factory()->create(['role' => User::ROLE_RUNNER]);
+    $event = paymentReadyEvent();
+    $category = paymentCategoryFor($event, 60000);
+    $registration = Registration::create([
+        'user_id' => $runner->id,
+        'event_id' => $event->id,
+        'category_id' => $category->id,
+        'shirt_size' => 'M',
+        'status' => 'checked_in',
+        'bib_number' => '031',
+        'kit_released_at' => now(),
+        'payment_required' => true,
+        'payment_status' => Payment::STATUS_PAID,
+        'payment_amount_cents' => 60000,
+        'payment_currency' => 'PHP',
+        'paid_at' => now(),
+        'registered_at' => now(),
+    ]);
+
+    $this
+        ->actingAs($admin)
+        ->patch(route('admin.payments.update', $registration), [
+            'action' => Payment::STATUS_REFUNDED,
+            'notes' => 'Approved event-day refund.',
+        ])
+        ->assertRedirect()
+        ->assertSessionHas('success', 'Payment status updated successfully.');
+
+    expect($registration->fresh()->payment_status)->toBe(Payment::STATUS_REFUNDED)
+        ->and($registration->fresh()->status)->toBe('checked_in')
+        ->and($registration->fresh()->bib_number)->toBe('031')
+        ->and($registration->fresh()->rejection_reason)->toBeNull()
+        ->and($registration->fresh()->kit_released_at)->not->toBeNull();
+});
+
 test('event manager cannot update payments for unassigned events', function () {
     $manager = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $runner = User::factory()->create(['role' => User::ROLE_RUNNER]);

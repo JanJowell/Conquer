@@ -122,3 +122,34 @@ test('check-in releases kit when mobile waiver was already accepted', function (
         ->kit_waiver_signed_at->toBeNull()
         ->kit_released_at->not->toBeNull();
 });
+
+test('a crafted check-in request cannot move a checked-in participant back to approved', function () {
+    $admin = User::factory()->create();
+    $runner = User::factory()->create(['role' => User::ROLE_RUNNER]);
+    [$event, $category] = complianceEventWithCategory();
+
+    $registration = Registration::create([
+        'user_id' => $runner->id,
+        'event_id' => $event->id,
+        'category_id' => $category->id,
+        'shirt_size' => 'M',
+        'status' => 'checked_in',
+        'bib_number' => '011',
+        'waiver_accepted' => true,
+        'waiver_accepted_at' => now(),
+        'kit_released_at' => now(),
+        'registered_at' => now(),
+    ]);
+
+    $this
+        ->actingAs($admin)
+        ->patch(route('admin.check-in.update', $registration), [
+            'status' => 'approved',
+        ])
+        ->assertRedirect()
+        ->assertSessionHas('error', 'Check-in cannot be reversed after the participant has arrived and received event-day access.');
+
+    expect($registration->fresh()->status)->toBe('checked_in')
+        ->and($registration->fresh()->bib_number)->toBe('011')
+        ->and($registration->fresh()->kit_released_at)->not->toBeNull();
+});

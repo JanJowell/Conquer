@@ -178,11 +178,14 @@ class PaymentController extends Controller
                 }
 
                 if (in_array($status, [Payment::STATUS_REFUNDED, Payment::STATUS_CANCELLED], true)) {
-                    $registrationUpdates['status'] = 'rejected';
-                    $registrationUpdates['rejection_reason'] = $status === Payment::STATUS_REFUNDED
-                        ? 'Payment was refunded.'
-                        : 'Payment was cancelled.';
-                    $registrationUpdates['bib_number'] = null;
+                    if (! in_array($registration->status, ['checked_in', 'completed'], true)) {
+                        $registrationUpdates['status'] = 'rejected';
+                        $registrationUpdates['rejection_reason'] = $status === Payment::STATUS_REFUNDED
+                            ? 'Payment was refunded.'
+                            : 'Payment was cancelled.';
+                        $registrationUpdates['bib_number'] = null;
+                    }
+
                     $registrationUpdates['paid_at'] = null;
                     $registrationUpdates['payment_required'] = $amountCents > 0;
                 }

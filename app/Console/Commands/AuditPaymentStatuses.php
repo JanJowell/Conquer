@@ -125,7 +125,7 @@ class AuditPaymentStatuses extends Command
             'waived_pending' => $registrations->filter(fn ($registration) => $registration->status === 'pending'
                 && $registration->payment_status === Payment::STATUS_WAIVED)->values(),
             'expired_not_rejected' => $registrations->filter(fn ($registration) => $registration->payment_status === Payment::STATUS_EXPIRED
-                && $registration->status !== 'rejected')->values(),
+                && ! in_array($registration->status, ['rejected', 'checked_in', 'completed'], true))->values(),
             'approved_without_completed_payment' => $registrations->filter(fn ($registration) => in_array($registration->status, ['approved', 'checked_in', 'completed'], true)
                 && $registration->payment_required
                 && ! in_array($registration->payment_status, [Payment::STATUS_PAID, Payment::STATUS_WAIVED], true))->values(),

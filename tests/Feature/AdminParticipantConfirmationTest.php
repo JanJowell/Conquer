@@ -129,3 +129,32 @@ test('approval still enforces payment and assigns a bib only after payment is re
         ->and($registration->fresh()->bib_number)->toBe('001')
         ->and($registration->fresh()->rejection_reason)->toBeNull();
 });
+
+test('a checked-in participant cannot be rejected from the interface or a crafted request', function () {
+    [$admin, , , , $registration] = participantConfirmationRegistration([
+        'status' => 'checked_in',
+        'bib_number' => '021',
+        'kit_released_at' => now(),
+    ]);
+
+    $this
+        ->actingAs($admin)
+        ->get(route('admin.participants.index'))
+        ->assertOk()
+        ->assertDontSee('action="'.route('admin.participants.update', $registration).'"', false)
+        ->assertSee('Status and bib are managed from Check-in or Results.');
+
+    $this
+        ->actingAs($admin)
+        ->patch(route('admin.participants.update', $registration), [
+            'status' => 'rejected',
+            'rejection_reason' => 'This crafted request must not be accepted.',
+        ])
+        ->assertRedirect()
+        ->assertSessionHas('error', 'Checked-in or completed participants must be updated from Check-in or Results.');
+
+    expect($registration->fresh()->status)->toBe('checked_in')
+        ->and($registration->fresh()->bib_number)->toBe('021')
+        ->and($registration->fresh()->rejection_reason)->toBeNull()
+        ->and($registration->fresh()->kit_released_at)->not->toBeNull();
+});

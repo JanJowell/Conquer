@@ -262,6 +262,55 @@ test('event form renders every type-specific field and dynamic category labels',
         ]);
 });
 
+test('event edit loads saved event and category details and updates without duplicating the category', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $details = [
+        'trail_length_km' => 12,
+        'difficulty' => 'Moderate',
+        'elevation_gain_m' => 700,
+        'estimated_duration' => '5 hours',
+        'required_gear' => 'Hiking shoes, water, and rain jacket',
+    ];
+
+    $this
+        ->actingAs($admin)
+        ->post(route('admin.events.store'), eventTypePayload('Hiking', $details))
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    $event = Event::where('title', 'Hiking Championship')->firstOrFail();
+    $category = $event->categories()->firstOrFail();
+
+    $this
+        ->actingAs($admin)
+        ->get(route('admin.events.edit', $event))
+        ->assertOk()
+        ->assertSee('name="categories[0][id]" value="'.$category->id.'"', false)
+        ->assertSee('name="type_details[Hiking][difficulty]"', false)
+        ->assertSee('<option value="Moderate" selected>Moderate</option>', false)
+        ->assertSee('name="categories[0][type_details][required_gear]"', false)
+        ->assertSee('Hiking shoes, water, and rain jacket');
+
+    $updatePayload = eventTypePayload('Hiking', $details);
+    $updatePayload['categories'][0]['id'] = $category->id;
+    $updatePayload['categories'][0]['type_details']['required_gear'] = 'Hiking shoes, two liters of water, and a rain jacket';
+    $updatePayload['categories'][0]['qualification_notes'] = 'Participants must be comfortable on steep trails.';
+    $updatePayload['categories'][0]['slot_limit'] = 75;
+
+    $this
+        ->actingAs($admin)
+        ->put(route('admin.events.update', $event), $updatePayload)
+        ->assertRedirect(route('admin.events.show', $event))
+        ->assertSessionHasNoErrors();
+
+    expect($event->categories()->count())->toBe(1)
+        ->and($category->fresh()->type_details['required_gear'])
+        ->toBe('Hiking shoes, two liters of water, and a rain jacket')
+        ->and($category->fresh()->qualification_notes)
+        ->toBe('Participants must be comfortable on steep trails.')
+        ->and($category->fresh()->slot_limit)->toBe(75);
+});
+
 test('category management heading follows the selected event type', function () {
     $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
     $event = Event::create([

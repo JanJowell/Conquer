@@ -274,9 +274,9 @@
     </section>
 
     @php
-        $categoryRows = old('categories');
+        $categoryRows = old('categories', $categoryRows ?? null);
         if ($categoryRows === null) {
-            $categoryRows = $event ? [] : [[
+            $categoryRows = [[
                 'category_type' => '',
                 'custom_category_name' => '',
                 'distance_option' => '',
@@ -307,49 +307,45 @@
             </button>
         </div>
 
-        @if ($event && $event->categories->isNotEmpty())
-            <div class="mt-4 overflow-hidden rounded-2xl border border-[#d9dee7] bg-white">
-                <div class="grid gap-3 border-b border-[#eef1f4] px-4 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#7a8495] md:grid-cols-[minmax(0,1fr)_100px_100px_100px_100px_80px]">
-                    <span>Existing Category</span>
-                    <span>Gun Start</span>
-                    <span>Cutoff/End</span>
-                    <span>Fee</span>
-                    <span>Usage</span>
-                    <span>Status</span>
-                </div>
-                <div class="divide-y divide-[#eef1f4]">
-                    @foreach ($event->categories as $existingCategory)
-                        <div class="grid gap-3 px-4 py-3 text-sm text-[#202733] md:grid-cols-[minmax(0,1fr)_100px_100px_100px_100px_80px]">
-                            <div>
-                                <p class="font-semibold text-[#151b26]">{{ $existingCategory->name }}</p>
-                                <p class="mt-1 text-xs text-[#6d7685]">{{ number_format((float) $existingCategory->distance_km, 2) }} km{{ $existingCategory->slot_limit ? ' - ' . number_format($existingCategory->slot_limit) . ' slots' : '' }}</p>
-                                <p class="mt-1 text-xs {{ $existingCategory->checkpoint_map_image ? 'font-semibold text-emerald-700' : 'text-[#6d7685]' }}">
-                                    {{ $existingCategory->checkpoint_map_image ? 'Course map uploaded' : 'No course map' }}
-                                </p>
-                            </div>
-                            <p>{{ $existingCategory->scheduledStartAt()?->format('M j, g:i A') ?? 'Not set' }}</p>
-                            <p>{{ $existingCategory->scheduledEndAt()?->format('M j, g:i A') ?? 'Not set' }}</p>
-                            <p>{{ ($existingCategory->price_cents ?? 0) > 0 ? ($existingCategory->price_currency ?? 'PHP') . ' ' . number_format($existingCategory->price_cents / 100, 2) : 'Free' }}</p>
-                            <p class="text-xs leading-5 text-[#6d7685]">{{ number_format($existingCategory->registrations_count ?? 0) }} registrations<br>{{ number_format($existingCategory->race_results_count ?? 0) }} results</p>
-                            <p>{{ str($existingCategory->status)->title() }}</p>
-                        </div>
-                    @endforeach
-                </div>
-                <div class="border-t border-[#eef1f4] px-4 py-3">
-                    <a href="{{ route('admin.categories.index', ['event_id' => $event->id]) }}" class="text-sm font-semibold text-[#151b26]">View, edit, or delete existing categories</a>
-                </div>
-            </div>
-        @endif
-
         <div data-category-list class="mt-4 space-y-4">
             @foreach ($categoryRows as $index => $categoryRow)
+                @php
+                    $existingCategory = filled($categoryRow['id'] ?? null)
+                        ? $event?->categories->firstWhere('id', (int) $categoryRow['id'])
+                        : null;
+                    $existingCategoryInUse = $existingCategory
+                        && (($existingCategory->registrations_count ?? 0) > 0 || ($existingCategory->race_results_count ?? 0) > 0);
+                @endphp
                 <div data-category-row class="rounded-2xl border border-[#d9dee7] bg-white p-4">
+                    @if ($existingCategory)
+                        <input type="hidden" name="categories[{{ $index }}][id]" value="{{ $existingCategory->id }}">
+                    @endif
                     <div class="mb-4 flex items-center justify-between gap-3">
-                        <p class="text-sm font-semibold text-[#151b26]">New Category <span data-category-number>{{ $index + 1 }}</span></p>
-                        <button type="button" data-remove-category class="inline-flex h-9 items-center justify-center rounded-xl border border-rose-200 px-3 text-xs font-semibold text-rose-600 transition hover:bg-rose-50">
-                            Remove
-                        </button>
+                        <p class="text-sm font-semibold text-[#151b26]">
+                            {{ $existingCategory ? 'Existing' : 'New' }} Category <span data-category-number>{{ $index + 1 }}</span>
+                            @if ($existingCategory)
+                                <span class="ml-1 font-normal text-[#6d7685]">— {{ $existingCategory->name }}</span>
+                            @endif
+                        </p>
+                        @if ($existingCategory)
+                            <a href="{{ route('admin.categories.edit', $existingCategory) }}" class="inline-flex h-9 items-center justify-center rounded-xl border border-[#d9dee7] px-3 text-xs font-semibold text-[#151b26] transition hover:bg-[#f7f8fa]">Open separately</a>
+                        @else
+                            <button type="button" data-remove-category class="inline-flex h-9 items-center justify-center rounded-xl border border-rose-200 px-3 text-xs font-semibold text-rose-600 transition hover:bg-rose-50">
+                                Remove
+                            </button>
+                        @endif
                     </div>
+
+                    @if ($existingCategoryInUse || $existingCategory?->started_at)
+                        <div class="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-800">
+                            @if ($existingCategoryInUse)
+                                Category type, distance, and medical-certificate requirement are preserved because this category already has registrations or results.
+                            @endif
+                            @if ($existingCategory?->started_at)
+                                The gun-start and end schedule is preserved because this category has already started.
+                            @endif
+                        </div>
+                    @endif
 
                     <div class="grid gap-4 md:grid-cols-2">
                         <div>
@@ -473,9 +469,20 @@
 
                         <div class="md:col-span-2 rounded-2xl border border-[#d9dee7] bg-[#fafbfc] p-4">
                             <label class="block text-sm font-semibold text-[#151b26]">Course / Checkpoint Map <span class="font-normal text-[#7a8495]">(optional)</span></label>
-                            <input name="categories[{{ $index }}][checkpoint_map_image_upload]" type="file" accept="image/jpeg,image/png,image/webp"
-                                class="mt-3 block w-full rounded-xl border border-[#d9dee7] bg-white px-3 py-2 text-sm text-[#3d4757] file:mr-3 file:rounded-lg file:border-0 file:bg-[#eef1f4] file:px-3 file:py-2 file:font-semibold file:text-[#151b26]">
-                            <p class="mt-2 text-xs leading-5 text-[#6d7685]">JPG, PNG, or WebP up to 5 MB. This map belongs only to this category.</p>
+                            @if ($existingCategory)
+                                @if ($existingCategory->checkpoint_map_image)
+                                    <a href="{{ asset('storage/'.$existingCategory->checkpoint_map_image) }}" target="_blank" rel="noopener" class="mt-3 block overflow-hidden rounded-2xl border border-[#d9dee7] bg-white">
+                                        <img src="{{ asset('storage/'.$existingCategory->checkpoint_map_image) }}" alt="{{ $existingCategory->name }} course and checkpoint map" class="max-h-64 w-full object-contain">
+                                    </a>
+                                @else
+                                    <p class="mt-2 text-xs text-[#6d7685]">No map is currently uploaded.</p>
+                                @endif
+                                <p class="mt-2 text-xs leading-5 text-[#6d7685]">Use “Open separately” to replace or remove the saved map safely.</p>
+                            @else
+                                <input name="categories[{{ $index }}][checkpoint_map_image_upload]" type="file" accept="image/jpeg,image/png,image/webp"
+                                    class="mt-3 block w-full rounded-xl border border-[#d9dee7] bg-white px-3 py-2 text-sm text-[#3d4757] file:mr-3 file:rounded-lg file:border-0 file:bg-[#eef1f4] file:px-3 file:py-2 file:font-semibold file:text-[#151b26]">
+                                <p class="mt-2 text-xs leading-5 text-[#6d7685]">JPG, PNG, or WebP up to 5 MB. This map belongs only to this category.</p>
+                            @endif
                         </div>
 
                         <div>

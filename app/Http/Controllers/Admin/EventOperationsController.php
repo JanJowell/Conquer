@@ -274,6 +274,10 @@ class EventOperationsController extends Controller
             return back()->with('error', 'Completed participants must be updated from Results.');
         }
 
+        if ($registration->status === 'checked_in' && $validated['status'] !== 'checked_in') {
+            return back()->with('error', 'Check-in cannot be reversed after the participant has arrived and received event-day access.');
+        }
+
         if (! in_array($registration->status, ['approved', 'checked_in'], true)) {
             return back()->with('error', 'Only approved or checked-in participants can be updated from Check-in.');
         }
