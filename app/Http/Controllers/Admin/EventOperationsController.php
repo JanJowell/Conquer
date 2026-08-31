@@ -339,7 +339,7 @@ class EventOperationsController extends Controller
             ->get(['id', 'title']);
 
         $registrations = Registration::query()
-            ->with(['user', 'event', 'category', 'raceResult', 'feedback', 'certificate'])
+            ->with(['user', 'event', 'category', 'raceResult', 'certificate'])
             ->whereIn('status', ['checked_in', 'completed'])
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($accessibleEventIds) {
                 $query->whereIn('event_id', $accessibleEventIds);

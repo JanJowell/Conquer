@@ -12,11 +12,10 @@ class CertificateIssuer
 
     public function isEligible(Registration $registration): bool
     {
-        $registration->loadMissing(['raceResult', 'feedback']);
+        $registration->loadMissing('raceResult');
 
         return $registration->status === 'completed'
-            && $registration->raceResult !== null
-            && $registration->feedback !== null;
+            && $registration->raceResult !== null;
     }
 
     public function syncForRegistration(
@@ -24,7 +23,7 @@ class CertificateIssuer
         ?int $issuedBy = null,
         bool $notify = true
     ): ?Certificate {
-        $registration->loadMissing(['event', 'raceResult', 'feedback', 'certificate']);
+        $registration->loadMissing(['event', 'raceResult', 'certificate']);
         $certificate = $registration->certificate;
 
         if (! $this->isEligible($registration)) {
@@ -85,7 +84,7 @@ class CertificateIssuer
             ->where(function ($query) {
                 $query->where('status', 'completed')->orWhereHas('certificate');
             })
-            ->with(['event', 'raceResult', 'feedback', 'certificate'])
+            ->with(['event', 'raceResult', 'certificate'])
             ->chunkById(100, function ($registrations) use (&$count, $notify) {
                 foreach ($registrations as $registration) {
                     $before = $registration->certificate?->updated_at;
@@ -108,7 +107,7 @@ class CertificateIssuer
             ->where(function ($query) {
                 $query->where('status', 'completed')->orWhereHas('certificate');
             })
-            ->with(['event', 'raceResult', 'feedback', 'certificate'])
+            ->with(['event', 'raceResult', 'certificate'])
             ->chunkById(100, function ($registrations) use (&$count, $notify) {
                 foreach ($registrations as $registration) {
                     if ($this->syncForRegistration($registration, notify: $notify)) {

@@ -132,7 +132,7 @@ test('participant submits one category-specific response and readiness exposes i
     $this->withToken($token)
         ->getJson('/api/my-results')
         ->assertOk()
-        ->assertJsonPath('data.0.feedback_required', true)
+        ->assertJsonPath('data.0.feedback_required', false)
         ->assertJsonPath('data.0.can_submit_feedback', false)
         ->assertJsonPath('data.0.feedback.overall_rating', 5);
 });

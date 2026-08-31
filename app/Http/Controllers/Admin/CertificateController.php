@@ -49,10 +49,10 @@ class CertificateController extends Controller
             'total' => $scope(Certificate::query())->count(),
             'valid' => $scope(Certificate::query())->whereNull('revoked_at')->count(),
             'revoked' => $scope(Certificate::query())->whereNotNull('revoked_at')->count(),
-            'awaiting_feedback' => $scope(Registration::query())
+            'awaiting_certificate' => $scope(Registration::query())
                 ->where('status', 'completed')
                 ->has('raceResult')
-                ->doesntHave('feedback')
+                ->doesntHave('certificate')
                 ->count(),
         ];
 
@@ -61,11 +61,11 @@ class CertificateController extends Controller
 
     public function sync(Request $request, Registration $registration, CertificateIssuer $issuer): RedirectResponse
     {
-        $registration->loadMissing(['event', 'raceResult', 'feedback', 'certificate']);
+        $registration->loadMissing(['event', 'raceResult', 'certificate']);
         $this->authorizeEvent($request, $registration->event);
 
         if (! $issuer->isEligible($registration)) {
-            return back()->with('error', 'A certificate requires a completed registration, an official result, and submitted feedback.');
+            return back()->with('error', 'A certificate requires a completed registration with an official result.');
         }
 
         $certificate = $issuer->syncForRegistration($registration, $request->user()->id);
@@ -94,7 +94,7 @@ class CertificateController extends Controller
 
     public function reinstate(Request $request, Certificate $certificate, CertificateIssuer $issuer): RedirectResponse
     {
-        $certificate->loadMissing(['event', 'registration.raceResult', 'registration.feedback']);
+        $certificate->loadMissing(['event', 'registration.raceResult']);
         $this->authorizeEvent($request, $certificate->event);
 
         if (! $issuer->isEligible($certificate->registration)) {

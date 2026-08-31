@@ -519,6 +519,8 @@ class AuthController extends Controller
 
     private function userPayload(User $user): array
     {
+        $certificatesCount = $user->certificates()->valid()->count();
+
         return [
             'id' => $user->id,
             'name' => $user->name,
@@ -534,7 +536,8 @@ class AuthController extends Controller
             'medical_conditions' => $user->medical_conditions,
             'interests' => $user->interests ?? [],
             'avatar_url' => $user->avatar_path ? asset('storage/'.$user->avatar_path) : null,
-            'badges_count' => $user->issuedEBadges()->count(),
+            'certificates_count' => $certificatesCount,
+            'badges_count' => $certificatesCount,
             'email_verified_at' => optional($user->email_verified_at)?->toISOString(),
         ];
     }

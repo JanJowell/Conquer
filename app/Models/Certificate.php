@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -77,5 +78,10 @@ class Certificate extends Model
     public function isValid(): bool
     {
         return $this->revoked_at === null;
+    }
+
+    public function scopeValid(Builder $query): Builder
+    {
+        return $query->whereNull('revoked_at');
     }
 }

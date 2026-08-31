@@ -7,7 +7,7 @@
         <div>
             <p class="text-sm font-medium uppercase tracking-[0.24em] text-[#7a8495]">Race Results</p>
             <h1 class="mt-2 text-3xl font-semibold tracking-tight text-[#151b26]">Results Management</h1>
-            <p class="mt-2 max-w-3xl text-sm text-[#6d7685]">Encode finish times, automatically rank finishers, and issue verifiable E-Certificates after feedback.</p>
+            <p class="mt-2 max-w-3xl text-sm text-[#6d7685]">Encode finish times, automatically rank finishers, and issue verifiable E-Certificates from official results.</p>
         </div>
 
         <div class="grid gap-4 md:grid-cols-3">
@@ -26,7 +26,7 @@
         </div>
 
         <div class="rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm leading-6 text-sky-900">
-            The Finish button calculates elapsed time from the participant category's recorded start. An E-Certificate becomes available after the official result and participant feedback are complete.
+            The Finish button calculates elapsed time from the participant category's recorded start. An E-Certificate becomes available automatically after the official result is saved.
         </div>
 
         <section class="overflow-hidden rounded-2xl border border-[#d9dee7] bg-white shadow-sm">
@@ -201,8 +201,6 @@
                                             <a href="{{ route('certificates.verify', $registration->certificate->verification_token) }}" target="_blank" class="text-xs font-semibold text-sky-700">Verify certificate</a>
                                         @elseif (! $registration->raceResult)
                                             <p class="text-xs text-[#6d7685]">Save an official result first.</p>
-                                        @elseif (! $registration->feedback)
-                                            <p class="text-xs text-amber-700">Awaiting participant feedback.</p>
                                         @else
                                             <form method="POST" action="{{ route('admin.certificates.sync', $registration) }}">@csrf
                                                 <button class="rounded-xl border border-[#d9dee7] px-3 py-2 text-xs font-semibold">Issue E-Certificate</button>

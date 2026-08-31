@@ -136,16 +136,14 @@ class RegistrationReadiness
                     'completed' => $certificate?->isValid() ?? false,
                     'status' => ! $result
                         ? 'upcoming'
-                        : (! $feedback
-                            ? 'blocked'
-                            : ($certificate?->isValid() ? 'available' : ($certificate ? 'revoked' : 'pending'))),
+                        : ($certificate?->isValid() ? 'available' : ($certificate ? 'revoked' : 'pending')),
                 ],
                 'feedback' => [
-                    'required' => $result !== null,
+                    'required' => false,
                     'completed' => $feedback !== null,
                     'status' => ! $result
                         ? 'upcoming'
-                        : ($feedback ? 'complete' : 'action_required'),
+                        : ($feedback ? 'complete' : 'optional'),
                 ],
             ],
             'requirements' => [
@@ -169,7 +167,7 @@ class RegistrationReadiness
                 'remarks' => $result->remarks,
             ] : null,
             'feedback' => [
-                'required_after_completion' => true,
+                'required_after_completion' => false,
                 'has_submitted' => $feedback !== null,
                 'can_submit' => $result !== null && $feedback === null,
                 'can_edit' => $feedback?->canEdit() ?? false,
@@ -202,7 +200,7 @@ class RegistrationReadiness
                     : null,
             ] : [
                 'available' => false,
-                'status' => ! $result ? 'waiting_for_result' : (! $feedback ? 'waiting_for_feedback' : 'pending'),
+                'status' => ! $result ? 'waiting_for_result' : 'pending',
             ],
         ];
     }

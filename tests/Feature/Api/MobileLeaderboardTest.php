@@ -5,6 +5,7 @@ use App\Models\Event;
 use App\Models\RaceResult;
 use App\Models\Registration;
 use App\Models\User;
+use App\Services\CertificateIssuer;
 
 function leaderboardAuthenticatedRunner(): array
 {
@@ -122,4 +123,65 @@ test('verifying a runner makes their existing result appear without changing it'
         'id' => $result->id,
         'user_id' => $runner->id,
     ]);
+});
+
+test('leaderboard counts only valid certificates and keeps the legacy count alias', function () {
+    [, $plainToken] = leaderboardAuthenticatedRunner();
+    $runner = User::factory()->create([
+        'role' => User::ROLE_RUNNER,
+        'name' => 'Certificate Leader',
+    ]);
+    $participantWithoutCertificate = User::factory()->create([
+        'role' => User::ROLE_RUNNER,
+        'name' => 'No Certificate Runner',
+    ]);
+    $competitor = User::factory()->create([
+        'role' => User::ROLE_RUNNER,
+        'name' => 'Certificate Competitor',
+    ]);
+    $issuer = app(CertificateIssuer::class);
+    $certificate = $issuer->syncForRegistration(addLeaderboardResult($runner)->registration, notify: false);
+    $secondCertificate = $issuer->syncForRegistration(addLeaderboardResult($runner)->registration, notify: false);
+    $issuer->syncForRegistration(addLeaderboardResult($competitor)->registration, notify: false);
+
+    $response = $this->withToken($plainToken)->getJson('/api/leaderboard')->assertOk();
+    $initialLeaderboard = collect($response->json('data'));
+    $leader = $initialLeaderboard->firstWhere('id', $runner->id);
+    $withoutCertificate = $initialLeaderboard->firstWhere('id', $participantWithoutCertificate->id);
+
+    expect($leader['certificates_count'])->toBe(2)
+        ->and($leader['badges_count'])->toBe(2)
+        ->and($withoutCertificate['certificates_count'])->toBe(0)
+        ->and($withoutCertificate['badges_count'])->toBe(0)
+        ->and($leader['rank'])->toBeLessThan($initialLeaderboard->firstWhere('id', $competitor->id)['rank']);
+
+    foreach ([$certificate, $secondCertificate] as $certificateToRevoke) {
+        $certificateToRevoke->update([
+            'revoked_at' => now(),
+            'revocation_reason' => 'Test revocation',
+        ]);
+    }
+
+    $revokedLeaderboard = collect(
+        $this->withToken($plainToken)->getJson('/api/leaderboard')->assertOk()->json('data')
+    );
+    $revokedPayload = $revokedLeaderboard->firstWhere('id', $runner->id);
+
+    expect($revokedPayload['certificates_count'])->toBe(0)
+        ->and($revokedPayload['badges_count'])->toBe(0)
+        ->and($revokedPayload['rank'])->toBeGreaterThan($revokedLeaderboard->firstWhere('id', $competitor->id)['rank']);
+
+    $certificate->update([
+        'revoked_at' => null,
+        'revocation_reason' => null,
+    ]);
+
+    $restoredLeaderboard = collect(
+        $this->withToken($plainToken)->getJson('/api/leaderboard')->assertOk()->json('data')
+    );
+    $restoredPayload = $restoredLeaderboard->firstWhere('id', $runner->id);
+
+    expect($restoredPayload['certificates_count'])->toBe(1)
+        ->and($restoredPayload['badges_count'])->toBe(1)
+        ->and($restoredPayload['rank'])->toBeLessThan($restoredLeaderboard->firstWhere('id', $competitor->id)['rank']);
 });

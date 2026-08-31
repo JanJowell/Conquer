@@ -1,11 +1,12 @@
 <?php
 
 use App\Models\Category;
+use App\Models\Certificate;
 use App\Models\EBadge;
 use App\Models\Event;
-use App\Models\IssuedEBadge;
 use App\Models\Registration;
 use App\Models\User;
+use App\Services\CertificateNotificationService;
 use App\Services\EBadgeAutoIssuer;
 use App\Services\EBadgeNotificationService;
 
@@ -69,6 +70,10 @@ function bindQuietEBadgeNotifications(): void
     $notifications->shouldReceive('notifyIssued')->zeroOrMoreTimes();
 
     app()->instance(EBadgeNotificationService::class, $notifications);
+
+    $certificateNotifications = Mockery::mock(CertificateNotificationService::class);
+    $certificateNotifications->shouldReceive('notifyIssued')->zeroOrMoreTimes();
+    app()->instance(CertificateNotificationService::class, $certificateNotifications);
 }
 
 test('saving and updating results keeps automatic e-badges in sync with recalculated ranks', function () {
@@ -108,6 +113,7 @@ test('saving and updating results keeps automatic e-badges in sync with recalcul
         ->assertSessionHasNoErrors();
 
     expect($firstPlaceBadge->issuedBadges()->where('registration_id', $firstRegistration->id)->exists())->toBeTrue();
+    expect(Certificate::where('registration_id', $firstRegistration->id)->count())->toBe(1);
 
     $this
         ->actingAs($admin)
@@ -125,5 +131,7 @@ test('saving and updating results keeps automatic e-badges in sync with recalcul
         ->and($firstRegistration->raceResult->fresh()->rank_category)->toBe(2)
         ->and($firstPlaceBadge->issuedBadges()->where('registration_id', $secondRegistration->id)->exists())->toBeTrue()
         ->and($firstPlaceBadge->issuedBadges()->where('registration_id', $firstRegistration->id)->exists())->toBeFalse()
-        ->and($secondPlaceBadge->issuedBadges()->where('registration_id', $firstRegistration->id)->exists())->toBeTrue();
+        ->and($secondPlaceBadge->issuedBadges()->where('registration_id', $firstRegistration->id)->exists())->toBeTrue()
+        ->and(Certificate::where('registration_id', $firstRegistration->id)->count())->toBe(1)
+        ->and(Certificate::where('registration_id', $secondRegistration->id)->count())->toBe(1);
 });

@@ -480,7 +480,9 @@ class ContentController extends Controller
 
     private function postPayload(CommunityPost $post, ?int $viewerId = null): array
     {
-        $post->user?->loadCount('issuedEBadges');
+        $post->user?->loadCount([
+            'certificates as certificates_count' => fn ($query) => $query->valid(),
+        ]);
 
         return [
             'id' => $post->id,
@@ -505,7 +507,8 @@ class ContentController extends Controller
                 'id' => $post->user->id,
                 'name' => $post->user->name,
                 'avatar_url' => $post->user->avatar_path ? asset('storage/'.$post->user->avatar_path) : null,
-                'badges_count' => $post->user->issued_e_badges_count ?? 0,
+                'certificates_count' => $post->user->certificates_count ?? 0,
+                'badges_count' => $post->user->certificates_count ?? 0,
             ],
         ];
     }
@@ -531,7 +534,9 @@ class ContentController extends Controller
 
     private function commentPayload(CommunityPostComment $comment): array
     {
-        $comment->user?->loadCount('issuedEBadges');
+        $comment->user?->loadCount([
+            'certificates as certificates_count' => fn ($query) => $query->valid(),
+        ]);
 
         return [
             'id' => $comment->id,
@@ -541,7 +546,8 @@ class ContentController extends Controller
                 'id' => $comment->user->id,
                 'name' => $comment->user->name,
                 'avatar_url' => $comment->user->avatar_path ? asset('storage/'.$comment->user->avatar_path) : null,
-                'badges_count' => $comment->user->issued_e_badges_count ?? 0,
+                'certificates_count' => $comment->user->certificates_count ?? 0,
+                'badges_count' => $comment->user->certificates_count ?? 0,
             ],
         ];
     }

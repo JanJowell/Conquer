@@ -21,7 +21,7 @@ function certificateRunner(): array
     return [$runner, $token];
 }
 
-function certificateRegistration(User $runner, ?User $manager = null, bool $withFeedback = false): Registration
+function certificateRegistration(User $runner, ?User $manager = null): Registration
 {
     $event = Event::create([
         'title' => 'Certificate Race '.uniqid(),
@@ -66,50 +66,50 @@ function certificateRegistration(User $runner, ?User $manager = null, bool $with
         'rank_category' => 3,
     ]);
 
-    if ($withFeedback) {
-        RegistrationFeedback::create([
-            'registration_id' => $registration->id,
-            'user_id' => $runner->id,
-            'event_id' => $event->id,
-            'category_id' => $category->id,
-            'overall_rating' => 5,
-            'submitted_at' => now(),
-        ]);
-    }
-
     return $registration;
 }
 
-test('certificate is issued only after official result and participant feedback', function () {
+test('official completed result issues one certificate without requiring feedback', function () {
     [$runner, $token] = certificateRunner();
     $registration = certificateRegistration($runner);
 
-    expect(app(CertificateIssuer::class)->syncForRegistration($registration))->toBeNull()
-        ->and(Certificate::count())->toBe(0);
-
-    $this->withToken($token)
-        ->putJson("/api/registrations/{$registration->id}/feedback", [
-            'overall_rating' => 5,
-            'comment' => 'A well-organized event.',
-        ])
-        ->assertCreated()
-        ->assertJsonPath('certificate_issued', true);
-
-    $certificate = Certificate::firstOrFail();
+    $certificate = app(CertificateIssuer::class)->syncForRegistration($registration, notify: false);
     expect($certificate->registration_id)->toBe($registration->id)
         ->and($certificate->certificate_number)->toMatch('/^RCT-\d{4}-\d{8}$/')
-        ->and($certificate->verification_token)->not->toBeEmpty();
+        ->and($certificate->verification_token)->not->toBeEmpty()
+        ->and(Certificate::count())->toBe(1)
+        ->and(RegistrationFeedback::count())->toBe(0);
 
     $this->withToken($token)->getJson('/api/my-registrations')
         ->assertOk()
         ->assertJsonPath('data.0.readiness.steps.certificate.status', 'available')
         ->assertJsonPath('data.0.readiness.certificate.certificate_number', $certificate->certificate_number)
+        ->assertJsonPath('data.0.readiness.steps.feedback.required', false)
+        ->assertJsonPath('data.0.readiness.steps.feedback.status', 'optional')
+        ->assertJsonPath('data.0.readiness.feedback.required_after_completion', false)
         ->assertJsonPath('data.0.readiness.e_badges.available', false);
+
+    $this->withToken($token)->getJson('/api/me')
+        ->assertOk()
+        ->assertJsonPath('user.certificates_count', 1)
+        ->assertJsonPath('user.badges_count', 1);
+});
+
+test('repeated certificate synchronization never creates a duplicate', function () {
+    [$runner] = certificateRunner();
+    $registration = certificateRegistration($runner);
+    $issuer = app(CertificateIssuer::class);
+
+    $first = $issuer->syncForRegistration($registration, notify: false);
+    $second = $issuer->syncForRegistration($registration->refresh(), notify: false);
+
+    expect($second->id)->toBe($first->id)
+        ->and(Certificate::where('registration_id', $registration->id)->count())->toBe(1);
 });
 
 test('mobile certificate endpoints expose only the participants own certificates', function () {
     [$runner, $token] = certificateRunner();
-    $registration = certificateRegistration($runner, withFeedback: true);
+    $registration = certificateRegistration($runner);
     $certificate = app(CertificateIssuer::class)->syncForRegistration($registration, notify: false);
 
     [$otherRunner, $otherToken] = certificateRunner();
@@ -127,7 +127,7 @@ test('mobile certificate endpoints expose only the participants own certificates
 
 test('public verification and PDF download use an unguessable token', function () {
     [$runner] = certificateRunner();
-    $registration = certificateRegistration($runner, withFeedback: true);
+    $registration = certificateRegistration($runner);
     $certificate = app(CertificateIssuer::class)->syncForRegistration($registration, notify: false);
 
     $this->get(route('certificates.verify', $certificate->verification_token))
@@ -146,7 +146,7 @@ test('public verification and PDF download use an unguessable token', function (
 test('admin revocation is audited and blocks download while verification remains available', function () {
     $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
     [$runner] = certificateRunner();
-    $registration = certificateRegistration($runner, withFeedback: true);
+    $registration = certificateRegistration($runner);
     $certificate = app(CertificateIssuer::class)->syncForRegistration($registration, notify: false);
 
     $this->actingAs($admin)
@@ -178,7 +178,7 @@ test('admin revocation is audited and blocks download while verification remains
 test('event managers cannot manage certificates outside their assigned events', function () {
     $manager = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     [$runner] = certificateRunner();
-    $registration = certificateRegistration($runner, withFeedback: true);
+    $registration = certificateRegistration($runner);
     $certificate = app(CertificateIssuer::class)->syncForRegistration($registration, notify: false);
 
     $this->actingAs($manager)
@@ -188,7 +188,7 @@ test('event managers cannot manage certificates outside their assigned events', 
 
 test('sync command backfills eligible certificates without duplicating them', function () {
     [$runner] = certificateRunner();
-    certificateRegistration($runner, withFeedback: true);
+    certificateRegistration($runner);
 
     $this->artisan('certificates:sync')->assertSuccessful();
     $this->artisan('certificates:sync')->assertSuccessful();

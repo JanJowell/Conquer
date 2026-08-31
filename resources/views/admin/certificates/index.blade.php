@@ -7,11 +7,11 @@
     <div>
         <p class="text-sm font-medium uppercase tracking-[0.24em] text-[#7a8495]">Official completion records</p>
         <h1 class="mt-2 text-3xl font-semibold tracking-tight text-[#151b26]">E-Certificates</h1>
-        <p class="mt-2 max-w-3xl text-sm text-[#6d7685]">Certificates are issued once a participant has a completed registration, an official result, and submitted feedback.</p>
+        <p class="mt-2 max-w-3xl text-sm text-[#6d7685]">Certificates are issued automatically once a participant has a completed registration with an official result. Feedback remains optional.</p>
     </div>
 
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        @foreach ([['Total', $summary['total']], ['Valid', $summary['valid']], ['Revoked', $summary['revoked']], ['Awaiting Feedback', $summary['awaiting_feedback']]] as [$label, $value])
+        @foreach ([['Total', $summary['total']], ['Valid', $summary['valid']], ['Revoked', $summary['revoked']], ['Awaiting Certificate', $summary['awaiting_certificate']]] as [$label, $value])
             <div class="rounded-2xl border border-[#d9dee7] bg-white p-5 shadow-sm">
                 <p class="text-sm font-medium text-[#6d7685]">{{ $label }}</p>
                 <p class="mt-3 text-3xl font-semibold text-[#151b26]">{{ number_format($value) }}</p>

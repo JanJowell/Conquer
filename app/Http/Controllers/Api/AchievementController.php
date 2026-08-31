@@ -86,22 +86,28 @@ class AchievementController extends Controller
         $users = User::query()
             ->whereIn('role', [User::ROLE_RUNNER, 'user'])
             ->whereNotNull('email_verified_at')
-            ->withCount(['registrations', 'communityPosts', 'raceResults', 'issuedEBadges'])
+            ->withCount([
+                'registrations',
+                'communityPosts',
+                'raceResults',
+                'certificates as certificates_count' => fn ($query) => $query->valid(),
+            ])
             ->get()
             ->map(function (User $user) {
                 return [
                     'id' => $user->id,
                     'name' => $user->name,
                     'avatar_url' => $user->avatar_path ? asset('storage/'.$user->avatar_path) : null,
-                    'badges_count' => $user->issued_e_badges_count,
+                    'certificates_count' => $user->certificates_count,
+                    'badges_count' => $user->certificates_count,
                     'registrations_count' => $user->registrations_count,
                     'results_count' => $user->race_results_count,
                     'posts_count' => $user->community_posts_count,
                 ];
             })
             ->sort(function (array $first, array $second) {
-                return [$second['badges_count'], $second['results_count'], $second['registrations_count'], $second['posts_count']]
-                    <=> [$first['badges_count'], $first['results_count'], $first['registrations_count'], $first['posts_count']];
+                return [$second['certificates_count'], $second['results_count'], $second['registrations_count'], $second['posts_count']]
+                    <=> [$first['certificates_count'], $first['results_count'], $first['registrations_count'], $first['posts_count']];
             })
             ->values()
             ->take(20)
