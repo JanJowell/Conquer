@@ -91,6 +91,11 @@ class User extends Authenticatable
         return $this->hasMany(IssuedEBadge::class);
     }
 
+    public function certificates()
+    {
+        return $this->hasMany(Certificate::class);
+    }
+
     public function managedEvents()
     {
         return $this->hasMany(Event::class, 'manager_id');

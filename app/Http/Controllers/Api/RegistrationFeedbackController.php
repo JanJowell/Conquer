@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\RegistrationFeedbackResource;
 use App\Models\Registration;
 use App\Models\RegistrationFeedback;
+use App\Services\CertificateIssuer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -24,7 +25,7 @@ class RegistrationFeedbackController extends Controller
         ]);
     }
 
-    public function upsert(Request $request, Registration $registration): JsonResponse
+    public function upsert(Request $request, Registration $registration, CertificateIssuer $certificateIssuer): JsonResponse
     {
         $this->authorizeParticipant($request, $registration);
         $registration->loadMissing(['raceResult', 'feedback']);
@@ -61,10 +62,12 @@ class RegistrationFeedbackController extends Controller
             'submitted_at' => now(),
         ]);
         $feedback->fill($validated)->save();
+        $certificate = $certificateIssuer->syncForRegistration($registration->refresh());
 
         return response()->json([
             'message' => $wasCreated ? 'Feedback submitted successfully.' : 'Feedback updated successfully.',
             'data' => new RegistrationFeedbackResource($feedback),
+            'certificate_issued' => $certificate?->isValid() ?? false,
         ], $wasCreated ? 201 : 200);
     }
 

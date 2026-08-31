@@ -77,6 +77,11 @@ class Registration extends Model
         return $this->hasOne(RegistrationFeedback::class);
     }
 
+    public function certificate()
+    {
+        return $this->hasOne(Certificate::class);
+    }
+
     public function issuedEBadges()
     {
         return $this->hasMany(IssuedEBadge::class);

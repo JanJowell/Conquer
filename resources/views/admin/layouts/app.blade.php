@@ -377,7 +377,7 @@
                         ['route' => route('admin.check-in.index'), 'match' => 'admin.check-in.*', 'icon' => 'fa-clipboard-check', 'label' => 'Check-in'],
                         ['route' => route('admin.payments.index'), 'match' => 'admin.payments.*', 'icon' => 'fa-credit-card', 'label' => 'Payments'],
                         ['route' => route('admin.results.index'), 'match' => 'admin.results.*', 'icon' => 'fa-trophy', 'label' => 'Results'],
-                        ['route' => route('admin.e-badges.index'), 'match' => 'admin.e-badges.*', 'icon' => 'fa-award', 'label' => 'E-Badges'],
+                        ['route' => route('admin.certificates.index'), 'match' => 'admin.certificates.*', 'icon' => 'fa-certificate', 'label' => 'E-Certificates'],
                     ],
                 ],
                 [
@@ -413,7 +413,7 @@
                 ['route' => route('admin.payments.index'), 'match' => 'admin.payments.*', 'icon' => 'fa-credit-card', 'label' => 'Payments'],
                 ['route' => route('admin.check-in.index'), 'match' => 'admin.check-in.*', 'icon' => 'fa-clipboard-check', 'label' => 'Check-in'],
                 ['route' => route('admin.results.index'), 'match' => 'admin.results.*', 'icon' => 'fa-trophy', 'label' => 'Results'],
-                ['route' => route('admin.e-badges.index'), 'match' => 'admin.e-badges.*', 'icon' => 'fa-award', 'label' => 'E-Badges'],
+                ['route' => route('admin.certificates.index'), 'match' => 'admin.certificates.*', 'icon' => 'fa-certificate', 'label' => 'E-Certificates'],
                 ['route' => route('admin.announcements.index'), 'match' => 'admin.announcements.*', 'icon' => 'fa-bullhorn', 'label' => 'Announcements'],
                 ['route' => route('admin.reports'), 'match' => 'admin.reports', 'icon' => 'fa-chart-line', 'label' => 'Reports'],
                 ['route' => route('admin.feedback-insights'), 'match' => 'admin.feedback-insights', 'icon' => 'fa-message', 'label' => 'Feedback'],

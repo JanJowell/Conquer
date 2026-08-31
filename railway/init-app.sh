@@ -4,6 +4,7 @@ set -eu
 
 php artisan config:clear
 php artisan migrate --force
+php artisan certificates:sync --no-interaction
 
 if [ "${ADMIN_BOOTSTRAP_ENABLED:-false}" = "true" ]; then
     php artisan admin:bootstrap --no-interaction

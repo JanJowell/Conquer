@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\CertificateController;
 use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EBadgeController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\Admin\SearchController;
 use App\Http\Controllers\Admin\SecurityController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\CertificateController as PublicCertificateController;
 use App\Http\Controllers\ProfileController;
 use App\Models\Announcement;
 use App\Models\Event;
@@ -37,6 +39,12 @@ Route::get('/announcements', function () {
 
 Route::view('/payments/success', 'pages.payments.success')->name('payments.success');
 Route::view('/payments/cancelled', 'pages.payments.cancelled')->name('payments.cancelled');
+Route::get('/certificates/verify/{token}', [PublicCertificateController::class, 'verify'])
+    ->middleware('throttle:60,1')
+    ->name('certificates.verify');
+Route::get('/certificates/download/{token}', [PublicCertificateController::class, 'download'])
+    ->middleware('throttle:30,1')
+    ->name('certificates.download');
 
 Route::post('/admin/password/email', [ForgotPasswordController::class, 'store'])
     ->middleware('guest')
@@ -104,6 +112,18 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::patch('/results/{result}', [EventOperationsController::class, 'updateResult'])
         ->middleware('role:super_admin,event_manager')
         ->name('results.update');
+    Route::get('/e-certificates', [CertificateController::class, 'index'])
+        ->middleware('role:super_admin,event_manager')
+        ->name('certificates.index');
+    Route::post('/registrations/{registration}/e-certificate/sync', [CertificateController::class, 'sync'])
+        ->middleware('role:super_admin,event_manager')
+        ->name('certificates.sync');
+    Route::patch('/e-certificates/{certificate}/revoke', [CertificateController::class, 'revoke'])
+        ->middleware('role:super_admin,event_manager')
+        ->name('certificates.revoke');
+    Route::patch('/e-certificates/{certificate}/reinstate', [CertificateController::class, 'reinstate'])
+        ->middleware('role:super_admin,event_manager')
+        ->name('certificates.reinstate');
     Route::get('/e-badges', [EBadgeController::class, 'index'])
         ->middleware('role:super_admin,event_manager')
         ->name('e-badges.index');

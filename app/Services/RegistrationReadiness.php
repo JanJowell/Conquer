@@ -15,12 +15,14 @@ class RegistrationReadiness
             'category.event',
             'raceResult',
             'feedback',
+            'certificate',
             'issuedEBadges.badge',
         ]);
 
         $category = $registration->category;
         $result = $registration->raceResult;
         $feedback = $registration->feedback;
+        $certificate = $registration->certificate;
         $issuedBadges = $registration->issuedEBadges;
         $registrationStatus = (string) $registration->status;
         $isRejected = $registrationStatus === 'rejected';
@@ -129,6 +131,15 @@ class RegistrationReadiness
                     'completed' => $issuedBadges->isNotEmpty(),
                     'status' => $issuedBadges->isNotEmpty() ? 'available' : 'not_available',
                 ],
+                'certificate' => [
+                    'required' => $result !== null,
+                    'completed' => $certificate?->isValid() ?? false,
+                    'status' => ! $result
+                        ? 'upcoming'
+                        : (! $feedback
+                            ? 'blocked'
+                            : ($certificate?->isValid() ? 'available' : ($certificate ? 'revoked' : 'pending'))),
+                ],
                 'feedback' => [
                     'required' => $result !== null,
                     'completed' => $feedback !== null,
@@ -177,6 +188,21 @@ class RegistrationReadiness
                         : null,
                     'issued_at' => optional($issuedBadge->issued_at)?->toISOString(),
                 ])->values()->all(),
+            ],
+            'certificate' => $certificate ? [
+                'id' => $certificate->id,
+                'certificate_number' => $certificate->certificate_number,
+                'status' => $certificate->isValid() ? 'valid' : 'revoked',
+                'available' => $certificate->isValid(),
+                'issued_at' => optional($certificate->issued_at)?->toISOString(),
+                'revoked_at' => optional($certificate->revoked_at)?->toISOString(),
+                'verification_url' => route('certificates.verify', $certificate->verification_token),
+                'download_url' => $certificate->isValid()
+                    ? route('certificates.download', $certificate->verification_token)
+                    : null,
+            ] : [
+                'available' => false,
+                'status' => ! $result ? 'waiting_for_result' : (! $feedback ? 'waiting_for_feedback' : 'pending'),
             ],
         ];
     }

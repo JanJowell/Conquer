@@ -72,6 +72,11 @@ class Category extends Model
         return $this->hasMany(RaceResult::class);
     }
 
+    public function certificates()
+    {
+        return $this->hasMany(Certificate::class);
+    }
+
     public function startedBy()
     {
         return $this->belongsTo(User::class, 'started_by_user_id');

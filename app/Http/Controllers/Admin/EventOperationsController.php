@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
-use App\Models\EBadge;
 use App\Models\Event;
 use App\Models\PushNotification;
 use App\Models\RaceResult;
 use App\Models\Registration;
+use App\Services\CertificateIssuer;
 use App\Services\EBadgeAutoIssuer;
 use App\Services\FirebaseCloudMessaging;
 use Illuminate\Database\QueryException;
@@ -339,7 +339,7 @@ class EventOperationsController extends Controller
             ->get(['id', 'title']);
 
         $registrations = Registration::query()
-            ->with(['user', 'event', 'category', 'raceResult', 'issuedEBadges.badge'])
+            ->with(['user', 'event', 'category', 'raceResult', 'feedback', 'certificate'])
             ->whereIn('status', ['checked_in', 'completed'])
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($accessibleEventIds) {
                 $query->whereIn('event_id', $accessibleEventIds);
@@ -389,15 +389,7 @@ class EventOperationsController extends Controller
             'completed_registrations' => $this->registrationBaseQuery($user)->where('status', 'completed')->count(),
         ];
 
-        $badges = EBadge::query()
-            ->where('is_active', true)
-            ->when($user->managesAssignedEventsOnly(), function ($query) use ($accessibleEventIds) {
-                $query->whereIn('event_id', $accessibleEventIds);
-            })
-            ->orderBy('title')
-            ->get(['id', 'event_id', 'category_id', 'title', 'auto_issue_rule']);
-
-        return view('admin.results.index', compact('registrations', 'events', 'summary', 'badges', 'raceCategories'));
+        return view('admin.results.index', compact('registrations', 'events', 'summary', 'raceCategories'));
     }
 
     public function storeResult(Request $request): RedirectResponse
@@ -757,6 +749,7 @@ class EventOperationsController extends Controller
     private function issueAutomaticBadgesForEvent(int $eventId): void
     {
         app(EBadgeAutoIssuer::class)->syncForCompletedRegistrationsInEvent($eventId);
+        app(CertificateIssuer::class)->syncForEvent($eventId);
     }
 
     private function categoryBelongsToEvent(mixed $categoryId, int $eventId): bool

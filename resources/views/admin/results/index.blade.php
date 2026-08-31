@@ -7,7 +7,7 @@
         <div>
             <p class="text-sm font-medium uppercase tracking-[0.24em] text-[#7a8495]">Race Results</p>
             <h1 class="mt-2 text-3xl font-semibold tracking-tight text-[#151b26]">Results Management</h1>
-            <p class="mt-2 max-w-3xl text-sm text-[#6d7685]">Encode finish times, automatically rank finishers, and keep e-badges aligned with the latest results.</p>
+            <p class="mt-2 max-w-3xl text-sm text-[#6d7685]">Encode finish times, automatically rank finishers, and issue verifiable E-Certificates after feedback.</p>
         </div>
 
         <div class="grid gap-4 md:grid-cols-3">
@@ -26,7 +26,7 @@
         </div>
 
         <div class="rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm leading-6 text-sky-900">
-            The Finish button calculates elapsed time from the participant category's recorded start. Saving or updating a result recalculates rankings and automatic e-badges.
+            The Finish button calculates elapsed time from the participant category's recorded start. An E-Certificate becomes available after the official result and participant feedback are complete.
         </div>
 
         <section class="overflow-hidden rounded-2xl border border-[#d9dee7] bg-white shadow-sm">
@@ -114,7 +114,7 @@
                             <th class="px-4 py-4">Finish Time</th>
                             <th class="px-4 py-4">Ranks</th>
                             <th class="px-4 py-4">Remarks</th>
-                            <th class="px-4 py-4">E-Badges</th>
+                            <th class="px-4 py-4">E-Certificate</th>
                             <th class="px-6 py-4 text-right">Save</th>
                         </tr>
                     </thead>
@@ -192,49 +192,21 @@
                                         class="h-10 w-56 rounded-xl border border-[#d9dee7] px-3 text-sm text-[#151b26] outline-none transition focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]">
                                 </td>
                                 <td class="px-4 py-5">
-                                    <div class="w-72 space-y-3">
-                                        @if ($registration->issuedEBadges->isNotEmpty())
-                                            <div class="flex flex-wrap gap-2">
-                                                @foreach ($registration->issuedEBadges as $issuedBadge)
-                                                    @php($isAutomaticBadge = $issuedBadge->issued_by === null && $issuedBadge->notes === 'Automatically issued')
-                                                    <span class="inline-flex items-center gap-1.5 rounded-full border {{ $isAutomaticBadge ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-sky-200 bg-sky-50 text-sky-700' }} px-3 py-1 text-xs font-semibold">
-                                                        <span>{{ $issuedBadge->badge?->title ?: 'Removed badge' }}</span>
-                                                        <span class="rounded-full bg-white/70 px-1.5 py-0.5 text-[10px] uppercase tracking-[0.12em]">{{ $isAutomaticBadge ? 'Auto' : 'Manual' }}</span>
-                                                    </span>
-                                                @endforeach
-                                            </div>
+                                    <div class="w-64 space-y-2">
+                                        @if ($registration->certificate)
+                                            <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold {{ $registration->certificate->isValid() ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700' }}">
+                                                {{ $registration->certificate->isValid() ? 'Available' : 'Revoked' }}
+                                            </span>
+                                            <p class="text-xs font-medium text-[#151b26]">{{ $registration->certificate->certificate_number }}</p>
+                                            <a href="{{ route('certificates.verify', $registration->certificate->verification_token) }}" target="_blank" class="text-xs font-semibold text-sky-700">Verify certificate</a>
+                                        @elseif (! $registration->raceResult)
+                                            <p class="text-xs text-[#6d7685]">Save an official result first.</p>
+                                        @elseif (! $registration->feedback)
+                                            <p class="text-xs text-amber-700">Awaiting participant feedback.</p>
                                         @else
-                                            <p class="text-xs text-[#6d7685]">No badges issued yet.</p>
-                                        @endif
-
-                                        @if ($registration->status === 'completed')
-                                            @php($rowBadges = $badges->filter(fn ($badge) => ($badge->auto_issue_rule ?? 'manual') === 'manual' && ($badge->event_id === null || (int) $badge->event_id === (int) $registration->event_id) && ($badge->category_id === null || (int) $badge->category_id === (int) $registration->category_id)))
-                                            @if ($rowBadges->isNotEmpty())
-                                                <form method="POST" action="{{ route('admin.e-badges.issue', $registration) }}" class="grid gap-2">
-                                                    @csrf
-                                                    <p class="text-xs font-semibold uppercase tracking-[0.16em] text-[#7a8495]">Manual exception</p>
-                                                    <select name="e_badge_id" class="h-10 w-full rounded-xl border border-[#d9dee7] px-3 text-sm text-[#151b26] outline-none transition focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]">
-                                                        <option value="">Choose badge</option>
-                                                        @foreach ($rowBadges as $badge)
-                                                            <option value="{{ $badge->id }}">{{ $badge->title }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                    <div class="flex gap-2">
-                                                        <input name="notes" type="text" placeholder="Optional note"
-                                                            class="h-10 min-w-0 flex-1 rounded-xl border border-[#d9dee7] px-3 text-sm text-[#151b26] outline-none transition focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]">
-                                                        <button type="submit" class="inline-flex h-10 items-center justify-center rounded-xl border border-[#d9dee7] px-3 text-xs font-semibold text-[#151b26] transition hover:bg-[#f7f8fa]">
-                                                            Issue
-                                                        </button>
-                                                    </div>
-                                                    <p class="text-xs leading-5 text-[#6d7685]">Use manual issue for exceptions. Rank-based badges are handled automatically.</p>
-                                                </form>
-                                            @else
-                                                <a href="{{ route('admin.e-badges.index', ['event_id' => $registration->event_id]) }}" class="inline-flex h-10 items-center justify-center rounded-xl border border-[#d9dee7] px-3 text-xs font-semibold text-[#151b26] transition hover:bg-[#f7f8fa]">
-                                                    Add manual badge
-                                                </a>
-                                            @endif
-                                        @else
-                                            <p class="text-xs text-[#6d7685]">Available after completion.</p>
+                                            <form method="POST" action="{{ route('admin.certificates.sync', $registration) }}">@csrf
+                                                <button class="rounded-xl border border-[#d9dee7] px-3 py-2 text-xs font-semibold">Issue E-Certificate</button>
+                                            </form>
                                         @endif
                                     </div>
                                 </td>

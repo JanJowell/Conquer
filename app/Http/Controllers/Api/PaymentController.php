@@ -27,7 +27,7 @@ class PaymentController extends Controller
             ], 403);
         }
 
-        $registration->load(['event', 'category.event', 'latestPayment', 'raceResult', 'feedback', 'issuedEBadges.badge']);
+        $registration->load(['event', 'category.event', 'latestPayment', 'raceResult', 'feedback', 'certificate', 'issuedEBadges.badge']);
         $payments = $registration->payments()
             ->latest()
             ->get();
@@ -152,6 +152,7 @@ class PaymentController extends Controller
             'category.event',
             'latestPayment',
             'raceResult',
+            'certificate',
             'issuedEBadges.badge',
         ]);
 
@@ -262,6 +263,7 @@ class PaymentController extends Controller
                     'category.event',
                     'latestPayment',
                     'raceResult',
+                    'certificate',
                     'issuedEBadges.badge',
                 ])
             ),

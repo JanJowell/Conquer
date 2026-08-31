@@ -420,6 +420,11 @@ class Event extends Model
         return $this->hasMany(Checkpoint::class);
     }
 
+    public function certificates()
+    {
+        return $this->hasMany(Certificate::class);
+    }
+
     public function manager()
     {
         return $this->belongsTo(User::class, 'manager_id');

@@ -46,7 +46,7 @@ class EventController extends Controller
                 $query->with([
                     'currentUserRegistrations' => fn ($registrationQuery) => $registrationQuery
                         ->where('user_id', $user->id)
-                        ->with(['category.event.paymentMethods', 'latestPayment', 'raceResult', 'feedback', 'issuedEBadges.badge'])
+                        ->with(['category.event.paymentMethods', 'latestPayment', 'raceResult', 'feedback', 'certificate', 'issuedEBadges.badge'])
                         ->latest('registered_at'),
                 ]);
             })
@@ -129,7 +129,7 @@ class EventController extends Controller
             $event->load([
                 'currentUserRegistrations' => fn ($query) => $query
                     ->where('user_id', $user->id)
-                    ->with(['category.event.paymentMethods', 'latestPayment', 'raceResult', 'feedback', 'issuedEBadges.badge'])
+                    ->with(['category.event.paymentMethods', 'latestPayment', 'raceResult', 'feedback', 'certificate', 'issuedEBadges.badge'])
                     ->latest('registered_at'),
             ]);
         }
@@ -283,6 +283,7 @@ class EventController extends Controller
                 'category.event',
                 'latestPayment',
                 'raceResult',
+                'certificate',
                 'issuedEBadges.badge',
             ])),
         ], $existingRegistration ? 200 : 201);

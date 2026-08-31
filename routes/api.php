@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AchievementController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CertificateController;
 use App\Http\Controllers\Api\ContentController;
 use App\Http\Controllers\Api\DeviceTokenController;
 use App\Http\Controllers\Api\EventController;
@@ -48,6 +49,8 @@ Route::middleware(['mobile.auth', 'throttle:mobile-api'])->group(function () {
     Route::get('/my-registrations', [UserActivityController::class, 'registrations']);
     Route::get('/my-results', [UserActivityController::class, 'results']);
     Route::get('/achievements', [AchievementController::class, 'index']);
+    Route::get('/certificates', [CertificateController::class, 'index']);
+    Route::get('/registrations/{registration}/certificate', [CertificateController::class, 'show']);
     Route::get('/leaderboard', [AchievementController::class, 'leaderboard']);
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
