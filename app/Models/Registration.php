@@ -72,6 +72,11 @@ class Registration extends Model
         return $this->hasOne(RaceResult::class);
     }
 
+    public function finishScan()
+    {
+        return $this->hasOne(FinishScan::class);
+    }
+
     public function feedback()
     {
         return $this->hasOne(RegistrationFeedback::class);

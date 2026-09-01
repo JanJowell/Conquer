@@ -6,9 +6,11 @@ use App\Http\Controllers\Api\CertificateController;
 use App\Http\Controllers\Api\ContentController;
 use App\Http\Controllers\Api\DeviceTokenController;
 use App\Http\Controllers\Api\EventController;
+use App\Http\Controllers\Api\FinishScanController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\RegistrationFeedbackController;
+use App\Http\Controllers\Api\StaffAuthController;
 use App\Http\Controllers\Api\SystemController;
 use App\Http\Controllers\Api\UserActivityController;
 use App\Http\Controllers\Internal\CommunityPostPurgeController;
@@ -18,6 +20,7 @@ Route::get('/health', [SystemController::class, 'health']);
 Route::get('/config', [SystemController::class, 'config']);
 Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:mobile-registration');
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:mobile-login');
+Route::post('/staff/login', [StaffAuthController::class, 'login'])->middleware('throttle:mobile-login');
 Route::middleware('throttle:mobile-verification')->group(function () {
     Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
     Route::post('/resend-verification-code', [AuthController::class, 'resendVerificationCode']);
@@ -77,4 +80,10 @@ Route::middleware(['mobile.auth', 'throttle:mobile-api'])->group(function () {
     Route::post('/community-posts/{post}/like', [ContentController::class, 'toggleCommunityPostLike']);
     Route::delete('/community-posts/{post}', [ContentController::class, 'destroyCommunityPost']);
     Route::post('/community-posts/{post}/restore', [ContentController::class, 'restoreCommunityPost']);
+
+    Route::prefix('staff')->group(function () {
+        Route::get('/finish-scanner/context', [FinishScanController::class, 'context']);
+        Route::get('/finish-scans', [FinishScanController::class, 'index']);
+        Route::post('/finish-scans', [FinishScanController::class, 'store']);
+    });
 });

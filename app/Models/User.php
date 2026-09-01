@@ -81,6 +81,11 @@ class User extends Authenticatable
         return $this->hasMany(RaceResult::class);
     }
 
+    public function recordedFinishScans()
+    {
+        return $this->hasMany(FinishScan::class, 'scanned_by_user_id');
+    }
+
     public function registrationFeedback()
     {
         return $this->hasMany(RegistrationFeedback::class);

@@ -10,7 +10,7 @@
             <p class="mt-2 max-w-3xl text-sm text-[#6d7685]">Encode finish times, automatically rank finishers, and issue verifiable E-Certificates from official results.</p>
         </div>
 
-        <div class="grid gap-4 md:grid-cols-3">
+        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <div class="rounded-2xl border border-[#d9dee7] bg-white p-5 shadow-sm">
                 <p class="text-sm font-medium text-[#6d7685]">Published Results</p>
                 <p class="mt-3 text-3xl font-semibold tracking-tight text-[#151b26]">{{ number_format($summary['published_results']) }}</p>
@@ -23,10 +23,14 @@
                 <p class="text-sm font-medium text-[#6d7685]">Completed Registrations</p>
                 <p class="mt-3 text-3xl font-semibold tracking-tight text-[#151b26]">{{ number_format($summary['completed_registrations']) }}</p>
             </div>
+            <div class="rounded-2xl border border-[#d9dee7] bg-white p-5 shadow-sm">
+                <p class="text-sm font-medium text-[#6d7685]">Provisional Finish Scans</p>
+                <p class="mt-3 text-3xl font-semibold tracking-tight text-[#151b26]">{{ number_format($summary['provisional_scans']) }}</p>
+            </div>
         </div>
 
         <div class="rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm leading-6 text-sky-900">
-            The Finish button calculates elapsed time from the participant category's recorded start. An E-Certificate becomes available automatically after the official result is saved.
+            A finish scan is provisional and pre-fills the participant time below. Review and save it to publish the official result, recalculate rankings, and issue the E-Certificate.
         </div>
 
         <section class="overflow-hidden rounded-2xl border border-[#d9dee7] bg-white shadow-sm">
@@ -121,6 +125,7 @@
                     <tbody class="divide-y divide-[#eef1f4] text-sm text-[#202733]">
                         @forelse ($registrations as $registration)
                             @php($result = $registration->raceResult)
+                            @php($finishScan = $registration->finishScan)
                             @php($formId = 'result-form-'.$registration->id)
                             @php($isOldRow = (string) old('result_row_id') === (string) $registration->id)
                             <tr class="align-top">
@@ -150,6 +155,9 @@
                                 <td class="px-4 py-5">
                                     @if ($result)
                                         <span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">Published</span>
+                                    @elseif ($finishScan)
+                                        <span class="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">Scanned · Review</span>
+                                        <p class="mt-2 text-xs leading-5 text-[#6d7685]">{{ $finishScan->scanned_at?->format('M j, g:i:s A') }} by {{ $finishScan->scannedBy?->name ?: 'staff' }}</p>
                                     @elseif ($registration->status === 'completed')
                                         <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">Completed</span>
                                     @else
@@ -158,7 +166,7 @@
                                 </td>
                                 <td class="px-4 py-5">
                                     <div class="flex items-center gap-2">
-                                        <input form="{{ $formId }}" name="finish_time" type="text" value="{{ $isOldRow ? old('finish_time') : $result?->finish_time }}" placeholder="00:45:12"
+                                        <input form="{{ $formId }}" name="finish_time" type="text" value="{{ $isOldRow ? old('finish_time') : ($result?->finish_time ?? $finishScan?->elapsed_time) }}" placeholder="00:45:12"
                                             class="h-10 w-32 rounded-xl border border-[#d9dee7] px-3 text-sm text-[#151b26] outline-none transition focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]">
                                         @if ($result)
                                             <button form="{{ $formId }}" type="submit" class="inline-flex h-10 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-200">
@@ -173,6 +181,9 @@
                                         @endif
                                     </div>
                                     <p class="mt-2 text-xs leading-5 text-[#6d7685]">Use MM:SS or HH:MM:SS.</p>
+                                    @if ($finishScan && ! $result)
+                                        <p class="mt-1 text-xs font-medium text-sky-700">Pre-filled from the provisional scanner capture.</p>
+                                    @endif
                                 </td>
                                 <td class="px-4 py-5">
                                     <div class="grid w-40 gap-2">

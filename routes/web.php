@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EBadgeController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\EventOperationsController;
+use App\Http\Controllers\Admin\FinishScanController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\SearchController;
@@ -85,6 +86,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/participants/export', [EventOperationsController::class, 'exportParticipants'])
         ->middleware('role:super_admin,event_manager')
         ->name('participants.export');
+    Route::get('/participants/{registration}/finish-qr', [FinishScanController::class, 'qr'])
+        ->middleware('role:super_admin,event_manager')
+        ->name('participants.finish-qr');
     Route::patch('/participants/{registration}', [EventOperationsController::class, 'updateParticipant'])
         ->middleware('role:super_admin,event_manager')
         ->name('participants.update');
@@ -106,6 +110,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/results', [EventOperationsController::class, 'results'])
         ->middleware('role:super_admin,event_manager')
         ->name('results.index');
+    Route::get('/finish-scans', [FinishScanController::class, 'index'])
+        ->middleware('role:super_admin,event_manager')
+        ->name('finish-scans.index');
     Route::post('/results', [EventOperationsController::class, 'storeResult'])
         ->middleware('role:super_admin,event_manager')
         ->name('results.store');

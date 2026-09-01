@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Event;
+use App\Models\FinishScan;
 use App\Models\PushNotification;
 use App\Models\RaceResult;
 use App\Models\Registration;
@@ -339,7 +340,7 @@ class EventOperationsController extends Controller
             ->get(['id', 'title']);
 
         $registrations = Registration::query()
-            ->with(['user', 'event', 'category', 'raceResult', 'certificate'])
+            ->with(['user', 'event', 'category', 'raceResult', 'certificate', 'finishScan.scannedBy'])
             ->whereIn('status', ['checked_in', 'completed'])
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($accessibleEventIds) {
                 $query->whereIn('event_id', $accessibleEventIds);
@@ -387,6 +388,10 @@ class EventOperationsController extends Controller
             'published_results' => $this->raceResultBaseQuery($user)->count(),
             'awaiting_results' => $this->registrationBaseQuery($user)->where('status', 'checked_in')->doesntHave('raceResult')->count(),
             'completed_registrations' => $this->registrationBaseQuery($user)->where('status', 'completed')->count(),
+            'provisional_scans' => FinishScan::query()
+                ->when($user->managesAssignedEventsOnly(), fn ($query) => $query->whereIn('event_id', $accessibleEventIds))
+                ->where('status', FinishScan::STATUS_PROVISIONAL)
+                ->count(),
         ];
 
         return view('admin.results.index', compact('registrations', 'events', 'summary', 'raceCategories'));
@@ -455,6 +460,12 @@ class EventOperationsController extends Controller
             );
 
             $registration->update(['status' => 'completed']);
+            $registration->finishScan()
+                ->where('status', FinishScan::STATUS_PROVISIONAL)
+                ->update([
+                    'status' => FinishScan::STATUS_PUBLISHED,
+                    'published_at' => now(),
+                ]);
             $this->recalculateEventRanks($registration->event_id);
         });
 
@@ -520,6 +531,12 @@ class EventOperationsController extends Controller
 
             if ($result->registration) {
                 $result->registration->update(['status' => 'completed']);
+                $result->registration->finishScan()
+                    ->where('status', FinishScan::STATUS_PROVISIONAL)
+                    ->update([
+                        'status' => FinishScan::STATUS_PUBLISHED,
+                        'published_at' => now(),
+                    ]);
             }
 
             $this->recalculateEventRanks($result->event_id);

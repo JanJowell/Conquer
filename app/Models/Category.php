@@ -72,6 +72,11 @@ class Category extends Model
         return $this->hasMany(RaceResult::class);
     }
 
+    public function finishScans()
+    {
+        return $this->hasMany(FinishScan::class);
+    }
+
     public function certificates()
     {
         return $this->hasMany(Certificate::class);
