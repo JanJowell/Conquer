@@ -2,6 +2,8 @@
 
 use App\Models\Category;
 use App\Models\Event;
+use App\Models\FinishScan;
+use App\Models\RaceResult;
 use App\Models\Registration;
 use App\Models\User;
 use Illuminate\Support\Carbon;
@@ -131,7 +133,7 @@ test('event managers cannot start categories assigned to another manager', funct
     expect($category->fresh()->started_at)->toBeNull();
 });
 
-test('finish button requires a category start and calculates from that exact timestamp', function () {
+test('finish button records the same provisional server-timed finish as a QR scan', function () {
     $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
     $runner = User::factory()->create(['role' => User::ROLE_RUNNER]);
     $raceNow = Carbon::parse('2026-08-15 06:00:00', config('app.timezone'));
@@ -156,7 +158,8 @@ test('finish button requires a category start and calculates from that exact tim
         ->assertRedirect()
         ->assertSessionHas('error');
 
-    expect($registration->raceResult()->exists())->toBeFalse();
+    expect($registration->finishScan()->exists())->toBeFalse()
+        ->and($registration->raceResult()->exists())->toBeFalse();
 
     $this
         ->actingAs($admin)
@@ -174,7 +177,37 @@ test('finish button requires a category start and calculates from that exact tim
         ->assertRedirect()
         ->assertSessionHasNoErrors();
 
-    expect($registration->raceResult()->first()->finish_time)->toBe('01:02:03');
+    $finishScan = $registration->finishScan()->first();
+
+    expect($finishScan)->not->toBeNull()
+        ->and($finishScan->scanned_at->timestamp)->toBe($raceNow->copy()->addSeconds(3723)->timestamp)
+        ->and($finishScan->elapsed_seconds)->toBe(3723)
+        ->and($finishScan->elapsed_time)->toBe('01:02:03')
+        ->and($finishScan->scanned_by_user_id)->toBe($admin->id)
+        ->and($finishScan->status)->toBe(FinishScan::STATUS_PROVISIONAL)
+        ->and($registration->fresh()->status)->toBe('checked_in')
+        ->and(RaceResult::count())->toBe(0);
+
+    $this
+        ->actingAs($admin)
+        ->get(route('admin.results.index', ['event_id' => $event->id]))
+        ->assertOk()
+        ->assertSee('Scanned · Review')
+        ->assertSee('01:02:03')
+        ->assertSee('Update')
+        ->assertSee('Publish Results');
+
+    $this
+        ->actingAs($admin)
+        ->post(route('admin.results.store'), [
+            'registration_id' => $registration->id,
+            'finish_now' => '1',
+        ])
+        ->assertRedirect()
+        ->assertSessionHas('error', 'This participant already has a recorded finish.');
+
+    expect(FinishScan::where('registration_id', $registration->id)->count())->toBe(1)
+        ->and(RaceResult::count())->toBe(0);
 });
 
 test('results page presents category start controls and disables finish before start', function () {

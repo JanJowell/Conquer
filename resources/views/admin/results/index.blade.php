@@ -258,7 +258,7 @@
                         let message = null;
 
                         if (submitter?.matches('[data-manual-finish]')) {
-                            message = 'No successful scanner capture was found. Record the finish manually using Railway server time and publish the official result?';
+                            message = 'No successful scanner capture was found. Record a provisional finish now using Railway server time? You can review it before using Publish Results.';
                         } else if (form.dataset.provisionalScan === 'true') {
                             message = 'This scanner capture is still provisional. Publish this finish as the official result and recalculate rankings?';
                         } else if (form.dataset.manualResult === 'true') {

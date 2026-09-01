@@ -427,15 +427,7 @@ class EventOperationsController extends Controller
         }
 
         if ($request->boolean('finish_now')) {
-            $finishTime = $this->finishTimeFromCategoryStart($registration);
-
-            if (! $finishTime) {
-                return back()
-                    ->withInput()
-                    ->with('error', 'Start the participant category before using Finish.');
-            }
-
-            $validated['finish_time'] = $finishTime;
+            return $this->recordManualFinishScan($request, $registration);
         }
 
         unset($validated['finish_now']);
@@ -894,6 +886,73 @@ class EventOperationsController extends Controller
         }
 
         return $this->formatDurationSeconds($startAt->diffInSeconds(now()));
+    }
+
+    private function recordManualFinishScan(Request $request, Registration $registration): RedirectResponse
+    {
+        try {
+            $outcome = DB::transaction(function () use ($request, $registration) {
+                $locked = Registration::query()
+                    ->with(['category', 'finishScan', 'raceResult'])
+                    ->lockForUpdate()
+                    ->findOrFail($registration->id);
+
+                if ($locked->finishScan) {
+                    return ['error' => 'This participant already has a recorded finish.'];
+                }
+
+                if ($locked->raceResult || $locked->status === 'completed') {
+                    return ['error' => 'This participant already has an official result.'];
+                }
+
+                if ($locked->status !== 'checked_in') {
+                    return ['error' => 'Only checked-in participants can receive a finish.'];
+                }
+
+                if (blank($locked->bib_number)) {
+                    return ['error' => 'Assign a BIB number before recording a finish.'];
+                }
+
+                if (! $locked->category?->started_at) {
+                    return ['error' => 'Start the participant category before using Finish.'];
+                }
+
+                $finishedAt = now();
+
+                if ($finishedAt->lt($locked->category->started_at)) {
+                    return ['error' => 'The recorded category start is in the future.'];
+                }
+
+                $elapsedSeconds = $locked->category->started_at->diffInSeconds($finishedAt);
+
+                FinishScan::create([
+                    'registration_id' => $locked->id,
+                    'user_id' => $locked->user_id,
+                    'event_id' => $locked->event_id,
+                    'category_id' => $locked->category_id,
+                    'bib_number' => $locked->bib_number,
+                    'scanned_at' => $finishedAt,
+                    'elapsed_seconds' => $elapsedSeconds,
+                    'elapsed_time' => $this->formatDurationSeconds($elapsedSeconds),
+                    'scanned_by_user_id' => $request->user()->id,
+                    'status' => FinishScan::STATUS_PROVISIONAL,
+                ]);
+
+                return ['recorded' => true];
+            });
+        } catch (QueryException $exception) {
+            if ((string) $exception->getCode() !== '23000') {
+                throw $exception;
+            }
+
+            return back()->with('error', 'This participant already has a recorded finish.');
+        }
+
+        if (isset($outcome['error'])) {
+            return back()->withInput()->with('error', $outcome['error']);
+        }
+
+        return back()->with('success', 'Finish recorded provisionally. Review it, then use Publish Results for the category.');
     }
 
     private function formatDurationSeconds(int $seconds): string
