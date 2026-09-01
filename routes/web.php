@@ -86,9 +86,6 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/participants/export', [EventOperationsController::class, 'exportParticipants'])
         ->middleware('role:super_admin,event_manager')
         ->name('participants.export');
-    Route::get('/participants/{registration}/finish-qr', [FinishScanController::class, 'qr'])
-        ->middleware('role:super_admin,event_manager')
-        ->name('participants.finish-qr');
     Route::patch('/participants/{registration}', [EventOperationsController::class, 'updateParticipant'])
         ->middleware('role:super_admin,event_manager')
         ->name('participants.update');
@@ -107,6 +104,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::patch('/check-in/{registration}', [EventOperationsController::class, 'updateCheckIn'])
         ->middleware('role:super_admin,event_manager')
         ->name('check-in.update');
+    Route::get('/check-in/{registration}/finish-qr', [FinishScanController::class, 'qr'])
+        ->middleware('role:super_admin,event_manager')
+        ->name('check-in.finish-qr');
     Route::get('/results', [EventOperationsController::class, 'results'])
         ->middleware('role:super_admin,event_manager')
         ->name('results.index');
@@ -116,6 +116,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/results', [EventOperationsController::class, 'storeResult'])
         ->middleware('role:super_admin,event_manager')
         ->name('results.store');
+    Route::post('/results/categories/{category}/publish-scans', [EventOperationsController::class, 'publishProvisionalResults'])
+        ->middleware('role:super_admin,event_manager')
+        ->name('results.publish-scans');
     Route::patch('/results/{result}', [EventOperationsController::class, 'updateResult'])
         ->middleware('role:super_admin,event_manager')
         ->name('results.update');

@@ -250,13 +250,6 @@
                                             </span>
                                         </div>
                                         <p class="mt-2 text-xs text-[#6d7685]">Status and bib are managed from Check-in or Results.</p>
-                                        @if ($participant->status === 'checked_in' && $participant->bib_number && $participant->category_id)
-                                            <a href="{{ route('admin.participants.finish-qr', $participant) }}" target="_blank"
-                                                class="mt-3 inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 text-xs font-semibold text-sky-800 transition hover:bg-sky-100">
-                                                <i class="fas fa-qrcode"></i>
-                                                View Finish QR
-                                            </a>
-                                        @endif
                                     @else
                                         <form method="POST" action="{{ route('admin.participants.update', $participant) }}"
                                             class="grid gap-3 lg:grid-cols-2 lg:items-start"
@@ -292,13 +285,6 @@
                                             <p class="mt-2 text-xs text-[#6d7685]">A bib number is assigned automatically when approving.</p>
                                         @elseif ($participant->status === 'approved')
                                             <p class="mt-2 text-xs text-[#6d7685]">Already approved. You can reject before check-in if needed.</p>
-                                            @if ($participant->bib_number && $participant->category_id)
-                                                <a href="{{ route('admin.participants.finish-qr', $participant) }}" target="_blank"
-                                                    class="mt-3 inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 text-xs font-semibold text-sky-800 transition hover:bg-sky-100">
-                                                    <i class="fas fa-qrcode"></i>
-                                                    View Finish QR
-                                                </a>
-                                            @endif
                                         @elseif ($participant->status === 'rejected')
                                             <p class="mt-2 text-xs text-[#6d7685]">The participant can re-apply from the mobile app, which will return this registration to pending review.</p>
                                         @endif

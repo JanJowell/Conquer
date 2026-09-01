@@ -70,7 +70,7 @@ class FinishScanController extends Controller
     {
         $registration->loadMissing(['user', 'event', 'category']);
         abort_unless($registration->event && $request->user()->canManageEvent($registration->event), 403);
-        abort_unless(in_array($registration->status, ['approved', 'checked_in'], true), 409, 'Only approved or checked-in registrations can receive a finish QR code.');
+        abort_unless($registration->status === 'checked_in', 409, 'Only checked-in registrations can receive a finish QR code.');
         abort_unless($registration->category && filled($registration->bib_number), 409, 'Assign a category and BIB number before generating a finish QR code.');
 
         $token = $this->tokens->issue($registration);

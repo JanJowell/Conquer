@@ -371,6 +371,7 @@ class EventOperationsController extends Controller
             ->withCount([
                 'registrations as checked_in_count' => fn ($query) => $query->whereIn('status', ['checked_in', 'completed']),
                 'raceResults',
+                'finishScans as provisional_scans_count' => fn ($query) => $query->where('status', FinishScan::STATUS_PROVISIONAL),
             ])
             ->whereIn('event_id', $accessibleEventIds)
             ->when($request->filled('event_id'), function ($query) use ($request) {
@@ -545,6 +546,92 @@ class EventOperationsController extends Controller
         $this->issueAutomaticBadgesForEvent($result->event_id);
 
         return back()->with('success', 'Race result updated and rankings recalculated successfully.');
+    }
+
+    public function publishProvisionalResults(Request $request, Category $category): RedirectResponse
+    {
+        $category->loadMissing('event');
+        abort_unless($category->event && $request->user()->canManageEvent($category->event), 403);
+
+        $outcome = DB::transaction(function () use ($category) {
+            $scans = FinishScan::query()
+                ->where('event_id', $category->event_id)
+                ->where('category_id', $category->id)
+                ->where('status', FinishScan::STATUS_PROVISIONAL)
+                ->orderBy('scanned_at')
+                ->lockForUpdate()
+                ->get();
+
+            $published = 0;
+            $skipped = 0;
+
+            foreach ($scans as $scan) {
+                $registration = Registration::query()
+                    ->whereKey($scan->registration_id)
+                    ->lockForUpdate()
+                    ->first();
+
+                $valid = $registration
+                    && $registration->status === 'checked_in'
+                    && $registration->event_id === $category->event_id
+                    && $registration->category_id === $category->id
+                    && $registration->user_id === $scan->user_id
+                    && filled($registration->bib_number)
+                    && hash_equals((string) $registration->bib_number, (string) $scan->bib_number)
+                    && filled($scan->elapsed_time)
+                    && $scan->elapsed_seconds >= 0
+                    && $this->isValidFinishTime($scan->elapsed_time)
+                    && ! RaceResult::query()->where('registration_id', $registration->id)->exists();
+
+                if (! $valid) {
+                    $skipped++;
+
+                    continue;
+                }
+
+                RaceResult::create([
+                    'registration_id' => $registration->id,
+                    'user_id' => $registration->user_id,
+                    'event_id' => $registration->event_id,
+                    'category_id' => $registration->category_id,
+                    'finish_time' => $this->normalizeFinishTime($scan->elapsed_time),
+                    'rank_overall' => null,
+                    'rank_category' => null,
+                    'remarks' => 'Published from finish scanner simulation.',
+                ]);
+
+                $registration->update(['status' => 'completed']);
+                $scan->update([
+                    'status' => FinishScan::STATUS_PUBLISHED,
+                    'published_at' => now(),
+                ]);
+                $published++;
+            }
+
+            if ($published > 0) {
+                $this->recalculateEventRanks($category->event_id);
+            }
+
+            return compact('published', 'skipped');
+        });
+
+        if ($outcome['published'] === 0) {
+            $message = $outcome['skipped'] > 0
+                ? "No results were published. {$outcome['skipped']} provisional scan(s) require individual review."
+                : 'There are no provisional scans to publish for this category.';
+
+            return back()->with('error', $message);
+        }
+
+        $this->issueAutomaticBadgesForEvent($category->event_id);
+
+        $message = "Published {$outcome['published']} result(s) for {$category->name}.";
+
+        if ($outcome['skipped'] > 0) {
+            $message .= " Skipped {$outcome['skipped']} scan(s) that require individual review.";
+        }
+
+        return back()->with('success', $message);
     }
 
     private function registrationStatuses(): array

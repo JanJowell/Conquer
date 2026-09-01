@@ -235,15 +235,39 @@ test('admin can print an assigned BIB QR and review scan history while other man
     $registration = finishScannerRegistration($event, $category, ['bib_number' => '304']);
 
     $this->actingAs($assignedManager)
-        ->get(route('admin.participants.finish-qr', $registration))
+        ->get(route('admin.check-in.finish-qr', $registration))
         ->assertOk()
         ->assertHeader('Cache-Control', 'max-age=0, no-store, private')
         ->assertSee('BIB 304')
         ->assertSee('Finish Scanner Simulation');
 
+    $this->actingAs($assignedManager)
+        ->get(route('admin.check-in.index', ['event_id' => $event->id, 'search' => '304']))
+        ->assertOk()
+        ->assertSee('View / Print Finish QR')
+        ->assertSee(route('admin.check-in.finish-qr', $registration));
+
+    $this->actingAs($assignedManager)
+        ->get(route('admin.participants.index', ['event_id' => $event->id, 'search' => '304']))
+        ->assertOk()
+        ->assertDontSee('View Finish QR');
+
+    $this->actingAs($assignedManager)
+        ->get(route('admin.results.index', ['event_id' => $event->id, 'search' => '304']))
+        ->assertOk()
+        ->assertSee('data-manual-result="true"', false)
+        ->assertSee('data-manual-finish', false)
+        ->assertSee('Finish');
+
     $this->actingAs($otherManager)
-        ->get(route('admin.participants.finish-qr', $registration))
+        ->get(route('admin.check-in.finish-qr', $registration))
         ->assertForbidden();
+
+    $registration->update(['status' => 'approved']);
+
+    $this->actingAs($assignedManager)
+        ->get(route('admin.check-in.finish-qr', $registration))
+        ->assertStatus(409);
 
     $this->actingAs($assignedManager)
         ->get(route('admin.finish-scans.index'))
@@ -275,7 +299,9 @@ test('publishing a provisional scan creates the official result and certificate 
         ->get(route('admin.results.index', ['event_id' => $event->id, 'search' => '305']))
         ->assertOk()
         ->assertSee('Scanned · Review')
-        ->assertSee('00:45:00');
+        ->assertSee('00:45:00')
+        ->assertSee('data-provisional-scan="true"', false)
+        ->assertSee('Update');
 
     $this->actingAs($staff)
         ->post(route('admin.results.store'), [
@@ -290,4 +316,69 @@ test('publishing a provisional scan creates the official result and certificate 
         ->and($registration->finishScan?->status)->toBe(FinishScan::STATUS_PUBLISHED)
         ->and($registration->finishScan?->published_at)->not->toBeNull()
         ->and(Certificate::where('registration_id', $registration->id)->count())->toBe(1);
+});
+
+test('admin can publish all valid provisional scans for one category in a single action', function () {
+    $this->mock(EBadgeNotificationService::class, fn ($mock) => $mock->shouldReceive('notifyIssued')->andReturnNull());
+    $this->mock(CertificateNotificationService::class, fn ($mock) => $mock->shouldReceive('notifyIssued')->twice()->andReturnNull());
+
+    $manager = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
+    $otherManager = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
+    $raceNow = Carbon::parse('2026-09-02 14:00:00', config('app.timezone'));
+    $this->travelTo($raceNow);
+    $event = finishScannerEvent($manager, $raceNow);
+    $category = finishScannerCategory($event, $raceNow);
+    $otherCategory = finishScannerCategory($event, $raceNow);
+    $first = finishScannerRegistration($event, $category, ['bib_number' => '401']);
+    $second = finishScannerRegistration($event, $category, ['bib_number' => '402']);
+    $invalid = finishScannerRegistration($event, $category, ['bib_number' => '403']);
+    $otherCategoryRegistration = finishScannerRegistration($event, $otherCategory, ['bib_number' => '404']);
+    $headers = finishScannerHeaders(finishScannerApiToken($manager));
+
+    foreach ([$first, $second, $invalid] as $registration) {
+        $this->withHeaders($headers)
+            ->postJson('/api/staff/finish-scans', [
+                'token' => app(FinishScanToken::class)->issue($registration),
+                'event_id' => $event->id,
+                'category_id' => $category->id,
+            ])
+            ->assertCreated();
+    }
+
+    $this->withHeaders($headers)
+        ->postJson('/api/staff/finish-scans', [
+            'token' => app(FinishScanToken::class)->issue($otherCategoryRegistration),
+            'event_id' => $event->id,
+            'category_id' => $otherCategory->id,
+        ])
+        ->assertCreated();
+
+    $invalid->update(['status' => 'approved']);
+
+    $this->actingAs($manager)
+        ->get(route('admin.results.index', ['event_id' => $event->id]))
+        ->assertOk()
+        ->assertSee('Publish Results')
+        ->assertSee(route('admin.results.publish-scans', $category));
+
+    $this->actingAs($otherManager)
+        ->post(route('admin.results.publish-scans', $category))
+        ->assertForbidden();
+
+    $this->actingAs($manager)
+        ->post(route('admin.results.publish-scans', $category))
+        ->assertRedirect()
+        ->assertSessionHas('success', "Published 2 result(s) for {$category->name}. Skipped 1 scan(s) that require individual review.");
+
+    expect(RaceResult::where('category_id', $category->id)->count())->toBe(2)
+        ->and(RaceResult::where('category_id', $otherCategory->id)->count())->toBe(0)
+        ->and($first->fresh()->status)->toBe('completed')
+        ->and($second->fresh()->status)->toBe('completed')
+        ->and($invalid->fresh()->status)->toBe('approved')
+        ->and($otherCategoryRegistration->fresh()->status)->toBe('checked_in')
+        ->and($first->finishScan?->fresh()->status)->toBe(FinishScan::STATUS_PUBLISHED)
+        ->and($second->finishScan?->fresh()->status)->toBe(FinishScan::STATUS_PUBLISHED)
+        ->and($invalid->finishScan?->fresh()->status)->toBe(FinishScan::STATUS_PROVISIONAL)
+        ->and($otherCategoryRegistration->finishScan?->fresh()->status)->toBe(FinishScan::STATUS_PROVISIONAL)
+        ->and(Certificate::whereIn('registration_id', [$first->id, $second->id])->count())->toBe(2);
 });

@@ -127,9 +127,18 @@
                                             <span class="text-xs text-[#6d7685]">Event completed</span>
                                         </div>
                                     @elseif ($participant->status === 'checked_in')
-                                        <span class="inline-flex h-10 items-center rounded-xl border border-indigo-200 bg-indigo-50 px-3 text-sm font-semibold text-indigo-700">
-                                            Checked in
-                                        </span>
+                                        <div class="inline-flex flex-col items-end gap-2">
+                                            <span class="inline-flex h-10 items-center rounded-xl border border-indigo-200 bg-indigo-50 px-3 text-sm font-semibold text-indigo-700">
+                                                Checked in
+                                            </span>
+                                            @if ($participant->bib_number && $participant->category_id)
+                                                <a href="{{ route('admin.check-in.finish-qr', $participant) }}" target="_blank"
+                                                    class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 text-xs font-semibold text-sky-800 transition hover:bg-sky-100">
+                                                    <i class="fas fa-qrcode"></i>
+                                                    View / Print Finish QR
+                                                </a>
+                                            @endif
+                                        </div>
                                     @else
                                         <form method="POST" action="{{ route('admin.check-in.update', $participant) }}" class="inline-flex flex-col items-end gap-2">
                                             @csrf

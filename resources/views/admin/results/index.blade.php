@@ -30,7 +30,7 @@
         </div>
 
         <div class="rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm leading-6 text-sky-900">
-            A finish scan is provisional and pre-fills the participant time below. Review and save it to publish the official result, recalculate rankings, and issue the E-Certificate.
+            Finish scans remain provisional until an administrator reviews them. Use Publish Results on a category to publish its valid scans together, recalculate rankings, and issue E-Certificates.
         </div>
 
         <section class="overflow-hidden rounded-2xl border border-[#d9dee7] bg-white shadow-sm">
@@ -73,6 +73,16 @@
                                     <button type="submit" class="inline-flex h-10 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100">
                                         Start Category
                                     </button>
+                                </form>
+                            @endif
+                            @if ($raceCategory->provisional_scans_count > 0)
+                                <form method="POST" action="{{ route('admin.results.publish-scans', $raceCategory) }}" class="mt-3"
+                                    onsubmit="return confirm('Publish {{ $raceCategory->provisional_scans_count }} provisional result(s) for this category? Valid scans will become official results, rankings will be recalculated, and E-Certificates will be issued.');">
+                                    @csrf
+                                    <button type="submit" class="inline-flex h-10 items-center justify-center rounded-xl bg-[#151b26] px-4 text-xs font-semibold text-white transition hover:bg-[#232b39]">
+                                        Publish Results
+                                    </button>
+                                    <p class="mt-1 text-xs text-sky-700">{{ number_format($raceCategory->provisional_scans_count) }} provisional</p>
                                 </form>
                             @endif
                         </div>
@@ -132,7 +142,8 @@
                                 <td class="px-6 py-5">
                                     <p class="font-semibold text-[#151b26]">{{ $registration->user?->name ?: 'Unknown participant' }}</p>
                                     <p class="mt-1 text-xs text-[#6d7685]">{{ $registration->user?->email ?: 'No email available' }}</p>
-                                    <form id="{{ $formId }}" method="POST" action="{{ $result ? route('admin.results.update', $result) : route('admin.results.store') }}" @if ($result) data-confirm-update="true" @endif>
+                                    <form id="{{ $formId }}" method="POST" action="{{ $result ? route('admin.results.update', $result) : route('admin.results.store') }}"
+                                        @if ($result) data-confirm-result-update="true" @elseif ($finishScan) data-provisional-scan="true" @else data-manual-result="true" @endif>
                                         @csrf
                                         <input type="hidden" name="result_row_id" value="{{ $registration->id }}">
                                         @if ($result)
@@ -168,12 +179,12 @@
                                     <div class="flex items-center gap-2">
                                         <input form="{{ $formId }}" name="finish_time" type="text" value="{{ $isOldRow ? old('finish_time') : ($result?->finish_time ?? $finishScan?->elapsed_time) }}" placeholder="00:45:12"
                                             class="h-10 w-32 rounded-xl border border-[#d9dee7] px-3 text-sm text-[#151b26] outline-none transition focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]">
-                                        @if ($result)
+                                        @if ($result || $finishScan)
                                             <button form="{{ $formId }}" type="submit" class="inline-flex h-10 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-200">
                                                 Update
                                             </button>
                                         @else
-                                            <button form="{{ $formId }}" name="finish_now" value="1" type="submit" @disabled(! $registration->category?->started_at)
+                                            <button form="{{ $formId }}" name="finish_now" value="1" type="submit" data-manual-finish @disabled(! $registration->category?->started_at)
                                                 title="{{ $registration->category?->started_at ? 'Calculate from category start' : 'Start this category first' }}"
                                                 class="inline-flex h-10 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-200 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400">
                                                 Finish
@@ -241,9 +252,22 @@
     </div>
         <script>
             document.addEventListener('DOMContentLoaded', () => {
-                document.querySelectorAll('form[data-confirm-update="true"]').forEach((form) => {
+                document.querySelectorAll('form[id^="result-form-"]').forEach((form) => {
                     form.addEventListener('submit', (event) => {
-                        if (!confirm('Updating this finish time will recalculate rankings for this event. Continue?')) {
+                        const submitter = event.submitter;
+                        let message = null;
+
+                        if (submitter?.matches('[data-manual-finish]')) {
+                            message = 'No successful scanner capture was found. Record the finish manually using Railway server time and publish the official result?';
+                        } else if (form.dataset.provisionalScan === 'true') {
+                            message = 'This scanner capture is still provisional. Publish this finish as the official result and recalculate rankings?';
+                        } else if (form.dataset.manualResult === 'true') {
+                            message = 'No successful scanner capture was found. Publish this manually entered finish as the official result?';
+                        } else if (form.dataset.confirmResultUpdate === 'true') {
+                            message = 'Updating this finish time will recalculate rankings for this event. Continue?';
+                        }
+
+                        if (message && !confirm(message)) {
                             event.preventDefault();
                         }
                     });
