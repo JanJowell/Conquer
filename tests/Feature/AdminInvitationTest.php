@@ -61,7 +61,9 @@ test('an invited administrator activates the account once and creates a private 
 
     $this->get(route('admin.invitations.show', [$manager, $token]))
         ->assertOk()
+        ->assertSee('Secure Admin Invitation')
         ->assertSee('Administrator invitation')
+        ->assertSee('data-test="activate-account-button"', false)
         ->assertSee($manager->email);
 
     $this->post(route('admin.invitations.accept', [$manager, $token]), [
@@ -94,7 +96,8 @@ test('expired administrator invitations cannot activate an account', function ()
 
     $this->get(route('admin.invitations.show', [$manager, $token]))
         ->assertStatus(410)
-        ->assertSee('invitation has expired');
+        ->assertSee('invitation has expired')
+        ->assertDontSee('data-test="activate-account-button"', false);
 
     $this->post(route('admin.invitations.accept', [$manager, $token]), [
         'password' => 'SecureAdmin!2026',
