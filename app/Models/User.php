@@ -51,6 +51,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'api_token',
+        'admin_invitation_token',
         'remember_token',
         'two_factor_secret',
         'two_factor_recovery_codes',
@@ -60,6 +61,8 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'admin_invitation_sent_at' => 'datetime',
+            'admin_invitation_expires_at' => 'datetime',
             'api_token_expires_at' => 'datetime',
             'password' => 'hashed',
             'birthdate' => 'date',
@@ -133,6 +136,35 @@ class User extends Authenticatable
     public function isAdmin()
     {
         return in_array($this->normalizedRole(), static::adminWebRoles());
+    }
+
+    public function hasPendingAdminInvitation(): bool
+    {
+        return $this->isAdmin()
+            && $this->email_verified_at === null
+            && filled($this->admin_invitation_token)
+            && $this->admin_invitation_expires_at?->isFuture();
+    }
+
+    public function adminInvitationState(): string
+    {
+        if (! $this->isAdmin()) {
+            return 'not_applicable';
+        }
+
+        if ($this->email_verified_at !== null) {
+            return 'verified';
+        }
+
+        if ($this->hasPendingAdminInvitation()) {
+            return 'pending';
+        }
+
+        if ($this->admin_invitation_expires_at?->isPast()) {
+            return 'expired';
+        }
+
+        return 'not_sent';
     }
 
     public function isSuperAdmin()

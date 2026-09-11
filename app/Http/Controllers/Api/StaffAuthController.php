@@ -52,6 +52,12 @@ class StaffAuthController extends Controller
             return response()->json(['message' => 'This account is currently suspended.'], 423);
         }
 
+        if ($user->email_verified_at === null) {
+            return response()->json([
+                'message' => 'Activate your administrator account using the invitation sent to your email.',
+            ], 403);
+        }
+
         $plainToken = Str::random(64);
         $expiresAt = now()->addHours(12);
 

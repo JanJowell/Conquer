@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\User;
+use App\Notifications\AdminInvitationNotification;
+use Illuminate\Support\Facades\Notification;
 
 test('profile page is displayed', function () {
     $this->actingAs($user = User::factory()->create());
@@ -9,6 +11,7 @@ test('profile page is displayed', function () {
 });
 
 test('profile information can be updated', function () {
+    Notification::fake();
     $user = User::factory()->create();
 
     $this->actingAs($user);
@@ -18,14 +21,17 @@ test('profile information can be updated', function () {
             'name' => 'Test User',
             'email' => 'test@example.com',
         ])
-        ->assertRedirect(route('profile.edit'))
+        ->assertRedirect(route('login'))
         ->assertSessionHasNoErrors();
 
     $user->refresh();
 
     expect($user->name)->toEqual('Test User');
     expect($user->email)->toEqual('test@example.com');
-    expect($user->email_verified_at)->not->toBeNull();
+    expect($user->email_verified_at)->toBeNull();
+    expect($user->hasPendingAdminInvitation())->toBeTrue();
+    $this->assertGuest();
+    Notification::assertSentTo($user, AdminInvitationNotification::class);
 });
 
 test('email verification status is unchanged when email address is unchanged', function () {

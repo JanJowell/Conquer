@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\SearchController;
 use App\Http\Controllers\Admin\SecurityController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\AdminInvitationController;
 use App\Http\Controllers\CertificateController as PublicCertificateController;
 use App\Http\Controllers\ProfileController;
 use App\Models\Announcement;
@@ -50,6 +51,13 @@ Route::get('/certificates/download/{token}', [PublicCertificateController::class
 Route::post('/admin/password/email', [ForgotPasswordController::class, 'store'])
     ->middleware('guest')
     ->name('admin.password.email');
+
+Route::get('/admin/invitations/{user}/{token}', [AdminInvitationController::class, 'show'])
+    ->middleware(['guest', 'throttle:20,1'])
+    ->name('admin.invitations.show');
+Route::post('/admin/invitations/{user}/{token}', [AdminInvitationController::class, 'accept'])
+    ->middleware(['guest', 'throttle:5,1'])
+    ->name('admin.invitations.accept');
 
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/dashboard', function () {
@@ -164,6 +172,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/users/{user}/unsuspend', [UserController::class, 'unsuspend'])->middleware('role:super_admin')->name('users.unsuspend');
     Route::post('/users/{user}/ban', [UserController::class, 'ban'])->middleware('role:super_admin')->name('users.ban');
     Route::post('/users/{user}/unban', [UserController::class, 'unban'])->middleware('role:super_admin')->name('users.unban');
+    Route::post('/users/{user}/resend-invitation', [UserController::class, 'resendInvitation'])->middleware('role:super_admin')->name('users.resend-invitation');
 
     // Event Management
     Route::get('/events', [EventController::class, 'index'])

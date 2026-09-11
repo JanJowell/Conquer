@@ -81,7 +81,11 @@
                                 @enderror
                             </div>
 
-                            <div>
+                            <div id="admin-invitation-notice" class="hidden md:col-span-2 rounded-2xl border border-sky-200/70 bg-sky-50/70 p-4 text-sm leading-6 text-sky-800">
+                                Administrator accounts do not use a password chosen here. A secure 24-hour invitation will be emailed so the staff member can verify their address and create a private password.
+                            </div>
+
+                            <div id="password-group">
                                 <label for="password" class="block text-sm font-semibold text-slate-700">Password</label>
                                 <input
                                     type="password"
@@ -95,7 +99,7 @@
                                 @enderror
                             </div>
 
-                            <div>
+                            <div id="password-confirmation-group">
                                 <label for="password_confirmation" class="block text-sm font-semibold text-slate-700">Confirm Password</label>
                                 <input
                                     type="password"
@@ -279,6 +283,11 @@
         const roleSelect = document.getElementById('role');
         const medicalConditionsGroup = document.getElementById('medical-conditions-group');
         const medicalConditionsInput = document.getElementById('medical_conditions');
+        const passwordGroup = document.getElementById('password-group');
+        const passwordConfirmationGroup = document.getElementById('password-confirmation-group');
+        const passwordInput = document.getElementById('password');
+        const passwordConfirmationInput = document.getElementById('password_confirmation');
+        const invitationNotice = document.getElementById('admin-invitation-notice');
         const runnerRole = @json($runnerRole);
 
         if (!roleSelect || !medicalConditionsGroup || !medicalConditionsInput) {
@@ -289,9 +298,22 @@
             const isRunner = roleSelect.value === runnerRole;
 
             medicalConditionsGroup.classList.toggle('hidden', !isRunner);
+            passwordGroup?.classList.toggle('hidden', !isRunner);
+            passwordConfirmationGroup?.classList.toggle('hidden', !isRunner);
+            invitationNotice?.classList.toggle('hidden', isRunner);
+
+            if (passwordInput) {
+                passwordInput.required = isRunner;
+            }
+
+            if (passwordConfirmationInput) {
+                passwordConfirmationInput.required = isRunner;
+            }
 
             if (!isRunner) {
                 medicalConditionsInput.value = '';
+                if (passwordInput) passwordInput.value = '';
+                if (passwordConfirmationInput) passwordConfirmationInput.value = '';
             }
         };
 

@@ -133,6 +133,8 @@
                     <option value="active" @selected(request('status') === 'active')>Active</option>
                     <option value="inactive" @selected(request('status') === 'inactive')>Inactive</option>
                     <option value="suspended" @selected(request('status') === 'suspended')>Suspended</option>
+                    <option value="pending_verification" @selected(request('status') === 'pending_verification')>Pending Admin Verification</option>
+                    <option value="verified" @selected(request('status') === 'verified')>Verified Administrators</option>
                     <option value="banned" @selected(request('status') === 'banned')>Banned</option>
                 </select>
             </div>
@@ -198,6 +200,14 @@
                                         <span class="inline-flex rounded-full border border-rose-200/70 bg-rose-100/70 px-3 py-1.5 text-xs font-bold text-rose-700 backdrop-blur-xl">Banned</span>
                                     @elseif($user->suspended_at)
                                         <span class="inline-flex rounded-full border border-amber-200/70 bg-amber-100/70 px-3 py-1.5 text-xs font-bold text-amber-700 backdrop-blur-xl">Suspended</span>
+                                    @elseif($user->isAdmin() && $user->adminInvitationState() === 'pending')
+                                        <span class="inline-flex rounded-full border border-sky-200/70 bg-sky-100/70 px-3 py-1.5 text-xs font-bold text-sky-700 backdrop-blur-xl">Pending Verification</span>
+                                    @elseif($user->isAdmin() && $user->adminInvitationState() === 'expired')
+                                        <span class="inline-flex rounded-full border border-orange-200/70 bg-orange-100/70 px-3 py-1.5 text-xs font-bold text-orange-700 backdrop-blur-xl">Invitation Expired</span>
+                                    @elseif($user->isAdmin() && $user->adminInvitationState() === 'not_sent')
+                                        <span class="inline-flex rounded-full border border-slate-200/70 bg-slate-100/70 px-3 py-1.5 text-xs font-bold text-slate-700 backdrop-blur-xl">Invitation Required</span>
+                                    @elseif($user->isAdmin())
+                                        <span class="inline-flex rounded-full border border-emerald-200/70 bg-emerald-100/70 px-3 py-1.5 text-xs font-bold text-emerald-700 backdrop-blur-xl">Verified</span>
                                     @elseif($user->isMobileActive())
                                         <span class="inline-flex rounded-full border border-emerald-200/70 bg-emerald-100/70 px-3 py-1.5 text-xs font-bold text-emerald-700 backdrop-blur-xl">Active</span>
                                     @else
@@ -219,6 +229,15 @@
                                             <button type="button" data-open-user-modal="edit-user-{{ $user->id }}" class="inline-flex h-10 items-center justify-center rounded-xl border border-white/60 bg-white/45 px-4 text-xs font-bold text-slate-700 shadow-sm backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/70">
                                                 Edit
                                             </button>
+
+                                            @if($user->isAdmin() && $user->email_verified_at === null)
+                                                <form method="POST" action="{{ route('admin.users.resend-invitation', $user) }}">
+                                                    @csrf
+                                                    <button type="submit" class="inline-flex h-10 items-center justify-center rounded-xl border border-sky-200/70 bg-sky-100/60 px-4 text-xs font-bold text-sky-700 shadow-sm backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-sky-100">
+                                                        {{ $user->adminInvitationState() === 'not_sent' ? 'Send Invitation' : 'Resend Invitation' }}
+                                                    </button>
+                                                </form>
+                                            @endif
 
                                             @if($user->id !== auth()->id())
                                                 @if($user->banned_at)
@@ -270,13 +289,22 @@
 @if($canManageUsers)
     @foreach($users as $modalUser)
         @php
-            $modalStatus = $modalUser->banned_at
-                ? ['label' => 'Banned', 'classes' => 'border-rose-200/70 bg-rose-100/70 text-rose-700']
-                : ($modalUser->suspended_at
-                    ? ['label' => 'Suspended', 'classes' => 'border-amber-200/70 bg-amber-100/70 text-amber-700']
-                    : ($modalUser->isMobileActive()
-                        ? ['label' => 'Active', 'classes' => 'border-emerald-200/70 bg-emerald-100/70 text-emerald-700']
-                        : ['label' => 'Inactive', 'classes' => 'border-slate-200/70 bg-slate-100/70 text-slate-600']));
+            if ($modalUser->banned_at) {
+                $modalStatus = ['label' => 'Banned', 'classes' => 'border-rose-200/70 bg-rose-100/70 text-rose-700'];
+            } elseif ($modalUser->suspended_at) {
+                $modalStatus = ['label' => 'Suspended', 'classes' => 'border-amber-200/70 bg-amber-100/70 text-amber-700'];
+            } elseif ($modalUser->isAdmin()) {
+                $modalStatus = match ($modalUser->adminInvitationState()) {
+                    'verified' => ['label' => 'Verified', 'classes' => 'border-emerald-200/70 bg-emerald-100/70 text-emerald-700'],
+                    'pending' => ['label' => 'Pending Verification', 'classes' => 'border-sky-200/70 bg-sky-100/70 text-sky-700'],
+                    'expired' => ['label' => 'Invitation Expired', 'classes' => 'border-orange-200/70 bg-orange-100/70 text-orange-700'],
+                    default => ['label' => 'Invitation Required', 'classes' => 'border-slate-200/70 bg-slate-100/70 text-slate-600'],
+                };
+            } elseif ($modalUser->isMobileActive()) {
+                $modalStatus = ['label' => 'Active', 'classes' => 'border-emerald-200/70 bg-emerald-100/70 text-emerald-700'];
+            } else {
+                $modalStatus = ['label' => 'Inactive', 'classes' => 'border-slate-200/70 bg-slate-100/70 text-slate-600'];
+            }
             $editingThisUser = (string) old('_editing_user') === (string) $modalUser->id;
         @endphp
 

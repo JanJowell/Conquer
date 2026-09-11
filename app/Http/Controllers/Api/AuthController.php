@@ -174,6 +174,12 @@ class AuthController extends Controller
 
         $user = User::where('email', $validated['email'])->firstOrFail();
 
+        if ($user->isAdmin()) {
+            return response()->json([
+                'message' => 'Administrator accounts must be activated through their secure web invitation.',
+            ], 403);
+        }
+
         if ($user->email_verified_at !== null) {
             DB::table('email_verification_codes')
                 ->where('email', $validated['email'])
@@ -212,6 +218,12 @@ class AuthController extends Controller
         ]);
 
         $user = User::where('email', $validated['email'])->firstOrFail();
+
+        if ($user->isAdmin()) {
+            return response()->json([
+                'message' => 'Administrator accounts must be activated through their secure web invitation.',
+            ], 403);
+        }
 
         if ($user->email_verified_at !== null) {
             return response()->json([

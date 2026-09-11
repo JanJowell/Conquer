@@ -52,6 +52,12 @@ class FortifyServiceProvider extends ServiceProvider
                 ]);
             }
 
+            if ($user->email_verified_at === null) {
+                throw ValidationException::withMessages([
+                    Fortify::username() => 'Activate your administrator account using the invitation sent to your email. Ask a Super Admin to resend it if necessary.',
+                ]);
+            }
+
             return $user;
         });
 

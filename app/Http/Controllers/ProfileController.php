@@ -2,15 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AdminActivityLog;
 use App\Models\User;
-use Illuminate\Http\Request;
+use App\Services\AdminInvitationService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
+use Throwable;
 
 class ProfileController extends Controller
 {
@@ -21,9 +24,10 @@ class ProfileController extends Controller
         ]);
     }
 
-    public function update(Request $request): RedirectResponse
+    public function update(Request $request, AdminInvitationService $invitations): RedirectResponse
     {
         $user = $request->user();
+        $originalEmail = $user->email;
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -42,6 +46,38 @@ class ProfileController extends Controller
         }
 
         $user->update($validated);
+
+        if ($user->isAdmin() && $originalEmail !== $user->email) {
+            $user->forceFill([
+                'email_verified_at' => null,
+                'api_token' => null,
+                'api_token_expires_at' => null,
+                'admin_invitation_token' => null,
+                'admin_invitation_sent_at' => null,
+                'admin_invitation_expires_at' => null,
+            ])->save();
+
+            try {
+                $invitations->send($user, $user);
+                $status = 'Your email was changed. A 24-hour verification invitation was sent to the new address.';
+            } catch (Throwable $exception) {
+                report($exception);
+                $status = 'Your email was changed and now requires verification, but the invitation could not be delivered. Ask another Super Admin to resend it.';
+            }
+
+            AdminActivityLog::create([
+                'user_id' => $user->getKey(),
+                'action' => 'Changed administrator email; re-verification required',
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('login')->with('status', $status);
+        }
 
         return redirect()->route('profile.edit')->with('status', 'profile-updated');
     }

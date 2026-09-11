@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\AdminActivityLog;
 use App\Models\BannedIP;
 use Closure;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ class AdminMiddleware
             abort(403, 'This IP address has been blocked.');
         }
 
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             return redirect('/login');
         }
 
@@ -32,9 +33,20 @@ class AdminMiddleware
                 'email' => 'This account has been banned. Please contact the super administrator for assistance.',
             ]);
         }
-        
+
         if (! $user->isAdmin()) {
             abort(403, 'Unauthorized access.');
+        }
+
+        if ($user->email_verified_at === null) {
+            Auth::logout();
+
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect('/login')->withErrors([
+                'email' => 'Your administrator email is not verified. Use your invitation link or ask a Super Admin to resend it.',
+            ]);
         }
 
         if ($this->requiresTwoFactorSetup($request, $user)) {
@@ -52,9 +64,9 @@ class AdminMiddleware
 
     private function logAdminActivity($user, $request)
     {
-        \App\Models\AdminActivityLog::create([
+        AdminActivityLog::create([
             'user_id' => $user->id,
-            'action' => $request->method() . ' ' . $request->path(),
+            'action' => $request->method().' '.$request->path(),
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
             'created_at' => now(),

@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use App\Models\AdminActivityLog;
+use App\Models\User;
+use App\Services\AdminInvitationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Throwable;
 
 class UserController extends Controller
 {
@@ -17,8 +20,8 @@ class UserController extends Controller
 
         if ($request->search) {
             $query->where(function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('email', 'like', '%' . $request->search . '%');
+                $q->where('name', 'like', '%'.$request->search.'%')
+                    ->orWhere('email', 'like', '%'.$request->search.'%');
             });
         }
 
@@ -50,6 +53,10 @@ class UserController extends Controller
                 ->whereNull('banned_at');
         } elseif ($request->status === 'banned') {
             $query->whereNotNull('banned_at');
+        } elseif ($request->status === 'pending_verification') {
+            $query->whereIn('role', User::storedAdminRoles())->whereNull('email_verified_at');
+        } elseif ($request->status === 'verified') {
+            $query->whereIn('role', User::storedAdminRoles())->whereNotNull('email_verified_at');
         }
 
         $users = $query->latest()->paginate(10);
@@ -62,12 +69,18 @@ class UserController extends Controller
         return view('admin.users.create');
     }
 
-    public function store(Request $request)
+    public function store(Request $request, AdminInvitationService $invitations)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => [
+                Rule::requiredIf(fn () => $request->input('role') === User::ROLE_RUNNER),
+                'nullable',
+                'string',
+                'min:8',
+                'confirmed',
+            ],
             'role' => ['required', Rule::in(User::manageableRoles())],
             'phone' => ['nullable', 'digits:11'],
             'gender' => 'nullable|string|max:50',
@@ -83,9 +96,27 @@ class UserController extends Controller
             $validated['medical_conditions'] = null;
         }
 
-        $validated['password'] = Hash::make($validated['password']);
+        $validated['password'] = Hash::make($validated['password'] ?? Str::random(64));
 
         $user = User::create($validated);
+
+        if ($user->isAdmin()) {
+            try {
+                $invitations->send($user, $request->user());
+            } catch (Throwable $exception) {
+                report($exception);
+
+                return redirect()->route('admin.users.index')->with(
+                    'error',
+                    'The administrator account was created as pending, but the invitation email could not be delivered. Check the mail configuration and use Resend Invitation.'
+                );
+            }
+
+            $this->logAccountAction($request, 'Invited administrator '.$user->email);
+
+            return redirect()->route('admin.users.index')
+                ->with('success', 'Administrator created. A 24-hour activation invitation was sent to '.$user->email.'.');
+        }
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User created successfully.');
@@ -107,8 +138,10 @@ class UserController extends Controller
         return view('admin.users.edit', compact('user'));
     }
 
-    public function update(Request $request, User $user)
+    public function update(Request $request, User $user, AdminInvitationService $invitations)
     {
+        $wasAdmin = $user->isAdmin();
+        $originalEmail = $user->email;
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
@@ -137,8 +170,73 @@ class UserController extends Controller
 
         $user->update($validated);
 
+        $emailChanged = $originalEmail !== $user->email;
+
+        if (! $user->isAdmin()) {
+            $user->forceFill([
+                'admin_invitation_token' => null,
+                'admin_invitation_sent_at' => null,
+                'admin_invitation_expires_at' => null,
+                'admin_invited_by' => null,
+            ])->save();
+        } elseif ($emailChanged) {
+            $user->forceFill([
+                'email_verified_at' => null,
+                'api_token' => null,
+                'api_token_expires_at' => null,
+                'admin_invitation_token' => null,
+                'admin_invitation_sent_at' => null,
+                'admin_invitation_expires_at' => null,
+            ])->save();
+
+            try {
+                $invitations->send($user, $request->user());
+            } catch (Throwable $exception) {
+                report($exception);
+
+                return redirect()->route('admin.users.index')->with(
+                    'error',
+                    'The account was updated and its new email requires verification, but the invitation could not be delivered. Use Resend Invitation.'
+                );
+            }
+        } elseif (! $wasAdmin && $user->isAdmin() && $user->email_verified_at === null) {
+            try {
+                $invitations->send($user, $request->user());
+            } catch (Throwable $exception) {
+                report($exception);
+
+                return redirect()->route('admin.users.index')->with(
+                    'error',
+                    'The account was promoted but its invitation could not be delivered. Use Resend Invitation.'
+                );
+            }
+        }
+
         return redirect()->route('admin.users.index')
             ->with('success', 'User updated successfully.');
+    }
+
+    public function resendInvitation(Request $request, User $user, AdminInvitationService $invitations)
+    {
+        if (! $user->isAdmin()) {
+            return back()->with('error', 'Invitations are only available for administrator accounts.');
+        }
+
+        if ($user->email_verified_at !== null) {
+            return back()->with('error', 'This administrator account is already verified.');
+        }
+
+        try {
+            $invitations->send($user, $request->user());
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return back()->with('error', 'The invitation could not be delivered. Check the mail configuration and try again.');
+        }
+
+        $this->logAccountAction($request, 'Resent administrator invitation to '.$user->email);
+
+        return back()->with('success', 'A new 24-hour invitation was sent to '.$user->email.'. Previous invitation links are no longer valid.');
     }
 
     public function destroy(User $user)
@@ -194,5 +292,15 @@ class UserController extends Controller
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User unbanned successfully.');
+    }
+
+    private function logAccountAction(Request $request, string $action): void
+    {
+        AdminActivityLog::create([
+            'user_id' => $request->user()->getKey(),
+            'action' => $action,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
     }
 }
