@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\AdminInvitationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Throwable;
@@ -226,6 +227,29 @@ class UserController extends Controller
             return back()->with('error', 'This administrator account is already verified.');
         }
 
+        $cooldownSeconds = max(1, (int) config('admin_invitations.resend_cooldown_seconds', 120));
+        $resendAvailableAt = $user->admin_invitation_sent_at?->copy()->addSeconds($cooldownSeconds);
+
+        if ($resendAvailableAt?->isFuture()) {
+            $secondsRemaining = max(1, $resendAvailableAt->getTimestamp() - now()->getTimestamp());
+
+            return back()->with(
+                'error',
+                'Please wait '.$this->formatInvitationWait($secondsRemaining).' before resending this invitation.'
+            );
+        }
+
+        $hourlyLimit = max(1, (int) config('admin_invitations.resend_max_per_hour', 5));
+        $rateLimitKey = 'admin-invitation-resend:'.$user->getKey();
+
+        if (RateLimiter::tooManyAttempts($rateLimitKey, $hourlyLimit)) {
+            return back()->with(
+                'error',
+                'The hourly resend limit has been reached for this administrator. Try again in '
+                    .$this->formatInvitationWait(RateLimiter::availableIn($rateLimitKey)).'.'
+            );
+        }
+
         try {
             $invitations->send($user, $request->user());
         } catch (Throwable $exception) {
@@ -233,6 +257,8 @@ class UserController extends Controller
 
             return back()->with('error', 'The invitation could not be delivered. Check the mail configuration and try again.');
         }
+
+        RateLimiter::hit($rateLimitKey, 3600);
 
         $this->logAccountAction($request, 'Resent administrator invitation to '.$user->email);
 
@@ -302,5 +328,18 @@ class UserController extends Controller
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
         ]);
+    }
+
+    private function formatInvitationWait(int $seconds): string
+    {
+        $seconds = max(1, $seconds);
+
+        if ($seconds < 60) {
+            return $seconds.' second'.($seconds === 1 ? '' : 's');
+        }
+
+        $minutes = (int) ceil($seconds / 60);
+
+        return $minutes.' minute'.($minutes === 1 ? '' : 's');
     }
 }

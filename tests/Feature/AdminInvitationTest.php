@@ -7,6 +7,7 @@ use App\Services\AdminInvitationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\RateLimiter;
 
 test('a super admin creates staff as unverified and sends a password setup invitation', function () {
     Notification::fake();
@@ -117,6 +118,8 @@ test('resending rotates the invitation and invalidates its previous link', funct
     $service->send($manager, $superAdmin);
     $oldHash = $manager->fresh()->admin_invitation_token;
 
+    $this->travel(2)->minutes();
+
     $this->actingAs($superAdmin)
         ->post(route('admin.users.resend-invitation', $manager))
         ->assertRedirect()
@@ -124,6 +127,61 @@ test('resending rotates the invitation and invalidates its previous link', funct
 
     expect($manager->fresh()->admin_invitation_token)->not->toBe($oldHash);
     Notification::assertSentToTimes($manager, AdminInvitationNotification::class, 2);
+});
+
+test('administrator invitation resends enforce a two minute cooldown', function () {
+    Notification::fake();
+
+    $superAdmin = User::factory()->create();
+    $manager = User::factory()->unverified()->create(['role' => User::ROLE_EVENT_MANAGER]);
+
+    app(AdminInvitationService::class)->send($manager, $superAdmin);
+    $originalToken = $manager->fresh()->admin_invitation_token;
+
+    $this->actingAs($superAdmin)
+        ->get(route('admin.users.index'))
+        ->assertOk()
+        ->assertSee('data-invitation-resend-button', false)
+        ->assertSee('disabled', false);
+
+    $this->post(route('admin.users.resend-invitation', $manager))
+        ->assertRedirect()
+        ->assertSessionHas('error', fn (string $message): bool => str_contains($message, 'before resending'));
+
+    expect($manager->fresh()->admin_invitation_token)->toBe($originalToken);
+    Notification::assertSentToTimes($manager, AdminInvitationNotification::class, 1);
+});
+
+test('administrator invitation resends are limited to five per hour', function () {
+    Notification::fake();
+
+    $superAdmin = User::factory()->create();
+    $manager = User::factory()->unverified()->create(['role' => User::ROLE_EVENT_MANAGER]);
+    $rateLimitKey = 'admin-invitation-resend:'.$manager->getKey();
+
+    RateLimiter::clear($rateLimitKey);
+    app(AdminInvitationService::class)->send($manager, $superAdmin);
+
+    foreach (range(1, 5) as $attempt) {
+        User::whereKey($manager->getKey())->update(['admin_invitation_sent_at' => now()->subMinutes(3)]);
+
+        $this->actingAs($superAdmin)
+            ->post(route('admin.users.resend-invitation', $manager))
+            ->assertRedirect()
+            ->assertSessionHas('success');
+    }
+
+    User::whereKey($manager->getKey())->update(['admin_invitation_sent_at' => now()->subMinutes(3)]);
+    $tokenAfterFiveResends = $manager->fresh()->admin_invitation_token;
+
+    $this->post(route('admin.users.resend-invitation', $manager))
+        ->assertRedirect()
+        ->assertSessionHas('error', fn (string $message): bool => str_contains($message, 'hourly resend limit'));
+
+    expect($manager->fresh()->admin_invitation_token)->toBe($tokenAfterFiveResends);
+    Notification::assertSentToTimes($manager, AdminInvitationNotification::class, 6);
+
+    RateLimiter::clear($rateLimitKey);
 });
 
 test('unverified administrators are blocked from web and scanner authentication', function () {

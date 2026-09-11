@@ -231,11 +231,31 @@
                                             </button>
 
                                             @if($user->isAdmin() && $user->email_verified_at === null)
-                                                <form method="POST" action="{{ route('admin.users.resend-invitation', $user) }}">
+                                                @php
+                                                    $invitationButtonLabel = $user->adminInvitationState() === 'not_sent' ? 'Send Invitation' : 'Resend Invitation';
+                                                    $resendAvailableAt = $user->admin_invitation_sent_at?->copy()->addSeconds(
+                                                        max(1, (int) config('admin_invitations.resend_cooldown_seconds', 120))
+                                                    );
+                                                    $resendCoolingDown = $resendAvailableAt?->isFuture() ?? false;
+                                                @endphp
+                                                <form method="POST" action="{{ route('admin.users.resend-invitation', $user) }}" class="flex flex-col items-end gap-1">
                                                     @csrf
-                                                    <button type="submit" class="inline-flex h-10 items-center justify-center rounded-xl border border-sky-200/70 bg-sky-100/60 px-4 text-xs font-bold text-sky-700 shadow-sm backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-sky-100">
-                                                        {{ $user->adminInvitationState() === 'not_sent' ? 'Send Invitation' : 'Resend Invitation' }}
+                                                    <button
+                                                        type="submit"
+                                                        data-invitation-resend-button
+                                                        data-default-label="{{ $invitationButtonLabel }}"
+                                                        data-resend-available-at="{{ $resendAvailableAt?->getTimestamp() }}"
+                                                        @disabled($resendCoolingDown)
+                                                        class="inline-flex h-10 min-w-32 items-center justify-center rounded-xl border px-4 text-xs font-bold shadow-sm backdrop-blur-xl transition enabled:border-sky-200/70 enabled:bg-sky-100/60 enabled:text-sky-700 enabled:hover:-translate-y-0.5 enabled:hover:bg-sky-100 disabled:cursor-not-allowed disabled:border-slate-200/70 disabled:bg-slate-100/70 disabled:text-slate-500 disabled:opacity-80"
+                                                        title="Invitation emails can be resent once every two minutes, up to five times per hour."
+                                                    >
+                                                        {{ $invitationButtonLabel }}
                                                     </button>
+                                                    @if($user->admin_invitation_sent_at)
+                                                        <span class="text-[11px] font-medium text-slate-500">
+                                                            Last sent {{ $user->admin_invitation_sent_at->diffForHumans() }}
+                                                        </span>
+                                                    @endif
                                                 </form>
                                             @endif
 
@@ -653,6 +673,38 @@
 
             if (document.querySelector('[role="dialog"].flex')) {
                 document.body.classList.add('overflow-hidden');
+            }
+
+            const resendButtons = Array.from(document.querySelectorAll('[data-invitation-resend-button]'));
+
+            const formatCountdown = (seconds) => {
+                const minutes = Math.floor(seconds / 60);
+                const remainder = seconds % 60;
+
+                return `${minutes}:${String(remainder).padStart(2, '0')}`;
+            };
+
+            const updateInvitationCountdowns = () => {
+                const nowInSeconds = Math.floor(Date.now() / 1000);
+
+                resendButtons.forEach((button) => {
+                    const availableAt = Number(button.dataset.resendAvailableAt || 0);
+                    const remaining = Math.max(0, availableAt - nowInSeconds);
+
+                    if (remaining > 0) {
+                        button.disabled = true;
+                        button.textContent = `Resend in ${formatCountdown(remaining)}`;
+                        return;
+                    }
+
+                    button.disabled = false;
+                    button.textContent = button.dataset.defaultLabel || 'Resend Invitation';
+                });
+            };
+
+            if (resendButtons.length > 0) {
+                updateInvitationCountdowns();
+                window.setInterval(updateInvitationCountdowns, 1000);
             }
         })();
     </script>
