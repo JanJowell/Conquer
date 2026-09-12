@@ -336,6 +336,118 @@
             box-shadow: 0 14px 30px rgba(148, 163, 184, 0.35) !important;
         }
 
+        /* Shared responsive safeguards for every admin page. */
+        .admin-shell-main,
+        .admin-legacy-glass,
+        .admin-legacy-glass > * {
+            min-width: 0;
+            max-width: 100%;
+        }
+
+        .admin-legacy-glass :is(.flex, .grid) > * {
+            min-width: 0;
+        }
+
+        .admin-legacy-glass :is(input, select, textarea) {
+            max-width: 100%;
+        }
+
+        .admin-legacy-glass :is(img, video, canvas) {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .admin-legacy-glass :is(h1, h2, h3, p, dd, td) {
+            overflow-wrap: anywhere;
+        }
+
+        .admin-table-scroll {
+            position: relative;
+            max-width: 100%;
+            overflow-x: auto;
+            overscroll-behavior-inline: contain;
+            scrollbar-gutter: stable;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .admin-table-scroll table {
+            width: max-content;
+            min-width: 100%;
+        }
+
+        .admin-table-scroll th {
+            white-space: nowrap;
+        }
+
+        .admin-table-action-column {
+            position: sticky;
+            right: 0;
+            z-index: 2;
+            min-width: max-content;
+            white-space: nowrap;
+            background: rgba(241, 247, 252, 0.96) !important;
+            box-shadow: -12px 0 18px -18px rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        thead .admin-table-action-column {
+            z-index: 3;
+        }
+
+        .admin-table-action-column :is(.flex, form) {
+            flex-wrap: nowrap !important;
+        }
+
+        .admin-table-action-column :is(a, button) {
+            white-space: nowrap;
+        }
+
+        @media (max-width: 767px) {
+            .admin-shell-main {
+                padding: 1rem 0.75rem !important;
+            }
+
+            .admin-legacy-glass table {
+                min-width: 45rem;
+            }
+
+            .admin-legacy-glass :is(button, input, select),
+            .admin-legacy-glass a[class*="inline-flex"],
+            .admin-legacy-glass a[class*="flex"] {
+                min-height: 2.75rem;
+            }
+
+            .admin-legacy-glass form[class*="grid"] > :is(button, a) {
+                width: 100%;
+            }
+
+            .admin-responsive-actions {
+                display: grid !important;
+                width: 100%;
+                grid-template-columns: minmax(0, 1fr) !important;
+                align-items: stretch !important;
+                justify-content: stretch !important;
+            }
+
+            .admin-responsive-actions > :is(a, button, form),
+            .admin-responsive-actions > form > :is(a, button) {
+                width: 100%;
+            }
+
+            .admin-legacy-glass [role="dialog"] {
+                align-items: flex-start !important;
+                padding: 0.75rem !important;
+            }
+
+            .admin-legacy-glass [role="dialog"] > :is(div, form):not([data-close-user-modal]),
+            .admin-legacy-glass dialog {
+                max-height: calc(100dvh - 1.5rem) !important;
+                max-width: calc(100vw - 1.5rem) !important;
+                border-radius: 1.25rem !important;
+            }
+        }
+
         .admin-scrollbar::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -715,6 +827,61 @@
 
             desktopQuery.addEventListener('change', () => syncSidebar(false));
             syncSidebar(false);
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const adminContent = document.querySelector('.admin-legacy-glass');
+
+            if (!adminContent) {
+                return;
+            }
+
+            adminContent.querySelectorAll('table').forEach((table) => {
+                const scrollContainer = table.closest('.overflow-x-auto');
+
+                if (scrollContainer) {
+                    scrollContainer.classList.add('admin-table-scroll');
+                    scrollContainer.setAttribute('role', 'region');
+                    scrollContainer.setAttribute('aria-label', 'Scrollable data table');
+                    scrollContainer.setAttribute('tabindex', '0');
+                }
+
+                const headerCells = Array.from(table.querySelectorAll('thead tr:first-child th'));
+
+                headerCells.forEach((header, columnIndex) => {
+                    const label = header.textContent.trim().toLowerCase();
+
+                    if (!['action', 'actions', 'save', 'manage'].includes(label)) {
+                        return;
+                    }
+
+                    header.classList.add('admin-table-action-column');
+
+                    table.querySelectorAll('tbody tr').forEach((row) => {
+                        const cell = row.children[columnIndex];
+
+                        if (cell && !cell.hasAttribute('colspan')) {
+                            cell.classList.add('admin-table-action-column');
+                        }
+                    });
+                });
+            });
+
+            adminContent.querySelectorAll('[class*="justify-end"]').forEach((container) => {
+                if (container.closest('td')) {
+                    return;
+                }
+
+                const hasDirectAction = Array.from(container.children).some((child) =>
+                    child.matches('a, button, form')
+                );
+
+                if (hasDirectAction) {
+                    container.classList.add('admin-responsive-actions');
+                }
+            });
         });
     </script>
 

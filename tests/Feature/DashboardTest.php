@@ -26,5 +26,9 @@ test('admin layout includes an accessible mobile navigation drawer', function ()
         ->assertSee('data-admin-sidebar-open', false)
         ->assertSee('data-admin-sidebar-close', false)
         ->assertSee('aria-controls="admin-sidebar"', false)
+        ->assertSee('admin-table-scroll', false)
+        ->assertSee('admin-table-action-column', false)
+        ->assertSee('admin-responsive-actions', false)
+        ->assertSee("['action', 'actions', 'save', 'manage']", false)
         ->assertSee("event.key === 'Escape'", false);
 });
