@@ -364,43 +364,77 @@
         .admin-table-scroll {
             position: relative;
             max-width: 100%;
-            overflow-x: auto;
+            overflow-x: hidden;
             overscroll-behavior-inline: contain;
-            scrollbar-gutter: stable;
             -webkit-overflow-scrolling: touch;
         }
 
         .admin-table-scroll table {
-            width: max-content;
+            width: 100%;
             min-width: 100%;
         }
 
         .admin-table-scroll th {
-            white-space: nowrap;
+            white-space: normal;
         }
 
         .admin-table-action-column {
-            position: sticky;
-            right: 0;
-            z-index: 2;
-            min-width: max-content;
-            white-space: nowrap;
-            background: rgba(241, 247, 252, 0.96) !important;
-            box-shadow: -12px 0 18px -18px rgba(15, 23, 42, 0.65);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-        }
-
-        thead .admin-table-action-column {
-            z-index: 3;
+            position: static;
+            min-width: 0;
+            white-space: normal;
         }
 
         .admin-table-action-column :is(.flex, form) {
-            flex-wrap: nowrap !important;
+            flex-wrap: wrap !important;
         }
 
         .admin-table-action-column :is(a, button) {
+            max-width: 100%;
             white-space: nowrap;
+            overflow-wrap: normal;
+            word-break: normal;
+        }
+
+        .admin-responsive-table :is(button, [class~="inline-flex"]) {
+            overflow-wrap: normal;
+            word-break: normal;
+        }
+
+        @media (min-width: 768px) {
+            .admin-responsive-table.admin-table-dense {
+                table-layout: auto;
+            }
+
+            .admin-responsive-table.admin-table-dense :is(th, td) {
+                padding-left: 0.75rem !important;
+                padding-right: 0.75rem !important;
+            }
+
+            .admin-responsive-table.admin-table-dense :is(input, select, textarea) {
+                width: 100%;
+                min-width: 0;
+            }
+
+            .admin-responsive-table.admin-table-dense td > * {
+                max-width: 100%;
+            }
+
+            .admin-responsive-table.admin-table-dense td .flex {
+                flex-wrap: wrap;
+            }
+
+            .admin-responsive-table .admin-registration-actions {
+                width: 17rem;
+            }
+
+            .admin-responsive-table .admin-registration-actions form,
+            .admin-responsive-table .admin-registration-actions .grid {
+                grid-template-columns: minmax(0, 1fr) !important;
+            }
+
+            .admin-responsive-table .admin-registration-actions :is(button, textarea) {
+                width: 100%;
+            }
         }
 
         @media (max-width: 767px) {
@@ -408,8 +442,110 @@
                 padding: 1rem 0.75rem !important;
             }
 
-            .admin-legacy-glass table {
-                min-width: 45rem;
+            /*
+             * Wide data tables become labelled cards on small screens. This
+             * keeps every field and action available without forcing the
+             * entire table area to scroll horizontally.
+             */
+            .admin-table-scroll {
+                overflow-x: visible;
+                scrollbar-gutter: auto;
+            }
+
+            .admin-responsive-table {
+                display: block;
+                width: 100%;
+                min-width: 0 !important;
+            }
+
+            .admin-responsive-table thead {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                padding: 0;
+                margin: -1px;
+                overflow: hidden;
+                clip: rect(0, 0, 0, 0);
+                white-space: nowrap;
+                border: 0;
+            }
+
+            .admin-responsive-table tbody {
+                display: grid;
+                width: 100%;
+                gap: 0.875rem;
+            }
+
+            .admin-responsive-table tbody > tr {
+                display: grid;
+                width: 100%;
+                min-width: 0;
+                overflow: hidden;
+                border: 1px solid rgba(203, 213, 225, 0.78) !important;
+                border-radius: 1rem;
+                background: rgba(255, 255, 255, 0.78);
+                box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+            }
+
+            .admin-responsive-table tbody > tr > td:not([colspan]) {
+                display: grid;
+                grid-template-columns: minmax(7.5rem, 0.38fr) minmax(0, 0.62fr);
+                align-items: start;
+                gap: 0.75rem;
+                min-width: 0;
+                padding: 0.875rem 1rem !important;
+                border: 0 !important;
+                border-bottom: 1px solid rgba(226, 232, 240, 0.9) !important;
+                border-radius: 0 !important;
+                background: transparent !important;
+                text-align: left !important;
+                white-space: normal;
+                box-shadow: none !important;
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+            }
+
+            .admin-responsive-table tbody > tr > td:not([colspan]):last-child {
+                border-bottom: 0 !important;
+            }
+
+            .admin-responsive-table tbody > tr > td:not([colspan])::before {
+                content: attr(data-admin-label);
+                min-width: 0;
+                font-size: 0.6875rem;
+                font-weight: 700;
+                line-height: 1.25rem;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                color: #64748b;
+            }
+
+            .admin-responsive-table tbody > tr > td[colspan] {
+                display: block;
+                width: 100%;
+                padding: 2rem 1rem !important;
+                border: 0 !important;
+                background: transparent !important;
+            }
+
+            .admin-responsive-table .admin-table-action-column {
+                position: static;
+                right: auto;
+                z-index: auto;
+                min-width: 0;
+            }
+
+            .admin-responsive-table .admin-table-action-column :is(.flex, form) {
+                flex-wrap: wrap !important;
+                justify-content: flex-start !important;
+            }
+
+            .admin-responsive-table .admin-table-action-column :is(a, button),
+            .admin-responsive-table td[data-admin-label="Action"] :is(a, button),
+            .admin-responsive-table td[data-admin-label="Actions"] :is(a, button),
+            .admin-responsive-table td[data-admin-label="Save"] :is(a, button),
+            .admin-responsive-table td[data-admin-label="Manage"] :is(a, button) {
+                width: 100%;
             }
 
             .admin-legacy-glass :is(button, input, select),
@@ -445,6 +581,13 @@
                 max-height: calc(100dvh - 1.5rem) !important;
                 max-width: calc(100vw - 1.5rem) !important;
                 border-radius: 1.25rem !important;
+            }
+        }
+
+        @media (max-width: 479px) {
+            .admin-responsive-table tbody > tr > td:not([colspan]) {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 0.3rem;
             }
         }
 
@@ -841,19 +984,43 @@
             adminContent.querySelectorAll('table').forEach((table) => {
                 const scrollContainer = table.closest('.overflow-x-auto');
 
+                table.classList.add('admin-responsive-table');
+
                 if (scrollContainer) {
                     scrollContainer.classList.add('admin-table-scroll');
                     scrollContainer.setAttribute('role', 'region');
-                    scrollContainer.setAttribute('aria-label', 'Scrollable data table');
+                    scrollContainer.setAttribute('aria-label', 'Responsive data table');
                     scrollContainer.setAttribute('tabindex', '0');
                 }
 
                 const headerCells = Array.from(table.querySelectorAll('thead tr:first-child th'));
 
+                table.classList.toggle('admin-table-dense', headerCells.length >= 7);
+
+                table.querySelectorAll('tbody tr').forEach((row) => {
+                    Array.from(row.children).forEach((cell, columnIndex) => {
+                        if (!(cell instanceof HTMLTableCellElement)) {
+                            return;
+                        }
+
+                        if (cell.hasAttribute('colspan')) {
+                            row.classList.add('admin-table-empty-row');
+                            return;
+                        }
+
+                        const header = headerCells[columnIndex];
+                        const label = header
+                            ? header.textContent.replace(/\s+/g, ' ').trim()
+                            : 'Details';
+
+                        cell.setAttribute('data-admin-label', label || 'Details');
+                    });
+                });
+
                 headerCells.forEach((header, columnIndex) => {
                     const label = header.textContent.trim().toLowerCase();
 
-                    if (!['action', 'actions', 'save', 'manage'].includes(label)) {
+                    if (!['action', 'actions', 'save', 'manage', 'manage registration', 'review', 'setup'].includes(label)) {
                         return;
                     }
 

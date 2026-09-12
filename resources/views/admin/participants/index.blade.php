@@ -154,7 +154,7 @@
                             <th class="px-6 py-4">Compliance</th>
                             <th class="px-6 py-4">Status</th>
                             <th class="px-6 py-4">Registered</th>
-                            <th class="px-6 py-4">Manage Registration</th>
+                            <th class="admin-registration-actions px-6 py-4">Manage Registration</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[#eef1f4] text-sm text-[#202733]">
@@ -239,7 +239,7 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-5">{{ $participant->registered_at?->format('M d, Y h:i A') ?: $participant->created_at?->format('M d, Y h:i A') }}</td>
-                                <td class="px-6 py-5">
+                                <td class="admin-registration-actions px-6 py-5">
                                     @if (in_array($participant->status, ['checked_in', 'completed'], true))
                                         <div class="grid gap-3 lg:grid-cols-[180px_160px] lg:items-center">
                                             <span class="inline-flex h-10 items-center rounded-xl border border-[#d9dee7] px-3 text-sm font-medium text-[#5e6878]">
