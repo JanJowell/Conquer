@@ -95,8 +95,8 @@ class FinishScanController extends Controller
 
         $validated = $request->validate([
             'token' => ['required', 'string', 'max:2048'],
-            'event_id' => ['required', 'integer', 'exists:events,id'],
-            'category_id' => ['required', 'integer', 'exists:categories,id'],
+            'event_id' => ['nullable', 'integer', 'exists:events,id'],
+            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
         ]);
 
         $registration = $this->tokens->resolve($validated['token']);
@@ -105,8 +105,8 @@ class FinishScanController extends Controller
             return $this->error('The BIB QR code is invalid or has been altered.', 'invalid_scan_token', 422);
         }
 
-        if ((int) $registration->event_id !== (int) $validated['event_id']
-            || (int) $registration->category_id !== (int) $validated['category_id']) {
+        if ((isset($validated['event_id']) && (int) $registration->event_id !== (int) $validated['event_id'])
+            || (isset($validated['category_id']) && (int) $registration->category_id !== (int) $validated['category_id'])) {
             return $this->error('This BIB belongs to a different event or category.', 'selection_mismatch', 422);
         }
 

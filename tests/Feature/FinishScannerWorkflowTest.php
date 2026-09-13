@@ -107,7 +107,7 @@ test('only race operations staff can sign in to the finish scanner', function ()
         ->assertJsonPath('message', 'This account is not authorized to use the finish scanner.');
 });
 
-test('a valid BIB QR records one provisional server-timed finish without publishing a result', function () {
+test('a legacy scanner request records one provisional server-timed finish without publishing a result', function () {
     $staff = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
     $raceNow = Carbon::parse('2026-09-02 08:30:00', config('app.timezone'));
     $this->travelTo($raceNow);
@@ -137,6 +137,43 @@ test('a valid BIB QR records one provisional server-timed finish without publish
         ->and(Certificate::count())->toBe(0);
 });
 
+test('QR-only scanning derives the event and category and supports multiple registrations for one participant', function () {
+    $staff = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $raceNow = Carbon::parse('2026-09-02 08:45:00', config('app.timezone'));
+    $this->travelTo($raceNow);
+    $event = finishScannerEvent($staff, $raceNow);
+    $firstCategory = finishScannerCategory($event, $raceNow);
+    $secondCategory = finishScannerCategory($event, $raceNow);
+    $firstRegistration = finishScannerRegistration($event, $firstCategory, ['bib_number' => '311']);
+    $secondRegistration = Registration::create([
+        'user_id' => $firstRegistration->user_id,
+        'event_id' => $event->id,
+        'category_id' => $secondCategory->id,
+        'bib_number' => '312',
+        'status' => 'checked_in',
+        'registered_at' => now()->subDay(),
+    ]);
+    $headers = finishScannerHeaders(finishScannerApiToken($staff));
+
+    foreach ([$firstRegistration, $secondRegistration] as $registration) {
+        $this->withHeaders($headers)
+            ->postJson('/api/staff/finish-scans', [
+                'token' => app(FinishScanToken::class)->issue($registration),
+            ])->assertCreated()
+            ->assertJsonPath('data.registration_id', $registration->id)
+            ->assertJsonPath('data.event_id', $event->id)
+            ->assertJsonPath('data.category_id', $registration->category_id)
+            ->assertJsonPath('data.bib_number', $registration->bib_number)
+            ->assertJsonPath('data.elapsed_seconds', 1800);
+    }
+
+    expect(FinishScan::where('user_id', $firstRegistration->user_id)->count())->toBe(2)
+        ->and(FinishScan::pluck('category_id')->all())->toEqualCanonicalizing([
+            $firstCategory->id,
+            $secondCategory->id,
+        ]);
+});
+
 test('duplicate and altered scans are rejected without creating extra records', function () {
     $staff = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
     $raceNow = Carbon::parse('2026-09-02 09:00:00', config('app.timezone'));
@@ -146,7 +183,7 @@ test('duplicate and altered scans are rejected without creating extra records', 
     $registration = finishScannerRegistration($event, $category, ['bib_number' => '302']);
     $token = app(FinishScanToken::class)->issue($registration);
     $headers = finishScannerHeaders(finishScannerApiToken($staff));
-    $payload = ['token' => $token, 'event_id' => $event->id, 'category_id' => $category->id];
+    $payload = ['token' => $token];
 
     $this->withHeaders($headers)->postJson('/api/staff/finish-scans', $payload)->assertCreated();
     $this->withHeaders($headers)->postJson('/api/staff/finish-scans', $payload)
@@ -178,8 +215,6 @@ test('scanner enforces selected category check-in start state and assigned manag
     $this->withHeaders(finishScannerHeaders(finishScannerApiToken($otherManager)))
         ->postJson('/api/staff/finish-scans', [
             'token' => $token,
-            'event_id' => $event->id,
-            'category_id' => $category->id,
         ])->assertForbidden()
         ->assertJsonPath('code', 'forbidden_event');
 
@@ -193,8 +228,6 @@ test('scanner enforces selected category check-in start state and assigned manag
 
     $this->withHeaders($headers)->postJson('/api/staff/finish-scans', [
         'token' => $token,
-        'event_id' => $event->id,
-        'category_id' => $category->id,
     ])->assertStatus(409)
         ->assertJsonPath('code', 'category_not_started');
 
@@ -203,8 +236,6 @@ test('scanner enforces selected category check-in start state and assigned manag
 
     $this->withHeaders($headers)->postJson('/api/staff/finish-scans', [
         'token' => $token,
-        'event_id' => $event->id,
-        'category_id' => $category->id,
     ])->assertStatus(409)
         ->assertJsonPath('code', 'participant_not_checked_in');
 
@@ -212,8 +243,6 @@ test('scanner enforces selected category check-in start state and assigned manag
 
     $this->withHeaders($headers)->postJson('/api/staff/finish-scans', [
         'token' => $token,
-        'event_id' => $event->id,
-        'category_id' => $category->id,
     ])->assertStatus(409)
         ->assertJsonPath('code', 'bib_not_assigned');
 
