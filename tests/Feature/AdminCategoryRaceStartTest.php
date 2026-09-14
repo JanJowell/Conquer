@@ -235,3 +235,58 @@ test('results page presents category start controls and disables finish before s
         ->assertSee('Category not started')
         ->assertSee('disabled', false);
 });
+
+test('results display status follows the category schedule and publication state', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $raceNow = Carbon::parse('2026-08-15 08:00:00', config('app.timezone'));
+    $event = categoryRaceEvent($admin, $raceNow->copy()->subHours(2));
+    $category = categoryRaceCategory($event, [
+        'scheduled_start_date' => '2026-08-15',
+        'scheduled_start_time' => '06:00',
+        'scheduled_end_date' => '2026-08-15',
+        'scheduled_end_time' => '09:00',
+    ]);
+
+    expect($category->resultsDisplayStatus($raceNow, 0, 0))
+        ->toBe(Category::RESULTS_STATUS_NOT_STARTED);
+
+    $category->update(['started_at' => $raceNow->copy()->subHours(2)]);
+    $category->refresh();
+
+    expect($category->resultsDisplayStatus($raceNow, 0, 0))
+        ->toBe(Category::RESULTS_STATUS_IN_PROGRESS)
+        ->and($category->resultsDisplayStatus($raceNow->copy()->addHour(), 0, 0))
+        ->toBe(Category::RESULTS_STATUS_ENDED)
+        ->and($category->resultsDisplayStatus($raceNow->copy()->addHour(), 1, 1))
+        ->toBe(Category::RESULTS_STATUS_PENDING)
+        ->and($category->resultsDisplayStatus($raceNow->copy()->addHour(), 0, 1))
+        ->toBe(Category::RESULTS_STATUS_COMPLETED);
+});
+
+test('results display status supports overnight and multi-day category schedules', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $eventStart = Carbon::parse('2026-08-15 23:00:00', config('app.timezone'));
+    $event = categoryRaceEvent($admin, $eventStart);
+    $event->update([
+        'event_end_date' => '2026-08-16',
+        'end_time' => '03:00',
+    ]);
+    $category = categoryRaceCategory($event, [
+        'scheduled_start_date' => '2026-08-15',
+        'scheduled_start_time' => '23:00',
+        'scheduled_end_date' => '2026-08-16',
+        'scheduled_end_time' => '01:00',
+        'started_at' => $eventStart,
+    ]);
+
+    expect($category->resultsDisplayStatus(
+        Carbon::parse('2026-08-16 00:30:00', config('app.timezone')),
+        0,
+        0,
+    ))->toBe(Category::RESULTS_STATUS_IN_PROGRESS)
+        ->and($category->resultsDisplayStatus(
+            Carbon::parse('2026-08-16 01:00:00', config('app.timezone')),
+            0,
+            0,
+        ))->toBe(Category::RESULTS_STATUS_ENDED);
+});

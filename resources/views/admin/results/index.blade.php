@@ -42,6 +42,18 @@
                 @forelse ($raceCategories as $raceCategory)
                     @php
                         $scheduledStartAt = $raceCategory->scheduledStartAt();
+                        $resultsDisplayStatus = $raceCategory->resultsDisplayStatus(
+                            now(),
+                            (int) $raceCategory->provisional_scans_count,
+                            (int) $raceCategory->race_results_count,
+                        );
+                        [$resultsStatusLabel, $resultsStatusClasses] = match ($resultsDisplayStatus) {
+                            \App\Models\Category::RESULTS_STATUS_IN_PROGRESS => ['In Progress', 'border-emerald-200 bg-emerald-50 text-emerald-700'],
+                            \App\Models\Category::RESULTS_STATUS_PENDING => ['Ended / Results Pending', 'border-amber-200 bg-amber-50 text-amber-700'],
+                            \App\Models\Category::RESULTS_STATUS_COMPLETED => ['Completed', 'border-sky-200 bg-sky-50 text-sky-700'],
+                            \App\Models\Category::RESULTS_STATUS_ENDED => ['Ended', 'border-slate-200 bg-slate-100 text-slate-700'],
+                            default => ['Not Started', 'border-amber-200 bg-amber-50 text-amber-700'],
+                        };
                     @endphp
                     <div class="grid gap-4 px-5 py-4 md:grid-cols-[minmax(0,1fr)_130px_220px] md:items-center">
                         <div>
@@ -51,11 +63,7 @@
                             <p class="mt-1 text-xs text-[#6d7685]">Cutoff/end {{ $raceCategory->scheduledEndAt()?->format('M j, Y g:i A') ?: 'time not set' }}</p>
                         </div>
                         <div>
-                            @if ($raceCategory->started_at)
-                                <span class="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">In Progress</span>
-                            @else
-                                <span class="inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">Not Started</span>
-                            @endif
+                            <span class="inline-flex rounded-full border px-3 py-1 text-xs font-semibold {{ $resultsStatusClasses }}">{{ $resultsStatusLabel }}</span>
                         </div>
                         <div class="md:text-right">
                             @if ($raceCategory->started_at)

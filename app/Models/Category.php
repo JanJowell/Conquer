@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -9,6 +10,16 @@ use Illuminate\Support\Carbon;
 class Category extends Model
 {
     use HasFactory;
+
+    public const RESULTS_STATUS_NOT_STARTED = 'not_started';
+
+    public const RESULTS_STATUS_IN_PROGRESS = 'in_progress';
+
+    public const RESULTS_STATUS_ENDED = 'ended';
+
+    public const RESULTS_STATUS_PENDING = 'results_pending';
+
+    public const RESULTS_STATUS_COMPLETED = 'completed';
 
     public const PAYMENT_METHODS = [
         'GCash' => 'GCash',
@@ -127,6 +138,42 @@ class Category extends Model
             $scheduledDate->format('Y-m-d').' '.$scheduledTime->format('H:i:s'),
             config('app.timezone')
         );
+    }
+
+    /**
+     * Return the operational status shown on Results Management.
+     *
+     * This is intentionally display-only: reaching the scheduled cutoff does
+     * not close scanning or mutate the category's stored registration status.
+     */
+    public function resultsDisplayStatus(
+        ?CarbonInterface $at = null,
+        ?int $provisionalScansCount = null,
+        ?int $raceResultsCount = null
+    ): string {
+        if (! $this->started_at) {
+            return self::RESULTS_STATUS_NOT_STARTED;
+        }
+
+        $scheduledEndAt = $this->scheduledEndAt();
+
+        if (! $scheduledEndAt || ($at ?? now())->lt($scheduledEndAt)) {
+            return self::RESULTS_STATUS_IN_PROGRESS;
+        }
+
+        $provisionalScansCount ??= $this->finishScans()
+            ->where('status', FinishScan::STATUS_PROVISIONAL)
+            ->count();
+
+        if ($provisionalScansCount > 0) {
+            return self::RESULTS_STATUS_PENDING;
+        }
+
+        $raceResultsCount ??= $this->raceResults()->count();
+
+        return $raceResultsCount > 0
+            ? self::RESULTS_STATUS_COMPLETED
+            : self::RESULTS_STATUS_ENDED;
     }
 
     public function payments()
