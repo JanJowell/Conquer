@@ -191,7 +191,18 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-5">{{ $participant->event?->title ?: 'Deleted event' }}</td>
-                                <td class="px-6 py-5">{{ $participant->category?->name ?: 'No category' }}</td>
+                                <td class="px-6 py-5">
+                                    <p>{{ $participant->category?->name ?: 'No category' }}</p>
+                                    @if ($participant->registrationGroup)
+                                        <div class="mt-2 text-xs leading-5 text-[#6d7685]">
+                                            <p class="font-semibold text-[#3d4757]">Group: {{ $participant->registrationGroup->name }}</p>
+                                            <p>{{ $participant->registrationGroup->active_registrations_count }}/{{ $participant->category?->group_max_members }} members · {{ str($participant->registrationGroup->status)->title() }}</p>
+                                            @if ($participant->registrationGroup->leader_user_id === $participant->user_id)
+                                                <p class="font-semibold text-sky-700">Group leader</p>
+                                            @endif
+                                        </div>
+                                    @endif
+                                </td>
                                 <td class="px-6 py-5">
                                     <p class="font-semibold text-[#151b26]">
                                         {{ $participant->payment_currency ?? 'PHP' }} {{ number_format(($participant->payment_amount_cents ?? 0) / 100, 2) }}

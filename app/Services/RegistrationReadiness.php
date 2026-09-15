@@ -13,6 +13,7 @@ class RegistrationReadiness
         $registration->loadMissing([
             'event',
             'category.event',
+            'registrationGroup.category',
             'raceResult',
             'feedback',
             'certificate',
@@ -25,6 +26,13 @@ class RegistrationReadiness
         $certificate = $registration->certificate;
         $issuedBadges = $registration->issuedEBadges;
         $registrationStatus = (string) $registration->status;
+        $group = $registration->registrationGroup;
+        $groupRequired = $category?->usesGroupRegistration() ?? false;
+        $groupMemberCount = $group?->activeRegistrations()->count() ?? 0;
+        $groupMinimum = max((int) ($category?->group_min_members ?? 2), 2);
+        $groupReady = ! $groupRequired || ($group
+            && ($group->status === 'locked'
+                || ($group->status === 'ready' && $groupMemberCount >= $groupMinimum)));
         $isRejected = $registrationStatus === 'rejected';
         $isApproved = in_array($registrationStatus, ['approved', 'checked_in', 'completed'], true);
         $isCheckedIn = in_array($registrationStatus, ['checked_in', 'completed'], true);
@@ -41,7 +49,8 @@ class RegistrationReadiness
         $firstAidComplete = (bool) $registration->first_aid_kit_confirmed;
         $bibAssigned = filled($registration->bib_number);
         $raceKitReleased = $registration->kit_released_at !== null;
-        $participantRequirementsComplete = $paymentComplete
+        $participantRequirementsComplete = $groupReady
+            && $paymentComplete
             && $waiverComplete
             && $medicalCertificateComplete
             && $firstAidComplete;
@@ -56,6 +65,7 @@ class RegistrationReadiness
         return [
             'overall_status' => $this->overallStatus(
                 $registrationStatus,
+                $groupReady,
                 $paymentWaiting,
                 $participantRequirementsComplete,
                 $bibAssigned,
@@ -64,6 +74,7 @@ class RegistrationReadiness
             'next_action' => $this->nextAction(
                 $registration,
                 $isRejected,
+                $groupReady,
                 $isApproved,
                 $isCheckedIn,
                 $paymentComplete,
@@ -77,6 +88,13 @@ class RegistrationReadiness
             ),
             'is_ready_for_event_day' => $readyForEventDay,
             'steps' => [
+                'group' => [
+                    'required' => $groupRequired,
+                    'completed' => $groupReady,
+                    'status' => ! $groupRequired ? 'not_required' : ($groupReady ? 'complete' : 'action_required'),
+                    'member_count' => $groupMemberCount,
+                    'minimum_members' => $groupRequired ? $groupMinimum : null,
+                ],
                 'approval' => [
                     'required' => true,
                     'completed' => $isApproved,
@@ -207,6 +225,7 @@ class RegistrationReadiness
 
     private function overallStatus(
         string $registrationStatus,
+        bool $groupReady,
         bool $paymentWaiting,
         bool $participantRequirementsComplete,
         bool $bibAssigned,
@@ -222,6 +241,10 @@ class RegistrationReadiness
 
         if ($registrationStatus === 'checked_in') {
             return 'checked_in';
+        }
+
+        if (! $groupReady) {
+            return 'group_forming';
         }
 
         if ($paymentWaiting) {
@@ -246,6 +269,7 @@ class RegistrationReadiness
     private function nextAction(
         Registration $registration,
         bool $isRejected,
+        bool $groupReady,
         bool $isApproved,
         bool $isCheckedIn,
         bool $paymentComplete,
@@ -259,6 +283,10 @@ class RegistrationReadiness
     ): array {
         if ($isRejected) {
             return $this->action('registration_rejected', 'Registration rejected', $registration->rejection_reason, 'blocked');
+        }
+
+        if (! $groupReady) {
+            return $this->action('complete_group', 'Complete your group', 'Invite enough verified participants to reach the category minimum before payment and approval.', 'action_required');
         }
 
         if (! $paymentComplete) {

@@ -58,6 +58,7 @@
                             'beginner' => 'Beginner',
                             'kids' => 'Kids',
                             'senior' => 'Senior',
+                            'group' => 'Group',
                             'custom' => 'Custom',
                         ] as $value => $label)
                             <option value="{{ $value }}" @selected(old('category_type', 'open') === $value)>{{ $label }}</option>
@@ -171,6 +172,17 @@
                     <input id="slot_limit" name="slot_limit" type="number" min="1" value="{{ old('slot_limit') }}" class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none">
                 </div>
 
+                <div data-group-setting class="{{ old('category_type') === 'group' ? '' : 'hidden' }}">
+                    <label for="group_min_members" class="mb-2 block text-sm font-medium text-[#3d4757]">Minimum Group Members</label>
+                    <input id="group_min_members" name="group_min_members" type="number" min="2" max="100" value="{{ old('group_min_members') }}" placeholder="At least 2" class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none">
+                </div>
+
+                <div data-group-setting class="{{ old('category_type') === 'group' ? '' : 'hidden' }}">
+                    <label for="group_max_members" class="mb-2 block text-sm font-medium text-[#3d4757]">Maximum Group Members</label>
+                    <input id="group_max_members" name="group_max_members" type="number" min="2" max="100" value="{{ old('group_max_members') }}" placeholder="2 to 100" class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none">
+                    <p class="mt-2 text-xs text-[#6d7685]">Each member receives a separate registration, BIB, result, and certificate.</p>
+                </div>
+
                 <div class="rounded-2xl border border-[#d9dee7] bg-[#fafbfc] p-4">
                     <input type="hidden" name="requires_medical_certificate" value="0">
                     <label for="requires_medical_certificate" class="flex cursor-pointer items-start gap-3">
@@ -253,6 +265,18 @@
         const customDistanceWrapper = document.getElementById('custom-distance-wrapper');
         const standardDistanceFields = document.querySelectorAll('[data-standard-distance]');
         const categoryTypeDetailPanels = document.querySelectorAll('[data-category-type-details]');
+        const groupSettings = document.querySelectorAll('[data-group-setting]');
+
+        const refreshGroupSettings = () => {
+            const isGroup = categoryType?.value === 'group';
+            groupSettings.forEach((wrapper) => {
+                wrapper.classList.toggle('hidden', ! isGroup);
+                wrapper.querySelectorAll('input').forEach((field) => {
+                    field.disabled = ! isGroup;
+                    field.required = isGroup;
+                });
+            });
+        };
 
         const refreshCategoryDistanceFields = () => {
             const eventType = eventTypes[eventSelect?.value] || '';
@@ -305,6 +329,7 @@
 
         categoryType?.addEventListener('change', () => {
             customCategoryWrapper?.classList.toggle('hidden', categoryType.value !== 'custom');
+            refreshGroupSettings();
         });
 
         distanceOption?.addEventListener('change', () => {
@@ -313,5 +338,6 @@
         });
 
         refreshCategoryDistanceFields();
+        refreshGroupSettings();
     </script>
 @endsection

@@ -126,6 +126,10 @@ class FortifyServiceProvider extends ServiceProvider
             $request->user()?->getAuthIdentifier() ?: $request->ip()
         ));
 
+        RateLimiter::for('group-join', fn (Request $request) => Limit::perMinute(10)->by(
+            ($request->user()?->getAuthIdentifier() ?: 'guest').'|'.$request->ip()
+        ));
+
         RateLimiter::for('payment-webhook', fn (Request $request) => Limit::perMinute(120)->by($request->ip()));
     }
 }

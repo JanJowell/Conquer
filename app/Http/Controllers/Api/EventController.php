@@ -9,6 +9,7 @@ use App\Models\Category;
 use App\Models\Event;
 use App\Models\Registration;
 use App\Services\CategoryRegistrationEligibility;
+use App\Services\GroupRegistrationService;
 use App\Services\MobileRecommendationContext;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Throwable;
 
 class EventController extends Controller
 {
@@ -46,7 +48,7 @@ class EventController extends Controller
                 $query->with([
                     'currentUserRegistrations' => fn ($registrationQuery) => $registrationQuery
                         ->where('user_id', $user->id)
-                        ->with(['category.event.paymentMethods', 'latestPayment', 'raceResult', 'feedback', 'certificate', 'issuedEBadges.badge'])
+                        ->with(['category.event.paymentMethods', 'registrationGroup.category', 'registrationGroup.activeRegistrations.user', 'latestPayment', 'raceResult', 'feedback', 'certificate', 'issuedEBadges.badge'])
                         ->latest('registered_at'),
                 ]);
             })
@@ -129,7 +131,7 @@ class EventController extends Controller
             $event->load([
                 'currentUserRegistrations' => fn ($query) => $query
                     ->where('user_id', $user->id)
-                    ->with(['category.event.paymentMethods', 'latestPayment', 'raceResult', 'feedback', 'certificate', 'issuedEBadges.badge'])
+                    ->with(['category.event.paymentMethods', 'registrationGroup.category', 'registrationGroup.activeRegistrations.user', 'latestPayment', 'raceResult', 'feedback', 'certificate', 'issuedEBadges.badge'])
                     ->latest('registered_at'),
             ]);
         }
@@ -212,6 +214,27 @@ class EventController extends Controller
             'first_aid_kit_confirmed' => ['accepted'],
             'waiver_accepted' => ['accepted'],
             'waiver_name' => ['nullable', 'string', 'max:255'],
+            'group_action' => [
+                Rule::requiredIf($category->usesGroupRegistration()),
+                Rule::prohibitedIf(! $category->usesGroupRegistration()),
+                'nullable',
+                Rule::in(['create', 'join']),
+            ],
+            'group_name' => [
+                Rule::requiredIf($category->usesGroupRegistration() && $request->input('group_action') === 'create'),
+                Rule::prohibitedIf(! $category->usesGroupRegistration() || $request->input('group_action') !== 'create'),
+                'nullable',
+                'string',
+                'min:3',
+                'max:100',
+            ],
+            'invitation_code' => [
+                Rule::requiredIf($category->usesGroupRegistration() && $request->input('group_action') === 'join'),
+                Rule::prohibitedIf(! $category->usesGroupRegistration() || $request->input('group_action') !== 'join'),
+                'nullable',
+                'string',
+                'max:20',
+            ],
         ]);
 
         $registration = $existingRegistration ?? new Registration([
@@ -232,31 +255,78 @@ class EventController extends Controller
 
         $waiverAcceptedAt = $registration->waiver_accepted ? $registration->waiver_accepted_at : now();
 
+        $invitationCode = null;
+
         try {
-            $registration->fill([
-                'category_id' => $category->id,
-                'bib_number' => null,
-                'shirt_size' => $validated['shirt_size'] ?? 'M',
-                'medical_conditions' => $validated['medical_conditions'] ?? null,
-                'medical_certificate_path' => $medicalCertificatePath,
-                'medical_certificate_submitted_at' => $medicalCertificateSubmittedAt,
-                'first_aid_kit_confirmed' => true,
-                'waiver_accepted' => true,
-                'waiver_accepted_at' => $waiverAcceptedAt,
-                'waiver_name' => $validated['waiver_name'] ?? $request->user()->name,
-                'waiver_ip' => $request->ip(),
-                'waiver_user_agent' => Str::limit((string) $request->userAgent(), 512, ''),
-                'kit_waiver_signed_at' => null,
-                'kit_released_at' => null,
-                'status' => 'pending',
-                'rejection_reason' => null,
-                'payment_required' => (int) ($category->price_cents ?? 0) > 0,
-                'payment_status' => (int) ($category->price_cents ?? 0) > 0 ? 'unpaid' : 'waived',
-                'payment_amount_cents' => (int) ($category->price_cents ?? 0),
-                'payment_currency' => $category->price_currency ?? 'PHP',
-                'paid_at' => null,
-                'registered_at' => now(),
-            ])->save();
+            DB::transaction(function () use (
+                $category,
+                $event,
+                $request,
+                $validated,
+                $registration,
+                $medicalCertificatePath,
+                $medicalCertificateSubmittedAt,
+                $waiverAcceptedAt,
+                &$invitationCode
+            ) {
+                $lockedCategory = Category::query()->lockForUpdate()->findOrFail($category->id);
+
+                if ($lockedCategory->slot_limit !== null
+                    && $lockedCategory->registrations()->where('status', '!=', 'rejected')->count() >= $lockedCategory->slot_limit) {
+                    abort(422, 'This category is already full.');
+                }
+
+                $group = null;
+                $groups = app(GroupRegistrationService::class);
+
+                if ($lockedCategory->usesGroupRegistration()) {
+                    if ($validated['group_action'] === 'create') {
+                        [$group, $invitationCode] = $groups->create(
+                            $request->user(),
+                            $event,
+                            $lockedCategory,
+                            $validated['group_name']
+                        );
+                    } else {
+                        $group = $groups->findForJoin(
+                            $validated['invitation_code'],
+                            $event,
+                            $lockedCategory,
+                            $request->user()
+                        );
+                    }
+                }
+
+                $registration->fill([
+                    'category_id' => $lockedCategory->id,
+                    'registration_group_id' => $group?->id,
+                    'bib_number' => null,
+                    'shirt_size' => $validated['shirt_size'] ?? 'M',
+                    'medical_conditions' => $validated['medical_conditions'] ?? null,
+                    'medical_certificate_path' => $medicalCertificatePath,
+                    'medical_certificate_submitted_at' => $medicalCertificateSubmittedAt,
+                    'first_aid_kit_confirmed' => true,
+                    'waiver_accepted' => true,
+                    'waiver_accepted_at' => $waiverAcceptedAt,
+                    'waiver_name' => $validated['waiver_name'] ?? $request->user()->name,
+                    'waiver_ip' => $request->ip(),
+                    'waiver_user_agent' => Str::limit((string) $request->userAgent(), 512, ''),
+                    'kit_waiver_signed_at' => null,
+                    'kit_released_at' => null,
+                    'status' => 'pending',
+                    'rejection_reason' => null,
+                    'payment_required' => (int) ($lockedCategory->price_cents ?? 0) > 0,
+                    'payment_status' => (int) ($lockedCategory->price_cents ?? 0) > 0 ? 'unpaid' : 'waived',
+                    'payment_amount_cents' => (int) ($lockedCategory->price_cents ?? 0),
+                    'payment_currency' => $lockedCategory->price_currency ?? 'PHP',
+                    'paid_at' => null,
+                    'registered_at' => now(),
+                ])->save();
+
+                if ($group) {
+                    $groups->refreshStatus($group);
+                }
+            });
         } catch (QueryException $exception) {
             $duplicateExists = $request->user()->registrations()
                 ->where('event_id', $event->id)
@@ -274,18 +344,32 @@ class EventController extends Controller
             return response()->json([
                 'message' => 'You are already registered for this category.',
             ], 422);
+        } catch (Throwable $exception) {
+            if ($newMedicalCertificatePath) {
+                Storage::disk('public')->delete($newMedicalCertificatePath);
+            }
+
+            throw $exception;
         }
 
-        return response()->json([
+        $response = [
             'message' => $existingRegistration ? 'Registration submitted again for review.' : 'Successfully registered.',
             'data' => new RegistrationResource($registration->load([
                 'event',
                 'category.event',
+                'registrationGroup.category',
+                'registrationGroup.activeRegistrations.user',
                 'latestPayment',
                 'raceResult',
                 'certificate',
                 'issuedEBadges.badge',
             ])),
-        ], $existingRegistration ? 200 : 201);
+        ];
+
+        if ($invitationCode) {
+            $response['invitation_code'] = $invitationCode;
+        }
+
+        return response()->json($response, $existingRegistration ? 200 : 201);
     }
 }

@@ -224,3 +224,40 @@ test('an event can be created with embedded open categories', function () {
         ->and($event->categories()->count())->toBe(2)
         ->and($event->categories()->pluck('name')->all())->toContain('5K Open', '10K Female');
 });
+
+test('an event can be created with an embedded group category', function () {
+    $admin = superAdminUser();
+
+    $payload = completeEventPayload(new Event([
+        'title' => 'Racetech Group Run',
+        'venue' => 'Bacoor City',
+        'event_date' => now()->addMonth(),
+    ]), [
+        'title' => 'Racetech Group Run',
+        'categories' => [[
+            'category_type' => 'group',
+            'distance_option' => '5',
+            'scheduled_start_time' => '06:00',
+            'scheduled_end_time' => '10:00',
+            'group_min_members' => 3,
+            'group_max_members' => 8,
+            'slot_limit' => 100,
+            'price_amount' => '0.00',
+            'price_currency' => 'PHP',
+            'status' => 'open',
+        ]],
+    ]);
+
+    $this
+        ->actingAs($admin)
+        ->post(route('admin.events.store'), $payload)
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    $category = Event::where('title', 'Racetech Group Run')->firstOrFail()->categories()->firstOrFail();
+
+    expect($category->name)->toBe('5K Group')
+        ->and($category->participation_mode)->toBe(Category::PARTICIPATION_GROUP)
+        ->and($category->group_min_members)->toBe(3)
+        ->and($category->group_max_members)->toBe(8);
+});

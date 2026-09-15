@@ -71,6 +71,9 @@ class CategoryController extends Controller
 
         if ($selectedEvent) {
             $request->merge([
+                'participation_mode' => $request->input('category_type') === 'group'
+                    ? Category::PARTICIPATION_GROUP
+                    : Category::PARTICIPATION_INDIVIDUAL,
                 'scheduled_start_date' => $request->input('scheduled_start_date', $selectedEvent->event_date?->format('Y-m-d')),
                 'scheduled_end_date' => $request->input(
                     'scheduled_end_date',
@@ -93,6 +96,9 @@ class CategoryController extends Controller
             'scheduled_end_time' => ['required', 'date_format:H:i'],
             'description' => ['nullable', 'string'],
             'qualification_notes' => ['nullable', 'string', 'max:5000'],
+            'participation_mode' => ['required', Rule::in([Category::PARTICIPATION_INDIVIDUAL, Category::PARTICIPATION_GROUP])],
+            'group_min_members' => ['nullable', 'required_if:participation_mode,group', 'integer', 'min:2', 'max:100'],
+            'group_max_members' => ['nullable', 'required_if:participation_mode,group', 'integer', 'min:2', 'max:100'],
             'requires_medical_certificate' => ['sometimes', 'boolean'],
             'checkpoint_map_image_upload' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'slot_limit' => ['nullable', 'integer', 'min:1'],
@@ -118,11 +124,16 @@ class CategoryController extends Controller
             return back()->withErrors($errors)->withInput();
         }
 
+        if ($errors = $this->groupSetupErrors($validated)) {
+            return back()->withErrors($errors)->withInput();
+        }
+
         $validated['type_details'] = $this->normalizedCategoryTypeDetails($event->interest_type, $validated['type_details'] ?? []);
         $validated['distance_km'] = Category::distanceFromTypeDetails($event->interest_type, $validated['type_details'])
             ?? $this->distanceValue($validated);
         $validated['name'] = $this->nameWithDistance($this->categoryTypeName($validated), (float) $validated['distance_km']);
         $this->applyPriceFields($validated);
+        $this->normalizeGroupFields($validated);
         unset($validated['category_type'], $validated['custom_category_name'], $validated['distance_option'], $validated['custom_distance_km']);
 
         $checkpointMapPath = null;
@@ -175,6 +186,13 @@ class CategoryController extends Controller
         $category->loadCount(['registrations', 'raceResults']);
         $categoryInUse = $category->registrations_count > 0 || $category->race_results_count > 0;
         $usesSegmentedDistances = $this->usesSegmentedCategoryDistances($category->event?->interest_type);
+        $request->merge([
+            'participation_mode' => $categoryInUse
+                ? ($category->participation_mode ?? Category::PARTICIPATION_INDIVIDUAL)
+                : ($request->input('category_type') === 'group'
+                    ? Category::PARTICIPATION_GROUP
+                    : Category::PARTICIPATION_INDIVIDUAL),
+        ]);
 
         if (! $category->started_at) {
             $request->merge([
@@ -219,6 +237,9 @@ class CategoryController extends Controller
                 'custom_category_name' => ['nullable', 'required_if:category_type,custom', 'string', 'max:255'],
                 'distance_option' => [Rule::requiredIf(! $usesSegmentedDistances), 'nullable', Rule::in(array_keys($this->distanceOptions()))],
                 'custom_distance_km' => ['nullable', 'required_if:distance_option,custom', 'numeric', 'min:0.01'],
+                'participation_mode' => ['required', Rule::in([Category::PARTICIPATION_INDIVIDUAL, Category::PARTICIPATION_GROUP])],
+                'group_min_members' => ['nullable', 'required_if:participation_mode,group', 'integer', 'min:2', 'max:100'],
+                'group_max_members' => ['nullable', 'required_if:participation_mode,group', 'integer', 'min:2', 'max:100'],
                 ...$this->categoryTypeDetailValidationRules($category->event?->interest_type),
                 ...$rules,
             ];
@@ -230,6 +251,10 @@ class CategoryController extends Controller
         }
 
         $validated = $request->validate($rules);
+
+        if (! $categoryInUse && ($errors = $this->groupSetupErrors($validated))) {
+            return back()->withErrors($errors)->withInput();
+        }
 
         if (! $category->started_at && ($errors = $this->categoryScheduleErrors(
             $category->event,
@@ -266,6 +291,10 @@ class CategoryController extends Controller
         }
 
         $this->applyPriceFields($validated);
+
+        if (! $categoryInUse) {
+            $this->normalizeGroupFields($validated);
+        }
 
         if ($categoryInUse) {
             $validated['requires_medical_certificate'] = $category->requiresMedicalCertificate();
@@ -402,6 +431,7 @@ class CategoryController extends Controller
             'beginner' => 'Beginner',
             'kids' => 'Kids',
             'senior' => 'Senior',
+            'group' => 'Group',
             'custom' => 'Custom',
         ];
     }
@@ -533,6 +563,37 @@ class CategoryController extends Controller
         $data['price_currency'] = strtoupper($data['price_currency'] ?? 'PHP');
 
         unset($data['price_amount']);
+    }
+
+    private function groupSetupErrors(array $data): array
+    {
+        if (($data['participation_mode'] ?? Category::PARTICIPATION_INDIVIDUAL) !== Category::PARTICIPATION_GROUP) {
+            return [];
+        }
+
+        $minimum = (int) ($data['group_min_members'] ?? 0);
+        $maximum = (int) ($data['group_max_members'] ?? 0);
+        $slotLimit = filled($data['slot_limit'] ?? null) ? (int) $data['slot_limit'] : null;
+
+        if ($maximum < $minimum) {
+            return ['group_max_members' => 'Maximum group members must be greater than or equal to the minimum.'];
+        }
+
+        if ($slotLimit !== null && $slotLimit < $minimum) {
+            return ['slot_limit' => 'The category slot limit cannot be lower than the minimum group size.'];
+        }
+
+        return [];
+    }
+
+    private function normalizeGroupFields(array &$data): void
+    {
+        $data['participation_mode'] ??= Category::PARTICIPATION_INDIVIDUAL;
+
+        if ($data['participation_mode'] === Category::PARTICIPATION_INDIVIDUAL) {
+            $data['group_min_members'] = null;
+            $data['group_max_members'] = null;
+        }
     }
 
     private function categoryScheduleErrors(

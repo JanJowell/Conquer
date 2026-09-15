@@ -12,6 +12,7 @@ use App\Models\Registration;
 use App\Services\CertificateIssuer;
 use App\Services\EBadgeAutoIssuer;
 use App\Services\FirebaseCloudMessaging;
+use App\Services\GroupRegistrationService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -106,6 +107,9 @@ class EventOperationsController extends Controller
                 'Phone',
                 'Event',
                 'Category',
+                'Group Name',
+                'Group Role',
+                'Group Status',
                 'Scheduled Gun Start',
                 'Category Cutoff/End',
                 'Shirt Size',
@@ -132,6 +136,11 @@ class EventOperationsController extends Controller
                             $registration->user?->phone,
                             $registration->event?->title,
                             $registration->category?->name,
+                            $registration->registrationGroup?->name,
+                            $registration->registrationGroup
+                                ? ($registration->registrationGroup->leader_user_id === $registration->user_id ? 'Leader' : 'Member')
+                                : null,
+                            $registration->registrationGroup?->status,
                             optional($registration->category?->scheduledStartAt())?->format('Y-m-d H:i:s'),
                             optional($registration->category?->scheduledEndAt())?->format('Y-m-d H:i:s'),
                             $registration->shirt_size,
@@ -177,6 +186,14 @@ class EventOperationsController extends Controller
             return back()->with('error', 'Participants can only be marked pending, approved, or rejected here.');
         }
 
+        $registration->loadMissing(['category', 'registrationGroup.category']);
+        if ($validated['status'] === 'approved'
+            && $registration->category?->usesGroupRegistration()
+            && (! $registration->registrationGroup
+                || ! app(GroupRegistrationService::class)->isReady($registration->registrationGroup))) {
+            return back()->with('error', 'This participant cannot be approved until their group reaches the minimum size.');
+        }
+
         if ($validated['status'] === 'approved'
             && $registration->payment_required
             && ! in_array($registration->payment_status, ['paid', 'waived'], true)) {
@@ -200,6 +217,15 @@ class EventOperationsController extends Controller
                 }
 
                 $registration->update($validated);
+
+                if ($validated['status'] === 'approved' && $registration->registrationGroup) {
+                    $registration->registrationGroup->update([
+                        'status' => 'locked',
+                        'locked_at' => $registration->registrationGroup->locked_at ?? now(),
+                    ]);
+                } elseif ($validated['status'] === 'rejected' && $registration->registrationGroup) {
+                    app(GroupRegistrationService::class)->refreshStatus($registration->registrationGroup);
+                }
             });
         } catch (QueryException) {
             return back()
@@ -642,7 +668,13 @@ class EventOperationsController extends Controller
         $user = $request->user();
 
         return Registration::query()
-            ->with(['user', 'event', 'category', 'raceResult'])
+            ->with([
+                'user',
+                'event',
+                'category',
+                'raceResult',
+                'registrationGroup' => fn ($query) => $query->withCount('activeRegistrations'),
+            ])
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($user) {
                 $query->whereIn('event_id', $user->managedEventIds());
             })

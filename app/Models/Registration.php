@@ -13,6 +13,7 @@ class Registration extends Model
         'user_id',
         'event_id',
         'category_id',
+        'registration_group_id',
         'bib_number',
         'shirt_size',
         'medical_conditions',
@@ -65,6 +66,11 @@ class Registration extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function registrationGroup()
+    {
+        return $this->belongsTo(RegistrationGroup::class);
     }
 
     public function raceResult()

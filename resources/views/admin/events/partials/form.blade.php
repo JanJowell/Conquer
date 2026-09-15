@@ -286,6 +286,8 @@
                 'scheduled_end_date' => old('event_date', $event?->event_date?->format('Y-m-d')),
                 'scheduled_end_time' => '',
                 'slot_limit' => '',
+                'group_min_members' => '',
+                'group_max_members' => '',
                 'price_amount' => '0.00',
                 'price_currency' => 'PHP',
                 'status' => 'open',
@@ -339,7 +341,7 @@
                     @if ($existingCategoryInUse || $existingCategory?->started_at)
                         <div class="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-800">
                             @if ($existingCategoryInUse)
-                                Category type, distance, and medical-certificate requirement are preserved because this category already has registrations or results.
+                                Category type, distance, group limits, and medical-certificate requirement are preserved because this category already has registrations or results.
                             @endif
                             @if ($existingCategory?->started_at)
                                 The gun-start and end schedule is preserved because this category has already started.
@@ -453,6 +455,25 @@
                             <label class="mb-2 block text-sm font-medium text-[#3d4757]">Slot Limit</label>
                             <input name="categories[{{ $index }}][slot_limit]" type="number" min="1" value="{{ $categoryRow['slot_limit'] ?? '' }}"
                                 class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
+                        </div>
+
+                        <div data-group-setting @if($existingCategoryInUse) data-group-setting-locked @endif class="{{ ($categoryRow['category_type'] ?? '') === 'group' ? '' : 'hidden' }}">
+                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Minimum Group Members</label>
+                            @if ($existingCategoryInUse)
+                                <input type="hidden" name="categories[{{ $index }}][group_min_members]" value="{{ $categoryRow['group_min_members'] ?? '' }}">
+                            @endif
+                            <input name="categories[{{ $index }}][group_min_members]" type="number" min="2" max="100" value="{{ $categoryRow['group_min_members'] ?? '' }}" placeholder="At least 2" @disabled($existingCategoryInUse)
+                                class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none disabled:cursor-not-allowed disabled:bg-[#f8f9fb] disabled:text-[#7a8495]">
+                        </div>
+
+                        <div data-group-setting @if($existingCategoryInUse) data-group-setting-locked @endif class="{{ ($categoryRow['category_type'] ?? '') === 'group' ? '' : 'hidden' }}">
+                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Maximum Group Members</label>
+                            @if ($existingCategoryInUse)
+                                <input type="hidden" name="categories[{{ $index }}][group_max_members]" value="{{ $categoryRow['group_max_members'] ?? '' }}">
+                            @endif
+                            <input name="categories[{{ $index }}][group_max_members]" type="number" min="2" max="100" value="{{ $categoryRow['group_max_members'] ?? '' }}" placeholder="2 to 100" @disabled($existingCategoryInUse)
+                                class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none disabled:cursor-not-allowed disabled:bg-[#f8f9fb] disabled:text-[#7a8495]">
+                            <p class="mt-2 text-xs text-[#6d7685]">Each member receives a separate registration, BIB, result, and certificate.</p>
                         </div>
 
                         <div class="rounded-2xl border border-[#d9dee7] bg-[#fafbfc] p-4">
@@ -618,6 +639,15 @@
                     <div>
                         <label class="mb-2 block text-sm font-medium text-[#3d4757]">Slot Limit</label>
                         <input name="categories[__INDEX__][slot_limit]" type="number" min="1" class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
+                    </div>
+                    <div data-group-setting class="hidden">
+                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Minimum Group Members</label>
+                        <input name="categories[__INDEX__][group_min_members]" type="number" min="2" max="100" placeholder="At least 2" disabled class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
+                    </div>
+                    <div data-group-setting class="hidden">
+                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Maximum Group Members</label>
+                        <input name="categories[__INDEX__][group_max_members]" type="number" min="2" max="100" placeholder="2 to 100" disabled class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
+                        <p class="mt-2 text-xs text-[#6d7685]">Each member receives a separate registration, BIB, result, and certificate.</p>
                     </div>
                     <div class="rounded-2xl border border-[#d9dee7] bg-[#fafbfc] p-4">
                         <input type="hidden" name="categories[__INDEX__][requires_medical_certificate]" value="0">
@@ -869,9 +899,22 @@
             const customCategory = row.querySelector('[data-custom-category-wrapper]');
             const distanceOption = row.querySelector('[data-distance-option]');
             const removeButton = row.querySelector('[data-remove-category]');
+            const refreshGroupSettings = () => {
+                const isGroup = categoryType?.value === 'group';
+
+                row.querySelectorAll('[data-group-setting]').forEach((wrapper) => {
+                    const locked = wrapper.hasAttribute('data-group-setting-locked');
+                    wrapper.classList.toggle('hidden', ! isGroup);
+                    wrapper.querySelectorAll('input:not([type="hidden"])').forEach((field) => {
+                        field.disabled = ! isGroup || locked;
+                        field.required = isGroup && ! locked;
+                    });
+                });
+            };
 
             categoryType?.addEventListener('change', () => {
                 customCategory?.classList.toggle('hidden', categoryType.value !== 'custom');
+                refreshGroupSettings();
             });
 
             distanceOption?.addEventListener('change', () => {
@@ -884,6 +927,7 @@
             });
 
             refreshCategoryDistanceFields(row);
+            refreshGroupSettings();
         };
 
         list?.querySelectorAll('[data-category-row]').forEach(bindRow);

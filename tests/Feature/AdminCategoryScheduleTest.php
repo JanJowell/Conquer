@@ -226,3 +226,58 @@ test('category forms display the gun start and end fields', function () {
         ->assertSee('name="scheduled_end_date"', false)
         ->assertSee('name="scheduled_end_time"', false);
 });
+
+test('category forms use group as a category type without a separate participation mode', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $event = scheduledCategoryEvent($admin);
+
+    $this
+        ->actingAs($admin)
+        ->get(route('admin.categories.create', ['event_id' => $event->id]))
+        ->assertOk()
+        ->assertSee('<option value="group"', false)
+        ->assertSee('data-group-setting', false)
+        ->assertDontSee('Participation Mode');
+});
+
+test('group category type derives group participation settings', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $event = scheduledCategoryEvent($admin);
+    $payload = scheduledCategoryPayload($event, '07:30') + [
+        'group_min_members' => 3,
+        'group_max_members' => 6,
+    ];
+    $payload['category_type'] = 'group';
+
+    $this
+        ->actingAs($admin)
+        ->post(route('admin.categories.store'), $payload)
+        ->assertSessionHasNoErrors();
+
+    $category = $event->categories()->firstOrFail();
+
+    expect($category->name)->toBe('10K Group')
+        ->and($category->participation_mode)->toBe(Category::PARTICIPATION_GROUP)
+        ->and($category->group_min_members)->toBe(3)
+        ->and($category->group_max_members)->toBe(6);
+});
+
+test('non-group category type clears submitted group limits', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $event = scheduledCategoryEvent($admin);
+    $payload = scheduledCategoryPayload($event, '07:30') + [
+        'group_min_members' => 3,
+        'group_max_members' => 6,
+    ];
+
+    $this
+        ->actingAs($admin)
+        ->post(route('admin.categories.store'), $payload)
+        ->assertSessionHasNoErrors();
+
+    $category = $event->categories()->firstOrFail();
+
+    expect($category->participation_mode)->toBe(Category::PARTICIPATION_INDIVIDUAL)
+        ->and($category->group_min_members)->toBeNull()
+        ->and($category->group_max_members)->toBeNull();
+});

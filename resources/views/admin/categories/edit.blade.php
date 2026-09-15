@@ -69,6 +69,7 @@
                                 'beginner' => 'Beginner',
                                 'kids' => 'Kids',
                                 'senior' => 'Senior',
+                                'group' => 'Group',
                                 'custom' => 'Custom',
                             ] as $value => $label)
                                 <option value="{{ $value }}" @selected(old('category_type', $categoryType['key']) === $value)>{{ $label }}</option>
@@ -226,6 +227,24 @@
                     <input id="slot_limit" name="slot_limit" type="number" min="1" value="{{ old('slot_limit', $category->slot_limit) }}" class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none">
                 </div>
 
+                <div data-group-setting class="{{ old('category_type', $categoryType['key']) === 'group' ? '' : 'hidden' }}">
+                    <label for="group_min_members" class="mb-2 block text-sm font-medium text-[#3d4757]">Minimum Group Members</label>
+                    @if ($categoryInUse)
+                        <p class="flex h-12 items-center rounded-2xl border border-[#d9dee7] bg-[#f8f9fb] px-4 text-sm font-semibold text-[#151b26]">{{ $category->group_min_members ?: 'Not applicable' }}</p>
+                    @else
+                        <input id="group_min_members" name="group_min_members" type="number" min="2" max="100" value="{{ old('group_min_members', $category->group_min_members) }}" placeholder="At least 2" class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none">
+                    @endif
+                </div>
+
+                <div data-group-setting class="{{ old('category_type', $categoryType['key']) === 'group' ? '' : 'hidden' }}">
+                    <label for="group_max_members" class="mb-2 block text-sm font-medium text-[#3d4757]">Maximum Group Members</label>
+                    @if ($categoryInUse)
+                        <p class="flex h-12 items-center rounded-2xl border border-[#d9dee7] bg-[#f8f9fb] px-4 text-sm font-semibold text-[#151b26]">{{ $category->group_max_members ?: 'Not applicable' }}</p>
+                    @else
+                        <input id="group_max_members" name="group_max_members" type="number" min="2" max="100" value="{{ old('group_max_members', $category->group_max_members) }}" placeholder="2 to 100" class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none">
+                    @endif
+                </div>
+
                 <div class="rounded-2xl border border-[#d9dee7] bg-[#fafbfc] p-4">
                     <input type="hidden" name="requires_medical_certificate" value="{{ $categoryInUse ? (int) $category->requiresMedicalCertificate() : 0 }}">
                     <label for="requires_medical_certificate" class="flex {{ $categoryInUse ? 'cursor-not-allowed' : 'cursor-pointer' }} items-start gap-3">
@@ -314,9 +333,22 @@
             const distanceOption = document.getElementById('distance_option');
             const customDistanceWrapper = document.getElementById('custom-distance-wrapper');
             const usesSegmentedDistances = @json($usesSegmentedDistances);
+            const groupSettings = document.querySelectorAll('[data-group-setting]');
+
+            const refreshGroupSettings = () => {
+                const isGroup = categoryType?.value === 'group';
+                groupSettings.forEach((wrapper) => {
+                    wrapper.classList.toggle('hidden', ! isGroup);
+                    wrapper.querySelectorAll('input').forEach((field) => {
+                        field.disabled = ! isGroup;
+                        field.required = isGroup;
+                    });
+                });
+            };
 
             categoryType?.addEventListener('change', () => {
                 customCategoryWrapper?.classList.toggle('hidden', categoryType.value !== 'custom');
+                refreshGroupSettings();
             });
 
             distanceOption?.addEventListener('change', () => {
@@ -327,6 +359,8 @@
                 distanceOption.disabled = true;
                 document.getElementById('custom_distance_km').disabled = true;
             }
+
+            refreshGroupSettings();
         </script>
     @endunless
 @endsection

@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\FinishScanController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\RegistrationFeedbackController;
+use App\Http\Controllers\Api\RegistrationGroupController;
 use App\Http\Controllers\Api\StaffAuthController;
 use App\Http\Controllers\Api\SystemController;
 use App\Http\Controllers\Api\UserActivityController;
@@ -60,7 +61,13 @@ Route::middleware(['mobile.auth', 'throttle:mobile-api'])->group(function () {
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead']);
     Route::post('/device-tokens', [DeviceTokenController::class, 'store']);
     Route::delete('/device-tokens', [DeviceTokenController::class, 'destroy']);
-    Route::post('/events/{event}/register/{category}', [EventController::class, 'register']);
+    Route::post('/events/{event}/register/{category}', [EventController::class, 'register'])
+        ->middleware('throttle:group-join');
+    Route::get('/registration-groups/{registrationGroup}', [RegistrationGroupController::class, 'show']);
+    Route::post('/registration-groups/{registrationGroup}/invitation-code', [RegistrationGroupController::class, 'rotateInvitationCode']);
+    Route::post('/registration-groups/{registrationGroup}/lock', [RegistrationGroupController::class, 'lock']);
+    Route::delete('/registration-groups/{registrationGroup}/membership', [RegistrationGroupController::class, 'leave']);
+    Route::delete('/registration-groups/{registrationGroup}/members/{registration}', [RegistrationGroupController::class, 'removeMember']);
     Route::get('/registrations/{registration}/payments', [PaymentController::class, 'history']);
     Route::post('/registrations/{registration}/paymongo-checkout', [PaymentController::class, 'createPayMongoCheckout']);
     Route::post('/registrations/{registration}/payment-proof', [PaymentController::class, 'submitProof']);

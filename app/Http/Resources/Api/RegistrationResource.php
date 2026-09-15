@@ -32,6 +32,9 @@ class RegistrationResource extends JsonResource
             'payment_amount' => number_format(($this->payment_amount_cents ?? 0) / 100, 2, '.', ''),
             'payment_currency' => $this->payment_currency ?? 'PHP',
             'paid_at' => optional($this->paid_at)?->toISOString(),
+            'registration_group' => $this->registrationGroup
+                ? new RegistrationGroupResource($this->registrationGroup)
+                : null,
             'latest_payment' => $this->whenLoaded('latestPayment', fn () => $this->latestPayment ? [
                 'id' => $this->latestPayment->id,
                 'provider' => $this->latestPayment->provider,

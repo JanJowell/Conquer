@@ -11,6 +11,10 @@ class Category extends Model
 {
     use HasFactory;
 
+    public const PARTICIPATION_INDIVIDUAL = 'individual';
+
+    public const PARTICIPATION_GROUP = 'group';
+
     public const RESULTS_STATUS_NOT_STARTED = 'not_started';
 
     public const RESULTS_STATUS_IN_PROGRESS = 'in_progress';
@@ -34,6 +38,9 @@ class Category extends Model
         'type_details',
         'description',
         'qualification_notes',
+        'participation_mode',
+        'group_min_members',
+        'group_max_members',
         'requires_medical_certificate',
         'checkpoint_map_image',
         'slot_limit',
@@ -58,6 +65,8 @@ class Category extends Model
             'distance_km' => 'decimal:2',
             'type_details' => 'array',
             'requires_medical_certificate' => 'boolean',
+            'group_min_members' => 'integer',
+            'group_max_members' => 'integer',
             'slot_limit' => 'integer',
             'price_cents' => 'integer',
             'scheduled_start_date' => 'date',
@@ -76,6 +85,16 @@ class Category extends Model
     public function registrations()
     {
         return $this->hasMany(Registration::class);
+    }
+
+    public function registrationGroups()
+    {
+        return $this->hasMany(RegistrationGroup::class);
+    }
+
+    public function usesGroupRegistration(): bool
+    {
+        return $this->participation_mode === self::PARTICIPATION_GROUP;
     }
 
     public function raceResults()

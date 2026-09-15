@@ -158,6 +158,9 @@ class EventController extends Controller
             'categories.*.scheduled_end_time' => ['required', 'date_format:H:i'],
             'categories.*.description' => ['nullable', 'string'],
             'categories.*.qualification_notes' => ['nullable', 'string', 'max:5000'],
+            'categories.*.participation_mode' => ['required', Rule::in([Category::PARTICIPATION_INDIVIDUAL, Category::PARTICIPATION_GROUP])],
+            'categories.*.group_min_members' => ['nullable', 'required_if:categories.*.participation_mode,group', 'integer', 'min:2', 'max:100'],
+            'categories.*.group_max_members' => ['nullable', 'required_if:categories.*.participation_mode,group', 'integer', 'min:2', 'max:100'],
             'categories.*.requires_medical_certificate' => ['sometimes', 'boolean'],
             'categories.*.checkpoint_map_image_upload' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'categories.*.slot_limit' => ['nullable', 'integer', 'min:1'],
@@ -303,6 +306,9 @@ class EventController extends Controller
             'categories.*.scheduled_end_time' => ['required', 'date_format:H:i'],
             'categories.*.description' => ['nullable', 'string'],
             'categories.*.qualification_notes' => ['nullable', 'string', 'max:5000'],
+            'categories.*.participation_mode' => ['required', Rule::in([Category::PARTICIPATION_INDIVIDUAL, Category::PARTICIPATION_GROUP])],
+            'categories.*.group_min_members' => ['nullable', 'required_if:categories.*.participation_mode,group', 'integer', 'min:2', 'max:100'],
+            'categories.*.group_max_members' => ['nullable', 'required_if:categories.*.participation_mode,group', 'integer', 'min:2', 'max:100'],
             'categories.*.requires_medical_certificate' => ['sometimes', 'boolean'],
             'categories.*.checkpoint_map_image_upload' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'categories.*.slot_limit' => ['nullable', 'integer', 'min:1'],
@@ -481,6 +487,7 @@ class EventController extends Controller
             'beginner' => 'Beginner',
             'kids' => 'Kids',
             'senior' => 'Senior',
+            'group' => 'Group',
             'custom' => 'Custom',
         ];
     }
@@ -608,7 +615,7 @@ class EventController extends Controller
             return true;
         }
 
-        foreach (['category_type', 'custom_category_name', 'distance_option', 'custom_distance_km', 'description', 'qualification_notes', 'slot_limit', 'payment_provider', 'payment_account_name', 'payment_account_number', 'payment_instructions'] as $field) {
+        foreach (['category_type', 'custom_category_name', 'distance_option', 'custom_distance_km', 'description', 'qualification_notes', 'group_min_members', 'group_max_members', 'slot_limit', 'payment_provider', 'payment_account_name', 'payment_account_number', 'payment_instructions'] as $field) {
             if (filled($row[$field] ?? null)) {
                 return true;
             }
@@ -621,6 +628,9 @@ class EventController extends Controller
     {
         return collect($rows)
             ->map(function (array $row) use ($eventStartDate) {
+                $row['participation_mode'] = ($row['category_type'] ?? null) === 'group'
+                    ? Category::PARTICIPATION_GROUP
+                    : Category::PARTICIPATION_INDIVIDUAL;
                 $row['scheduled_start_date'] ??= $eventStartDate;
                 $row['scheduled_end_date'] ??= $row['scheduled_start_date'] ?? $eventStartDate;
 
@@ -652,6 +662,9 @@ class EventController extends Controller
                     'type_details' => $typeDetails ?: null,
                     'description' => $row['description'] ?? null,
                     'qualification_notes' => $row['qualification_notes'] ?? null,
+                    'participation_mode' => $row['participation_mode'] ?? Category::PARTICIPATION_INDIVIDUAL,
+                    'group_min_members' => ($row['participation_mode'] ?? null) === Category::PARTICIPATION_GROUP ? ($row['group_min_members'] ?? null) : null,
+                    'group_max_members' => ($row['participation_mode'] ?? null) === Category::PARTICIPATION_GROUP ? ($row['group_max_members'] ?? null) : null,
                     'requires_medical_certificate' => filter_var(
                         $row['requires_medical_certificate'] ?? false,
                         FILTER_VALIDATE_BOOLEAN
@@ -701,6 +714,9 @@ class EventController extends Controller
                 'type_details' => $typeDetails ?: null,
                 'description' => $row['description'] ?? null,
                 'qualification_notes' => $row['qualification_notes'] ?? null,
+                'participation_mode' => $row['participation_mode'] ?? Category::PARTICIPATION_INDIVIDUAL,
+                'group_min_members' => ($row['participation_mode'] ?? null) === Category::PARTICIPATION_GROUP ? ($row['group_min_members'] ?? null) : null,
+                'group_max_members' => ($row['participation_mode'] ?? null) === Category::PARTICIPATION_GROUP ? ($row['group_max_members'] ?? null) : null,
                 'requires_medical_certificate' => filter_var(
                     $row['requires_medical_certificate'] ?? false,
                     FILTER_VALIDATE_BOOLEAN
@@ -727,6 +743,9 @@ class EventController extends Controller
                 $attributes['name'] = $category->name;
                 $attributes['distance_km'] = $category->distance_km;
                 $attributes['requires_medical_certificate'] = $category->requiresMedicalCertificate();
+                $attributes['participation_mode'] = $category->participation_mode;
+                $attributes['group_min_members'] = $category->group_min_members;
+                $attributes['group_max_members'] = $category->group_max_members;
                 $attributes['type_details'] = [
                     ...(is_array($category->type_details) ? $category->type_details : []),
                     ...collect($typeDetails)->only($mutableTypeDetailKeys)->all(),
@@ -771,6 +790,9 @@ class EventController extends Controller
             'status' => $category->status,
             'description' => $category->description,
             'qualification_notes' => $category->qualification_notes,
+            'participation_mode' => $category->participation_mode ?? Category::PARTICIPATION_INDIVIDUAL,
+            'group_min_members' => $category->group_min_members,
+            'group_max_members' => $category->group_max_members,
             'requires_medical_certificate' => $category->requiresMedicalCertificate(),
             'checkpoint_map_image' => $category->checkpoint_map_image,
         ];
@@ -814,6 +836,19 @@ class EventController extends Controller
                 && ($row['distance_option'] ?? null) === 'custom'
                 && blank($row['custom_distance_km'] ?? null)) {
                 $errors["categories.{$index}.custom_distance_km"] = "Category {$number}: enter a custom distance.";
+            }
+
+            if (($row['participation_mode'] ?? Category::PARTICIPATION_INDIVIDUAL) === Category::PARTICIPATION_GROUP) {
+                $minimum = (int) ($row['group_min_members'] ?? 0);
+                $maximum = (int) ($row['group_max_members'] ?? 0);
+
+                if ($maximum < $minimum) {
+                    $errors["categories.{$index}.group_max_members"] = "Category {$number}: maximum group members must be greater than or equal to the minimum.";
+                }
+
+                if (filled($row['slot_limit'] ?? null) && (int) $row['slot_limit'] < $minimum) {
+                    $errors["categories.{$index}.slot_limit"] = "Category {$number}: the slot limit cannot be lower than the minimum group size.";
+                }
             }
 
             $scheduleError = $this->scheduleWindowError(

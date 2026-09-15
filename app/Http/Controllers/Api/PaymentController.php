@@ -8,6 +8,7 @@ use App\Models\EventPaymentMethod;
 use App\Models\Payment;
 use App\Models\Registration;
 use App\Services\PayMongoCheckoutService;
+use App\Services\GroupRegistrationService;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -27,7 +28,7 @@ class PaymentController extends Controller
             ], 403);
         }
 
-        $registration->load(['event', 'category.event', 'latestPayment', 'raceResult', 'feedback', 'certificate', 'issuedEBadges.badge']);
+        $registration->load(['event', 'category.event', 'registrationGroup.category', 'registrationGroup.activeRegistrations.user', 'latestPayment', 'raceResult', 'feedback', 'certificate', 'issuedEBadges.badge']);
         $payments = $registration->payments()
             ->latest()
             ->get();
@@ -58,6 +59,10 @@ class PaymentController extends Controller
             return response()->json([
                 'message' => 'You cannot create payment checkout for this registration.',
             ], 403);
+        }
+
+        if ($message = $this->groupPaymentBlockMessage($registration)) {
+            return response()->json(['message' => $message], 422);
         }
 
         if ((int) ($registration->payment_amount_cents ?? 0) <= 0) {
@@ -169,6 +174,10 @@ class PaymentController extends Controller
             return response()->json([
                 'message' => 'You cannot submit payment proof for this registration.',
             ], 403);
+        }
+
+        if ($message = $this->groupPaymentBlockMessage($registration)) {
+            return response()->json(['message' => $message], 422);
         }
 
         if ((int) ($registration->payment_amount_cents ?? 0) <= 0) {
@@ -376,6 +385,22 @@ class PaymentController extends Controller
                 ]),
             ]);
         });
+    }
+
+    private function groupPaymentBlockMessage(Registration $registration): ?string
+    {
+        $registration->loadMissing(['category', 'registrationGroup.category']);
+
+        if (! $registration->category?->usesGroupRegistration()) {
+            return null;
+        }
+
+        if (! $registration->registrationGroup
+            || ! app(GroupRegistrationService::class)->isReady($registration->registrationGroup)) {
+            return 'Your group must reach its minimum size before payment can begin.';
+        }
+
+        return null;
     }
 
     private function nextBibNumberForEvent(int $eventId): string
