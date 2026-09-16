@@ -23,6 +23,8 @@ class FinishScan extends Model
         'elapsed_seconds',
         'elapsed_time',
         'scanned_by_user_id',
+        'client_scan_id',
+        'captured_offline',
         'status',
         'published_at',
     ];
@@ -32,6 +34,7 @@ class FinishScan extends Model
         return [
             'scanned_at' => 'datetime',
             'elapsed_seconds' => 'integer',
+            'captured_offline' => 'boolean',
             'published_at' => 'datetime',
         ];
     }

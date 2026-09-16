@@ -12,6 +12,7 @@ use App\Services\FinishScanToken;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class FinishScanController extends Controller
@@ -97,6 +98,9 @@ class FinishScanController extends Controller
             'token' => ['required', 'string', 'max:2048'],
             'event_id' => ['nullable', 'integer', 'exists:events,id'],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'client_scan_id' => ['nullable', 'uuid', 'required_if:captured_offline,true'],
+            'captured_at' => ['nullable', 'date', 'required_if:captured_offline,true'],
+            'captured_offline' => ['nullable', 'boolean'],
         ]);
 
         $registration = $this->tokens->resolve($validated['token']);
@@ -116,14 +120,34 @@ class FinishScanController extends Controller
             return $this->error('You are not authorized to scan participants for this event.', 'forbidden_event', 403);
         }
 
+        $clientScanId = $validated['client_scan_id'] ?? null;
+        $capturedOffline = (bool) ($validated['captured_offline'] ?? false);
+
+        if ($clientScanId) {
+            $existing = FinishScan::query()
+                ->with(['registration.user', 'event', 'category', 'scannedBy'])
+                ->where('client_scan_id', $clientScanId)
+                ->first();
+
+            if ($existing) {
+                return (int) $existing->registration_id === (int) $registration->id
+                    ? $this->replayResponse($existing)
+                    : $this->error('This offline scan identifier has already been used.', 'client_scan_conflict', 409);
+            }
+        }
+
         try {
-            $result = DB::transaction(function () use ($registration, $staff) {
+            $result = DB::transaction(function () use ($registration, $staff, $validated, $clientScanId, $capturedOffline) {
                 $locked = Registration::query()
                     ->with(['user', 'event', 'category', 'finishScan', 'raceResult'])
                     ->lockForUpdate()
                     ->findOrFail($registration->id);
 
                 if ($locked->finishScan) {
+                    if ($clientScanId && hash_equals((string) $locked->finishScan->client_scan_id, $clientScanId)) {
+                        return ['scan' => $locked->finishScan, 'replayed' => true];
+                    }
+
                     return ['error' => $this->duplicatePayload($locked->finishScan), 'status' => 409];
                 }
 
@@ -143,10 +167,21 @@ class FinishScanController extends Controller
                     return ['error' => $this->errorPayload('Start this category before recording finishes.', 'category_not_started'), 'status' => 409];
                 }
 
-                $scannedAt = now();
+                $serverNow = now();
+                $scannedAt = $capturedOffline
+                    ? Carbon::parse($validated['captured_at'])
+                    : $serverNow;
+
+                if ($capturedOffline && $scannedAt->gt($serverNow->copy()->addMinutes(5))) {
+                    return ['error' => $this->errorPayload('The offline scan time is too far in the future.', 'invalid_capture_time'), 'status' => 422];
+                }
 
                 if ($scannedAt->lt($locked->category->started_at)) {
-                    return ['error' => $this->errorPayload('The recorded category start is in the future.', 'category_not_started'), 'status' => 409];
+                    $message = $capturedOffline
+                        ? 'The offline scan was captured before this category started.'
+                        : 'The recorded category start is in the future.';
+
+                    return ['error' => $this->errorPayload($message, 'category_not_started'), 'status' => 409];
                 }
 
                 $elapsedSeconds = $locked->category->started_at->diffInSeconds($scannedAt);
@@ -160,6 +195,8 @@ class FinishScanController extends Controller
                     'elapsed_seconds' => $elapsedSeconds,
                     'elapsed_time' => $this->formatDuration($elapsedSeconds),
                     'scanned_by_user_id' => $staff->id,
+                    'client_scan_id' => $clientScanId,
+                    'captured_offline' => $capturedOffline,
                     'status' => FinishScan::STATUS_PROVISIONAL,
                 ]);
 
@@ -177,8 +214,16 @@ class FinishScanController extends Controller
 
             $existing = FinishScan::query()
                 ->with(['registration.user', 'event', 'category', 'scannedBy'])
-                ->where('registration_id', $registration->id)
+                ->when(
+                    $clientScanId,
+                    fn ($query) => $query->where('client_scan_id', $clientScanId),
+                    fn ($query) => $query->where('registration_id', $registration->id),
+                )
                 ->first();
+
+            if ($existing && $clientScanId && (int) $existing->registration_id === (int) $registration->id) {
+                return $this->replayResponse($existing);
+            }
 
             return $existing
                 ? response()->json($this->duplicatePayload($existing), 409)
@@ -189,10 +234,14 @@ class FinishScanController extends Controller
             return response()->json($result['error'], $result['status']);
         }
 
-        return response()->json([
-            'message' => 'Finish recorded provisionally. An administrator must publish the official result.',
-            'data' => $this->payload($result['scan']),
-        ], 201);
+        return ! empty($result['replayed'])
+            ? $this->replayResponse($result['scan'])
+            : response()->json([
+                'message' => $capturedOffline
+                    ? 'Offline finish synchronized provisionally. An administrator must review and publish the official result.'
+                    : 'Finish recorded provisionally. An administrator must publish the official result.',
+                'data' => $this->payload($result['scan']),
+            ], 201);
     }
 
     private function authorizedStaff(Request $request): ?User
@@ -214,6 +263,15 @@ class FinishScanController extends Controller
             'code' => 'already_scanned',
             'data' => $this->payload($scan),
         ];
+    }
+
+    private function replayResponse(FinishScan $scan): JsonResponse
+    {
+        return response()->json([
+            'message' => 'This queued finish was already synchronized.',
+            'idempotent_replay' => true,
+            'data' => $this->payload($scan),
+        ]);
     }
 
     private function error(string $message, string $code, int $status): JsonResponse
@@ -241,6 +299,9 @@ class FinishScanController extends Controller
             'category_id' => $scan->category_id,
             'category_name' => $scan->category?->name,
             'scanned_at' => $scan->scanned_at?->toIso8601String(),
+            'client_scan_id' => $scan->client_scan_id,
+            'captured_offline' => (bool) $scan->captured_offline,
+            'synced_at' => $scan->created_at?->toIso8601String(),
             'elapsed_seconds' => $scan->elapsed_seconds,
             'elapsed_time' => $scan->elapsed_time,
             'status' => $scan->status,

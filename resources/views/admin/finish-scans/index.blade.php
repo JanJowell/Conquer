@@ -10,8 +10,8 @@
             <p class="mt-2 max-w-3xl text-sm leading-6 text-[#6d7685]">Scanner captures are provisional. Review them in Results before publishing rankings and E-Certificates.</p>
         </div>
 
-        <div class="grid gap-4 md:grid-cols-3">
-            @foreach ([['label' => 'Total Scans', 'value' => $summary['total']], ['label' => 'Awaiting Publication', 'value' => $summary['provisional']], ['label' => 'Published Results', 'value' => $summary['published']]] as $card)
+        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            @foreach ([['label' => 'Total Scans', 'value' => $summary['total']], ['label' => 'Awaiting Publication', 'value' => $summary['provisional']], ['label' => 'Published Results', 'value' => $summary['published']], ['label' => 'Offline Syncs', 'value' => $summary['offline']]] as $card)
                 <div class="rounded-2xl border border-[#d9dee7] bg-white p-5 shadow-sm">
                     <p class="text-sm font-medium text-[#6d7685]">{{ $card['label'] }}</p>
                     <p class="mt-3 text-3xl font-semibold tracking-tight text-[#151b26]">{{ number_format($card['value']) }}</p>
@@ -81,7 +81,12 @@
                                     <p>{{ $scan->event?->title ?: 'Deleted event' }}</p>
                                     <p class="mt-1 text-xs text-[#6d7685]">{{ $scan->category?->name ?: 'Deleted category' }}</p>
                                 </td>
-                                <td class="px-5 py-4">{{ $scan->scanned_at?->format('M j, Y g:i:s A') }}</td>
+                                <td class="px-5 py-4">
+                                    <p>{{ $scan->scanned_at?->format('M j, Y g:i:s A') }}</p>
+                                    @if ($scan->captured_offline)
+                                        <span class="mt-1 inline-flex rounded-full bg-violet-50 px-2 py-1 text-[11px] font-semibold text-violet-700">Offline Sync</span>
+                                    @endif
+                                </td>
                                 <td class="px-5 py-4 font-semibold">{{ $scan->elapsed_time }}</td>
                                 <td class="px-5 py-4">{{ $scan->scannedBy?->name ?: 'Former staff account' }}</td>
                                 <td class="px-5 py-4">

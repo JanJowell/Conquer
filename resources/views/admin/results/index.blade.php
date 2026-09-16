@@ -177,6 +177,9 @@
                                     @elseif ($finishScan)
                                         <span class="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">Scanned · Review</span>
                                         <p class="mt-2 text-xs leading-5 text-[#6d7685]">{{ $finishScan->scanned_at?->format('M j, g:i:s A') }} by {{ $finishScan->scannedBy?->name ?: 'staff' }}</p>
+                                        @if ($finishScan->captured_offline)
+                                            <p class="mt-1 text-xs font-semibold text-violet-700">Offline Sync · Verify the captured time before publishing.</p>
+                                        @endif
                                     @elseif ($registration->status === 'completed')
                                         <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">Completed</span>
                                     @else

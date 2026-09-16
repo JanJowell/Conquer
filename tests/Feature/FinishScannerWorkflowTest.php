@@ -137,6 +137,82 @@ test('a legacy scanner request records one provisional server-timed finish witho
         ->and(Certificate::count())->toBe(0);
 });
 
+test('an offline finish preserves its capture time and synchronizes idempotently', function () {
+    $staff = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $raceNow = Carbon::parse('2026-09-02 08:30:00', config('app.timezone'));
+    $capturedAt = $raceNow->copy()->subMinutes(10);
+    $this->travelTo($raceNow);
+    $event = finishScannerEvent($staff, $raceNow);
+    $category = finishScannerCategory($event, $raceNow);
+    $registration = finishScannerRegistration($event, $category, ['bib_number' => '305']);
+    $headers = finishScannerHeaders(finishScannerApiToken($staff));
+    $payload = [
+        'token' => app(FinishScanToken::class)->issue($registration),
+        'client_scan_id' => '01991f27-c344-7f11-92aa-0a58a9feac02',
+        'captured_at' => $capturedAt->toIso8601String(),
+        'captured_offline' => true,
+    ];
+
+    $this->withHeaders($headers)
+        ->postJson('/api/staff/finish-scans', $payload)
+        ->assertCreated()
+        ->assertJsonPath('data.client_scan_id', $payload['client_scan_id'])
+        ->assertJsonPath('data.captured_offline', true)
+        ->assertJsonPath('data.elapsed_seconds', 1200)
+        ->assertJsonPath('data.status', FinishScan::STATUS_PROVISIONAL);
+
+    $this->withHeaders($headers)
+        ->postJson('/api/staff/finish-scans', $payload)
+        ->assertOk()
+        ->assertJsonPath('idempotent_replay', true)
+        ->assertJsonPath('data.client_scan_id', $payload['client_scan_id']);
+
+    $scan = FinishScan::sole();
+
+    expect($scan->scanned_at->timestamp)->toBe($capturedAt->timestamp)
+        ->and($scan->captured_offline)->toBeTrue()
+        ->and($scan->status)->toBe(FinishScan::STATUS_PROVISIONAL)
+        ->and(RaceResult::count())->toBe(0)
+        ->and(Certificate::count())->toBe(0);
+
+    $this->actingAs($staff)
+        ->get(route('admin.finish-scans.index'))
+        ->assertOk()
+        ->assertSee('Offline Sync');
+
+    $this->actingAs($staff)
+        ->get(route('admin.results.index', ['event_id' => $event->id]))
+        ->assertOk()
+        ->assertSee('Verify the captured time before publishing.');
+});
+
+test('offline finish timestamps cannot precede the start or be far in the future', function () {
+    $staff = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $raceNow = Carbon::parse('2026-09-02 08:30:00', config('app.timezone'));
+    $this->travelTo($raceNow);
+    $event = finishScannerEvent($staff, $raceNow);
+    $category = finishScannerCategory($event, $raceNow);
+    $headers = finishScannerHeaders(finishScannerApiToken($staff));
+
+    foreach ([
+        ['bib' => '306', 'id' => '01991f27-c344-7f11-92aa-0a58a9feac03', 'time' => $category->started_at->copy()->subSecond(), 'code' => 'category_not_started', 'status' => 409],
+        ['bib' => '307', 'id' => '01991f27-c344-7f11-92aa-0a58a9feac04', 'time' => $raceNow->copy()->addMinutes(6), 'code' => 'invalid_capture_time', 'status' => 422],
+    ] as $case) {
+        $registration = finishScannerRegistration($event, $category, ['bib_number' => $case['bib']]);
+
+        $this->withHeaders($headers)
+            ->postJson('/api/staff/finish-scans', [
+                'token' => app(FinishScanToken::class)->issue($registration),
+                'client_scan_id' => $case['id'],
+                'captured_at' => $case['time']->toIso8601String(),
+                'captured_offline' => true,
+            ])->assertStatus($case['status'])
+            ->assertJsonPath('code', $case['code']);
+    }
+
+    expect(FinishScan::count())->toBe(0);
+});
+
 test('QR-only scanning derives the event and category and supports multiple registrations for one participant', function () {
     $staff = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
     $raceNow = Carbon::parse('2026-09-02 08:45:00', config('app.timezone'));

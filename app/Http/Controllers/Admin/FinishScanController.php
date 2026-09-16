@@ -61,6 +61,7 @@ class FinishScanController extends Controller
             'total' => (clone $baseQuery)->count(),
             'provisional' => (clone $baseQuery)->where('status', FinishScan::STATUS_PROVISIONAL)->count(),
             'published' => (clone $baseQuery)->where('status', FinishScan::STATUS_PUBLISHED)->count(),
+            'offline' => (clone $baseQuery)->where('captured_offline', true)->count(),
         ];
 
         return view('admin.finish-scans.index', compact('scans', 'events', 'categories', 'summary'));
