@@ -26,23 +26,23 @@ class EBadgeNotificationService
             ? "You earned the {$badgeTitle} e-badge for {$eventTitle}."
             : "You earned the {$badgeTitle} e-badge.";
 
-        $notification = PushNotification::create([
-            'title' => 'New E-Badge Earned',
-            'message' => $message,
-            'type' => 'achievement',
-            'target_audience' => 'runners',
-            'target_user_id' => $issuedBadge->user_id,
-            'data' => [
-                'screen' => 'achievements',
-                'issued_e_badge_id' => (string) $issuedBadge->id,
-                'e_badge_id' => (string) $issuedBadge->e_badge_id,
-                'event_id' => (string) $issuedBadge->event_id,
-                'registration_id' => (string) $issuedBadge->registration_id,
-            ],
-            'is_active' => true,
-        ]);
-
         try {
+            $notification = PushNotification::create([
+                'title' => 'New E-Badge Earned',
+                'message' => $message,
+                'type' => 'achievement',
+                'target_audience' => 'runners',
+                'target_user_id' => $issuedBadge->user_id,
+                'data' => [
+                    'screen' => 'achievements',
+                    'issued_e_badge_id' => (string) $issuedBadge->id,
+                    'e_badge_id' => (string) $issuedBadge->e_badge_id,
+                    'event_id' => (string) $issuedBadge->event_id,
+                    'registration_id' => (string) $issuedBadge->registration_id,
+                ],
+                'is_active' => true,
+            ]);
+
             $result = $this->messaging->sendNotification($notification, collect([$issuedBadge->user]));
 
             if ($result['sent'] > 0 || ($result['processed'] ?? false)) {
@@ -51,7 +51,7 @@ class EBadgeNotificationService
                 $notification->update(['is_active' => false]);
             }
         } catch (\Throwable $e) {
-            Log::warning('E-badge notification could not be delivered immediately.', [
+            Log::warning('E-badge notification could not be created or delivered immediately.', [
                 'issued_e_badge_id' => $issuedBadge->id,
                 'error' => $e->getMessage(),
             ]);
