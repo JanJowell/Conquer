@@ -262,7 +262,7 @@
         </div>
     </div>
         <script>
-            document.addEventListener('DOMContentLoaded', () => {
+            window.adminOnPageReady( () => {
                 document.querySelectorAll('form[id^="result-form-"]').forEach((form) => {
                     form.addEventListener('submit', (event) => {
                         const submitter = event.submitter;

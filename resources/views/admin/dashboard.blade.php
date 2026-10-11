@@ -9,7 +9,7 @@
     $selectedRangeLabel = $startDate->format('M d, Y') . ' - ' . $endDate->format('M d, Y');
     $selectedRangeDays = max($startDate->diffInDays($endDate) + 1, 1);
 
-    $breakdownPalette = ['#eceef1', '#d9dde3', '#b9bec7', '#8e96a3', '#5d6777'];
+    $breakdownPalette = ['#818cf8', '#7dd3fc', '#86efac', '#fcd34d', '#fca5a5'];
 
     if ($dashboardRole === \App\Models\User::ROLE_EXECUTIVE) {
         $metricCards = [
@@ -124,172 +124,94 @@
     $chartLabels = collect($chartSeries)->filter(fn ($point, $index) => $index % 7 === 0 || $index === collect($chartSeries)->count() - 1);
 
     $breakdownTotal = $breakdownItems->sum('count');
-    $segments = [];
-    $angle = 0;
-    foreach ($breakdownItems->values() as $index => $item) {
-        $start = $angle;
-        $angle += $breakdownTotal > 0 ? (($item['count'] / $breakdownTotal) * 360) : 0;
-        $segments[] = $breakdownPalette[$index % count($breakdownPalette)] . ' ' . number_format($start, 2, '.', '') . 'deg ' . number_format($angle, 2, '.', '') . 'deg';
-    }
-    $breakdownChart = count($segments) > 0 ? 'conic-gradient(' . implode(', ', $segments) . ')' : 'conic-gradient(#eceef1 0deg 360deg)';
 @endphp
 
-<div class="relative min-h-screen overflow-hidden bg-[#e9f1f8] px-3 py-4 sm:px-5 lg:px-7">
-    {{-- Glassmorphism background blobs --}}
-    <div class="pointer-events-none absolute -top-32 left-10 h-80 w-80 rounded-full bg-sky-300/40 blur-3xl"></div>
-    <div class="pointer-events-none absolute top-40 right-0 h-96 w-96 rounded-full bg-cyan-300/30 blur-3xl"></div>
-    <div class="pointer-events-none absolute bottom-20 left-1/3 h-96 w-96 rounded-full bg-indigo-300/25 blur-3xl"></div>
-
-    <div class="relative mx-auto max-w-[1600px] space-y-6">
+<div class="min-h-screen bg-[#f7f8fc] px-4 py-6 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-[1400px] space-y-6">
 
         {{-- PAGE HEADER --}}
-        <div class="overflow-hidden rounded-[2rem] border border-white/60 bg-white/35 p-4 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur-2xl">
-            <div class="rounded-[1.75rem] border border-white/60 bg-white/35 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.70)] backdrop-blur-xl sm:p-6">
-                <div class="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-                    <div class="min-w-0">
-                        <div class="inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/45 px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-slate-700 shadow-sm backdrop-blur-xl">
-                            <span class="h-2 w-2 rounded-full bg-sky-500 shadow-[0_0_14px_rgba(14,165,233,0.75)]"></span>
-                            {{ $dashboardLabel }}
-                        </div>
-
-                        <h1 class="mt-4 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
-                            {{ $dashboardRole === \App\Models\User::ROLE_EXECUTIVE ? 'Executive Dashboard' : 'Dashboard' }}
-                        </h1>
-
-                        <p class="mt-2 text-sm leading-6 text-slate-600">
-                            Showing activity from <span class="font-semibold text-slate-900">{{ $selectedRangeLabel }}</span>.
-                        </p>
-                    </div>
-
-                    <form method="GET" class="flex flex-wrap items-center gap-3 rounded-[1.5rem] border border-white/60 bg-white/45 p-3 text-sm font-medium text-slate-700 shadow-sm backdrop-blur-xl">
-                        <div class="flex items-center gap-2 rounded-full border border-white/60 bg-white/45 px-3 py-2 text-slate-600 backdrop-blur-xl">
-                            <i class="fas fa-calendar-days text-sky-600"></i>
-                            <span class="hidden text-sm font-semibold sm:inline">{{ $selectedRangeLabel }}</span>
-                        </div>
-
-                        <input
-                            type="date"
-                            name="start_date"
-                            value="{{ $startDate->toDateString() }}"
-                            class="rounded-xl border border-white/60 bg-white/50 px-3 py-2 text-sm text-slate-700 outline-none backdrop-blur-xl transition focus:border-sky-300 focus:ring-4 focus:ring-sky-100/70"
-                        >
-
-                        <span class="text-sm font-semibold text-slate-500">to</span>
-
-                        <input
-                            type="date"
-                            name="end_date"
-                            value="{{ $endDate->toDateString() }}"
-                            class="rounded-xl border border-white/60 bg-white/50 px-3 py-2 text-sm text-slate-700 outline-none backdrop-blur-xl transition focus:border-sky-300 focus:ring-4 focus:ring-sky-100/70"
-                        >
-
-                        <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-slate-950/90 px-4 py-2 text-sm font-bold text-white shadow-sm backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-slate-800">
-                            Apply
-                        </button>
-
-                        <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center justify-center rounded-xl border border-white/60 bg-white/45 px-4 py-2 text-sm font-bold text-slate-700 shadow-sm backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/70">
-                            Reset
-                        </a>
-                    </form>
-                </div>
+        <div class="flex flex-col gap-4 rounded-[1.75rem] bg-white p-6 shadow-[0_8px_24px_rgba(148,163,184,0.15)] lg:flex-row lg:items-center lg:justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wide text-indigo-400">{{ $dashboardLabel }}</p>
+                <h1 class="mt-1 text-2xl font-bold text-slate-700">
+                    {{ $dashboardRole === \App\Models\User::ROLE_EXECUTIVE ? 'Executive Dashboard' : 'Dashboard' }}
+                </h1>
+                <p class="mt-1 text-sm text-slate-400">
+                    Showing activity from <span class="font-medium text-slate-600">{{ $selectedRangeLabel }}</span>
+                </p>
             </div>
+
+            <form method="GET" class="flex flex-wrap items-center gap-2">
+                <input
+                    type="date"
+                    name="start_date"
+                    value="{{ $startDate->toDateString() }}"
+                    class="rounded-full border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                >
+                <span class="text-sm text-slate-300">to</span>
+                <input
+                    type="date"
+                    name="end_date"
+                    value="{{ $endDate->toDateString() }}"
+                    class="rounded-full border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                >
+                <button type="submit" class="rounded-full bg-indigo-400 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-500">
+                    Apply
+                </button>
+                <a href="{{ route('admin.dashboard') }}" class="rounded-full bg-slate-50 px-5 py-2.5 text-sm font-semibold text-slate-500 transition hover:bg-slate-100">
+                    Reset
+                </a>
+            </form>
         </div>
 
         {{-- METRIC CARDS --}}
-        <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             @foreach ($metricCards as $card)
-                @if (! empty($card['url']))
-                    <a href="{{ $card['url'] }}" class="group block overflow-hidden rounded-[1.45rem] border border-white/60 bg-white/35 p-4 shadow-[0_14px_40px_rgba(15,23,42,0.08)] backdrop-blur-2xl ring-1 ring-white/40 transition hover:-translate-y-0.5 hover:bg-white/45 hover:shadow-[0_20px_55px_rgba(15,23,42,0.13)]">
-                @else
-                    <article class="group overflow-hidden rounded-[1.45rem] border border-white/60 bg-white/35 p-4 shadow-[0_14px_40px_rgba(15,23,42,0.08)] backdrop-blur-2xl ring-1 ring-white/40 transition hover:-translate-y-0.5 hover:bg-white/45 hover:shadow-[0_20px_55px_rgba(15,23,42,0.13)]">
-                @endif
-
-                    <div class="flex items-start justify-between gap-3">
-                        <div class="min-w-0">
-                            <p class="max-w-[160px] text-sm font-semibold leading-5 text-slate-600">
-                                {{ $card['label'] }}
-                            </p>
-
-                            <p class="mt-3 text-3xl font-bold leading-none tracking-tight text-slate-950">
-                                {{ $card['value'] }}
-                            </p>
-                        </div>
-
-                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-slate-950/90 text-base text-white shadow-[0_12px_30px_rgba(15,23,42,0.25)] backdrop-blur-xl transition group-hover:scale-105">
-                            <i class="fas {{ $card['icon'] }}"></i>
-                        </div>
+                @php $tag = !empty($card['url']) ? 'a' : 'div'; @endphp
+                <{{ $tag }} @if(!empty($card['url'])) href="{{ $card['url'] }}" @endif
+                    class="flex items-start gap-4 rounded-[1.5rem] bg-white p-5 shadow-[0_8px_24px_rgba(148,163,184,0.12)] transition hover:shadow-[0_10px_28px_rgba(148,163,184,0.18)]">
+                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-400">
+                        <i class="fas {{ $card['icon'] }}"></i>
                     </div>
-
-                    <p class="mt-4 min-h-[36px] text-sm leading-6 text-slate-600">
-                        {{ $card['delta'] }}
-                    </p>
-
-                    <div class="mt-4 h-1.5 overflow-hidden rounded-full bg-white/50 shadow-inner">
-                        <div class="h-full w-2/3 rounded-full bg-gradient-to-r from-slate-950 via-sky-600 to-cyan-400"></div>
+                    <div class="min-w-0">
+                        <p class="text-sm text-slate-400">{{ $card['label'] }}</p>
+                        <p class="mt-1 text-2xl font-bold text-slate-700">{{ $card['value'] }}</p>
+                        <p class="mt-1 text-xs text-slate-300">{{ $card['delta'] }}</p>
                     </div>
-
-                @if (! empty($card['url']))
-                    </a>
-                @else
-                    </article>
-                @endif
+                </{{ $tag }}>
             @endforeach
         </section>
 
         {{-- CHARTS --}}
-        <section class="grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
-            <article class="overflow-hidden rounded-[1.75rem] border border-white/60 bg-white/35 p-5 shadow-[0_18px_55px_rgba(15,23,42,0.10)] backdrop-blur-2xl ring-1 ring-white/40">
-                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <p class="text-xs font-bold uppercase tracking-[0.22em] text-sky-700">Overview</p>
-                        <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-950">{{ $chartTitle }}</h2>
-                    </div>
-
-                    <div class="inline-flex items-center gap-3 rounded-full border border-white/60 bg-white/45 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm backdrop-blur-xl">
-                        <span class="h-2 w-2 rounded-full bg-sky-500 shadow-[0_0_12px_rgba(14,165,233,0.8)]"></span>
-                        <span>{{ $chartMetricLabel }}</span>
-                    </div>
+        <section class="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)]">
+            <article class="rounded-[1.75rem] bg-white p-6 shadow-[0_8px_24px_rgba(148,163,184,0.12)]">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-base font-semibold text-slate-700">{{ $chartTitle }}</h2>
+                    <span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-400">{{ $chartMetricLabel }}</span>
                 </div>
 
-                <div class="mt-8 grid grid-cols-[56px_minmax(0,1fr)] gap-3">
-                    <div class="flex h-[280px] flex-col justify-between pb-7 text-sm font-medium text-slate-500">
+                <div class="mt-6 grid grid-cols-[44px_minmax(0,1fr)] gap-2">
+                    <div class="flex h-[220px] flex-col justify-between pb-6 text-xs text-slate-300">
                         <span>{{ number_format($maxChartValue) }}</span>
-                        <span>{{ number_format((int) round($maxChartValue * 0.75)) }}</span>
                         <span>{{ number_format((int) round($maxChartValue * 0.5)) }}</span>
-                        <span>{{ number_format((int) round($maxChartValue * 0.25)) }}</span>
                         <span>0</span>
                     </div>
 
                     <div class="min-w-0">
-                        <div class="relative h-[280px] overflow-hidden rounded-[1.4rem] border border-white/60 bg-white/35 p-2 shadow-inner backdrop-blur-xl">
-                            <div class="absolute inset-4 grid grid-rows-4">
-                                @for ($i = 0; $i < 4; $i++)
-                                    <div class="border-b border-dashed border-slate-300/60"></div>
-                                @endfor
-                            </div>
-
-                            <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="absolute inset-4 h-[calc(100%-2rem)] w-[calc(100%-2rem)]">
+                        <div class="relative h-[220px] rounded-2xl bg-[#f7f8fc]">
+                            <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="absolute inset-3 h-[calc(100%-1.5rem)] w-[calc(100%-1.5rem)]">
                                 <defs>
                                     <linearGradient id="overview-fill" x1="0" x2="0" y1="0" y2="1">
-                                        <stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.28"></stop>
+                                        <stop offset="0%" stop-color="#818cf8" stop-opacity="0.22"></stop>
                                         <stop offset="100%" stop-color="#ffffff" stop-opacity="0"></stop>
                                     </linearGradient>
                                 </defs>
-
                                 <polygon points="{{ $areaPoints }}" fill="url(#overview-fill)"></polygon>
-                                <polyline points="{{ $polylinePoints }}" fill="none" stroke="#0f172a" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round"></polyline>
-
-                                @foreach ($chartSeries as $index => $point)
-                                    @php
-                                        $x = ($index / $pointCount) * 100;
-                                        $y = 100 - (($point['count'] / $maxChartValue) * 100);
-                                    @endphp
-                                    <circle cx="{{ number_format($x, 2, '.', '') }}" cy="{{ number_format($y, 2, '.', '') }}" r="0.9" fill="#0ea5e9"></circle>
-                                @endforeach
+                                <polyline points="{{ $polylinePoints }}" fill="none" stroke="#818cf8" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></polyline>
                             </svg>
                         </div>
 
-                        <div class="mt-4 flex items-center justify-between gap-2 text-xs font-semibold text-slate-500 sm:text-sm">
+                        <div class="mt-3 flex items-center justify-between text-xs text-slate-300">
                             @foreach ($chartLabels as $point)
                                 <span>{{ $point['label'] }}</span>
                             @endforeach
@@ -298,66 +220,60 @@
                 </div>
             </article>
 
-            <article class="overflow-hidden rounded-[1.75rem] border border-white/60 bg-white/35 p-5 shadow-[0_18px_55px_rgba(15,23,42,0.10)] backdrop-blur-2xl ring-1 ring-white/40">
-                <div>
-                    <p class="text-xs font-bold uppercase tracking-[0.22em] text-sky-700">Breakdown</p>
-                    <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-950">{{ $breakdownTitle }}</h2>
-                </div>
+            <article class="rounded-[1.75rem] bg-white p-6 shadow-[0_8px_24px_rgba(148,163,184,0.12)]">
+                <h2 class="text-base font-semibold text-slate-700">{{ $breakdownTitle }}</h2>
 
-                <div class="mt-8 grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-1 2xl:grid-cols-[220px_minmax(0,1fr)]">
-                    <div class="mx-auto flex h-[210px] w-[210px] items-center justify-center rounded-full border border-white/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_18px_45px_rgba(15,23,42,0.12)] backdrop-blur-xl" style="background: {{ $breakdownChart }}">
-                        <div class="flex h-[124px] w-[124px] items-center justify-center rounded-full border border-white/70 bg-white/60 shadow-sm backdrop-blur-2xl">
-                            <div class="text-center">
-                                <p class="text-xs font-bold uppercase tracking-[0.22em] text-slate-500">Total</p>
-                                <p class="mt-1 text-3xl font-bold text-slate-950">{{ number_format($breakdownTotal) }}</p>
+                <div class="mt-5 space-y-3">
+                    @forelse ($breakdownItems as $index => $item)
+                        @php
+                            $pct = $breakdownTotal > 0 ? round(($item['count'] / $breakdownTotal) * 100) : 0;
+                            $color = $breakdownPalette[$index % count($breakdownPalette)];
+                        @endphp
+                        <div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="font-medium text-slate-600">{{ $item['label'] }}</span>
+                                <span class="font-semibold text-slate-700">{{ number_format($item['count']) }}</span>
+                            </div>
+                            <div class="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                                <div class="h-full rounded-full" style="width: {{ $pct }}%; background-color: {{ $color }}"></div>
                             </div>
                         </div>
-                    </div>
+                    @empty
+                        <p class="text-sm text-slate-400">No breakdown data available.</p>
+                    @endforelse
+                </div>
 
-                    <div class="space-y-4">
-                        @forelse ($breakdownItems as $index => $item)
-                            <div class="grid grid-cols-[18px_minmax(0,1fr)_auto] items-center gap-4 rounded-2xl border border-white/60 bg-white/40 px-4 py-3 text-sm text-slate-700 shadow-sm backdrop-blur-xl">
-                                <span class="h-4 w-4 rounded-full shadow-sm" style="background-color: {{ $breakdownPalette[$index % count($breakdownPalette)] }}"></span>
-                                <span class="font-semibold">{{ $item['label'] }}</span>
-                                <span class="font-bold text-slate-950">{{ number_format($item['count']) }}</span>
-                            </div>
-                        @empty
-                            <p class="rounded-2xl border border-white/60 bg-white/40 px-4 py-5 text-sm text-slate-600 backdrop-blur-xl">
-                                No breakdown data available.
-                            </p>
-                        @endforelse
-                    </div>
+                <div class="mt-5 border-t border-slate-50 pt-4 text-sm text-slate-400">
+                    Total: <span class="font-semibold text-slate-700">{{ number_format($breakdownTotal) }}</span>
                 </div>
             </article>
         </section>
 
         {{-- TABLE / FEED AREA --}}
-        <section class="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_380px]">
-            <article class="overflow-hidden rounded-[1.75rem] border border-white/60 bg-white/35 shadow-[0_18px_55px_rgba(15,23,42,0.10)] backdrop-blur-2xl ring-1 ring-white/40">
-                <div class="border-b border-white/50 px-5 py-5">
-                    <p class="text-xs font-bold uppercase tracking-[0.22em] text-sky-700">Primary View</p>
-                    <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-950">{{ $primaryTitle }}</h2>
+        <section class="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_360px]">
+            <article class="rounded-[1.75rem] bg-white shadow-[0_8px_24px_rgba(148,163,184,0.12)]">
+                <div class="border-b border-slate-50 px-6 py-5">
+                    <h2 class="text-base font-semibold text-slate-700">{{ $primaryTitle }}</h2>
                 </div>
 
                 @if ($primaryType === 'event-performance')
-                    <div class="overflow-x-auto p-3">
-                        <table class="min-w-full border-separate border-spacing-y-3 text-left">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-left text-sm">
                             <thead>
-                                <tr class="text-sm text-slate-600">
-                                    <th class="px-4 py-3 font-bold">Event</th>
+                                <tr class="text-slate-400">
+                                    <th class="px-6 py-3 font-medium">Event</th>
                                     @if ($dashboardRole === \App\Models\User::ROLE_EXECUTIVE)
-                                        <th class="px-4 py-3 font-bold">Setup</th>
-                                        <th class="px-4 py-3 font-bold">Registrations</th>
-                                        <th class="px-4 py-3 font-bold">Race Day</th>
-                                        <th class="px-4 py-3 font-bold">Status</th>
+                                        <th class="px-6 py-3 font-medium">Setup</th>
+                                        <th class="px-6 py-3 font-medium">Registrations</th>
+                                        <th class="px-6 py-3 font-medium">Race Day</th>
+                                        <th class="px-6 py-3 font-medium">Status</th>
                                     @else
-                                        <th class="px-4 py-3 font-bold">Registrations</th>
-                                        <th class="px-4 py-3 font-bold">Results</th>
-                                        <th class="px-4 py-3 font-bold">Completion Rate</th>
+                                        <th class="px-6 py-3 font-medium">Registrations</th>
+                                        <th class="px-6 py-3 font-medium">Results</th>
+                                        <th class="px-6 py-3 font-medium">Completion Rate</th>
                                     @endif
                                 </tr>
                             </thead>
-
                             <tbody>
                                 @if ($dashboardRole === \App\Models\User::ROLE_EXECUTIVE)
                                     @forelse ($eventHealth as $event)
@@ -368,121 +284,96 @@
                                                 'Results' => $event->checked_in_registrations_count > 0 && $event->race_results_count === 0,
                                             ])->filter()->keys();
                                         @endphp
-
-                                        <tr class="text-sm text-slate-700">
-                                            <td class="rounded-l-2xl border-y border-l border-white/60 bg-white/40 px-4 py-4 backdrop-blur-xl">
-                                                <p class="font-bold text-slate-950">{{ $event->title }}</p>
-                                                <p class="mt-1 text-xs text-slate-500">{{ optional($event->event_date)->format('M d, Y') ?? 'TBD' }}</p>
+                                        <tr class="transition hover:bg-[#f7f8fc]">
+                                            <td class="px-6 py-4">
+                                                <p class="font-medium text-slate-700">{{ $event->title }}</p>
+                                                <p class="mt-0.5 text-xs text-slate-300">{{ optional($event->event_date)->format('M d, Y') ?? 'TBD' }}</p>
                                             </td>
-                                            <td class="border-y border-white/60 bg-white/40 px-4 py-4 backdrop-blur-xl">
-                                                <div class="space-y-1 text-xs font-medium text-slate-500">
-                                                    <p>{{ number_format($event->categories_count) }} categories</p>
-                                                    <p>{{ number_format($event->published_announcements_count) }} announcements</p>
-                                                </div>
+                                            <td class="px-6 py-4 text-xs text-slate-400">
+                                                {{ number_format($event->categories_count) }} categories<br>
+                                                {{ number_format($event->published_announcements_count) }} announcements
                                             </td>
-                                            <td class="border-y border-white/60 bg-white/40 px-4 py-4 font-bold text-slate-950 backdrop-blur-xl">{{ number_format($event->registrations_count) }}</td>
-                                            <td class="border-y border-white/60 bg-white/40 px-4 py-4 backdrop-blur-xl">
-                                                <div class="space-y-1 text-xs font-medium text-slate-500">
-                                                    <p>{{ number_format($event->checked_in_registrations_count) }} checked in</p>
-                                                    <p>{{ number_format($event->race_results_count) }} results</p>
-                                                </div>
+                                            <td class="px-6 py-4 font-medium text-slate-700">{{ number_format($event->registrations_count) }}</td>
+                                            <td class="px-6 py-4 text-xs text-slate-400">
+                                                {{ number_format($event->checked_in_registrations_count) }} checked in<br>
+                                                {{ number_format($event->race_results_count) }} results
                                             </td>
-                                            <td class="rounded-r-2xl border-y border-r border-white/60 bg-white/40 px-4 py-4 backdrop-blur-xl">
+                                            <td class="px-6 py-4">
                                                 @if ($missingItems->isEmpty())
-                                                    <span class="inline-flex rounded-full border border-emerald-200/70 bg-emerald-100/70 px-3 py-1.5 text-xs font-bold text-emerald-700 backdrop-blur-xl">Healthy</span>
+                                                    <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-500">Healthy</span>
                                                 @else
-                                                    <span class="inline-flex rounded-full border border-amber-200/70 bg-amber-100/70 px-3 py-1.5 text-xs font-bold text-amber-700 backdrop-blur-xl">
+                                                    <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-500">
                                                         Needs {{ $missingItems->take(2)->implode(', ') }}
                                                     </span>
                                                 @endif
                                             </td>
                                         </tr>
                                     @empty
-                                        <tr>
-                                            <td colspan="5" class="px-5 py-12 text-center text-sm text-slate-500">
-                                                No upcoming events available for health review.
-                                            </td>
-                                        </tr>
+                                        <tr><td colspan="5" class="px-6 py-10 text-center text-sm text-slate-400">No upcoming events available for health review.</td></tr>
                                     @endforelse
                                 @else
                                     @forelse ($eventPerformance as $event)
                                         @php
                                             $completionRate = $event->registrations_count > 0 ? round(($event->race_results_count / $event->registrations_count) * 100, 1) : 0;
                                         @endphp
-
-                                        <tr class="text-sm text-slate-700">
-                                            <td class="rounded-l-2xl border-y border-l border-white/60 bg-white/40 px-4 py-4 font-bold text-slate-950 backdrop-blur-xl">{{ $event->title }}</td>
-                                            <td class="border-y border-white/60 bg-white/40 px-4 py-4 backdrop-blur-xl">{{ $event->registrations_count }}</td>
-                                            <td class="border-y border-white/60 bg-white/40 px-4 py-4 backdrop-blur-xl">{{ $event->race_results_count }}</td>
-                                            <td class="rounded-r-2xl border-y border-r border-white/60 bg-white/40 px-4 py-4 font-bold text-slate-950 backdrop-blur-xl">{{ $completionRate }}%</td>
+                                        <tr class="transition hover:bg-[#f7f8fc]">
+                                            <td class="px-6 py-4 font-medium text-slate-700">{{ $event->title }}</td>
+                                            <td class="px-6 py-4 text-slate-500">{{ $event->registrations_count }}</td>
+                                            <td class="px-6 py-4 text-slate-500">{{ $event->race_results_count }}</td>
+                                            <td class="px-6 py-4 font-medium text-slate-700">{{ $completionRate }}%</td>
                                         </tr>
                                     @empty
-                                        <tr>
-                                            <td colspan="4" class="px-5 py-12 text-center text-sm text-slate-500">
-                                                No event performance data available.
-                                            </td>
-                                        </tr>
+                                        <tr><td colspan="4" class="px-6 py-10 text-center text-sm text-slate-400">No event performance data available.</td></tr>
                                     @endforelse
                                 @endif
                             </tbody>
                         </table>
                     </div>
                 @elseif ($primaryType === 'feedback-feed')
-                    <div class="space-y-3 px-5 py-5">
+                    <div class="divide-y divide-slate-50">
                         @forelse ($recentFeedback as $feedback)
-                            <div class="rounded-[1.35rem] border border-white/60 bg-white/40 p-4 shadow-sm backdrop-blur-xl transition hover:bg-white/55">
-                                <div class="flex items-start justify-between gap-4">
+                            <div class="px-6 py-4 transition hover:bg-[#f7f8fc]">
+                                <div class="flex items-start justify-between gap-3">
                                     <div>
-                                        <p class="font-bold text-slate-950">{{ $feedback->user?->name ?? 'Participant' }}</p>
-                                        <p class="mt-1 text-sm text-slate-500">{{ $feedback->event?->title ?? 'General Feedback' }}</p>
+                                        <p class="font-medium text-slate-700">{{ $feedback->user?->name ?? 'Participant' }}</p>
+                                        <p class="text-xs text-slate-300">{{ $feedback->event?->title ?? 'General Feedback' }}</p>
                                     </div>
-
-                                    <span class="rounded-full px-3 py-1.5 text-xs font-bold backdrop-blur-xl {{ $feedback->is_flagged ? 'bg-amber-100/80 text-amber-800 border border-amber-200/70' : 'bg-emerald-100/80 text-emerald-800 border border-emerald-200/70' }}">
+                                    <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $feedback->is_flagged ? 'bg-amber-50 text-amber-500' : 'bg-emerald-50 text-emerald-500' }}">
                                         {{ $feedback->is_flagged ? 'Flagged' : 'Visible' }}
                                     </span>
                                 </div>
-
-                                <p class="mt-3 text-sm leading-6 text-slate-600">{{ \Illuminate\Support\Str::limit($feedback->content ?: 'Media-only post', 150) }}</p>
-
-                                <a href="{{ route('admin.content.community-posts.show', $feedback) }}" class="mt-3 inline-flex items-center text-sm font-bold text-sky-700 transition hover:text-sky-900">
-                                    Open item
-                                    <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                                <p class="mt-2 text-sm text-slate-500">{{ \Illuminate\Support\Str::limit($feedback->content ?: 'Media-only post', 150) }}</p>
+                                <a href="{{ route('admin.content.community-posts.show', $feedback) }}" class="mt-2 inline-block text-sm font-medium text-indigo-400 hover:text-indigo-500">
+                                    Open item →
                                 </a>
                             </div>
                         @empty
-                            <div class="rounded-[1.35rem] border border-white/60 bg-white/40 px-5 py-8 text-sm text-slate-500 backdrop-blur-xl">
-                                No feedback queue available.
-                            </div>
+                            <div class="px-6 py-10 text-center text-sm text-slate-400">No feedback queue available.</div>
                         @endforelse
                     </div>
                 @else
-                    <div class="overflow-x-auto p-3">
-                        <table class="min-w-full border-separate border-spacing-y-3 text-left">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-left text-sm">
                             <thead>
-                                <tr class="text-sm text-slate-600">
-                                    <th class="px-4 py-3 font-bold">Event Name</th>
-                                    <th class="px-4 py-3 font-bold">Date</th>
-                                    <th class="px-4 py-3 font-bold">Location</th>
-                                    <th class="px-4 py-3 font-bold">Status</th>
-                                    <th class="px-4 py-3 font-bold">Registrations</th>
+                                <tr class="text-slate-400">
+                                    <th class="px-6 py-3 font-medium">Event Name</th>
+                                    <th class="px-6 py-3 font-medium">Date</th>
+                                    <th class="px-6 py-3 font-medium">Location</th>
+                                    <th class="px-6 py-3 font-medium">Status</th>
+                                    <th class="px-6 py-3 font-medium">Registrations</th>
                                 </tr>
                             </thead>
-
                             <tbody>
                                 @forelse ($recentEvents as $event)
-                                    <tr class="text-sm text-slate-700">
-                                        <td class="rounded-l-2xl border-y border-l border-white/60 bg-white/40 px-4 py-4 font-bold text-slate-950 backdrop-blur-xl">{{ $event->title }}</td>
-                                        <td class="border-y border-white/60 bg-white/40 px-4 py-4 backdrop-blur-xl">{{ optional($event->event_date)->format('M d, Y') ?? 'TBD' }}</td>
-                                        <td class="border-y border-white/60 bg-white/40 px-4 py-4 backdrop-blur-xl">{{ $event->venue ?: 'Location TBD' }}</td>
-                                        <td class="border-y border-white/60 bg-white/40 px-4 py-4 backdrop-blur-xl">{{ str($event->effective_status ?? 'scheduled')->replace('_', ' ')->title() }}</td>
-                                        <td class="rounded-r-2xl border-y border-r border-white/60 bg-white/40 px-4 py-4 font-bold text-slate-950 backdrop-blur-xl">{{ $event->registrations_count }}</td>
+                                    <tr class="transition hover:bg-[#f7f8fc]">
+                                        <td class="px-6 py-4 font-medium text-slate-700">{{ $event->title }}</td>
+                                        <td class="px-6 py-4 text-slate-500">{{ optional($event->event_date)->format('M d, Y') ?? 'TBD' }}</td>
+                                        <td class="px-6 py-4 text-slate-500">{{ $event->venue ?: 'Location TBD' }}</td>
+                                        <td class="px-6 py-4 text-slate-500">{{ str($event->effective_status ?? 'scheduled')->replace('_', ' ')->title() }}</td>
+                                        <td class="px-6 py-4 font-medium text-slate-700">{{ $event->registrations_count }}</td>
                                     </tr>
                                 @empty
-                                    <tr>
-                                        <td colspan="5" class="px-5 py-12 text-center text-sm text-slate-500">
-                                            No recent events available.
-                                        </td>
-                                    </tr>
+                                    <tr><td colspan="5" class="px-6 py-10 text-center text-sm text-slate-400">No recent events available.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -491,69 +382,58 @@
             </article>
 
             {{-- SECONDARY PANEL --}}
-            <article class="overflow-hidden rounded-[1.75rem] border border-white/60 bg-white/35 shadow-[0_18px_55px_rgba(15,23,42,0.10)] backdrop-blur-2xl ring-1 ring-white/40">
-                <div class="border-b border-white/50 px-5 py-5">
-                    <p class="text-xs font-bold uppercase tracking-[0.22em] text-sky-700">Activity</p>
-                    <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-950">{{ $secondaryTitle }}</h2>
+            <article class="rounded-[1.75rem] bg-white shadow-[0_8px_24px_rgba(148,163,184,0.12)]">
+                <div class="border-b border-slate-50 px-6 py-5">
+                    <h2 class="text-base font-semibold text-slate-700">{{ $secondaryTitle }}</h2>
                 </div>
 
                 @if ($secondaryType === 'feedback-summary')
-                    <div class="space-y-4 px-5 py-5">
-                        <div class="rounded-[1.35rem] border border-rose-200/60 bg-rose-100/45 px-4 py-4 backdrop-blur-xl">
-                            <p class="text-sm font-bold text-slate-950">Complaint Signals</p>
-                            <p class="mt-1 text-sm leading-6 text-slate-600">{{ number_format($feedbackInsights['complaints']) }} posts contain complaint-oriented language.</p>
+                    <div class="space-y-3 px-6 py-5">
+                        <div class="rounded-2xl bg-rose-50 px-4 py-3">
+                            <p class="text-sm font-semibold text-slate-700">Complaint Signals</p>
+                            <p class="mt-1 text-sm text-slate-500">{{ number_format($feedbackInsights['complaints']) }} posts contain complaint-oriented language.</p>
                         </div>
-
-                        <div class="rounded-[1.35rem] border border-sky-200/60 bg-sky-100/45 px-4 py-4 backdrop-blur-xl">
-                            <p class="text-sm font-bold text-slate-950">Suggestions</p>
-                            <p class="mt-1 text-sm leading-6 text-slate-600">{{ number_format($feedbackInsights['suggestions']) }} posts contain improvement suggestions.</p>
+                        <div class="rounded-2xl bg-indigo-50 px-4 py-3">
+                            <p class="text-sm font-semibold text-slate-700">Suggestions</p>
+                            <p class="mt-1 text-sm text-slate-500">{{ number_format($feedbackInsights['suggestions']) }} posts contain improvement suggestions.</p>
                         </div>
-
-                        <div class="rounded-[1.35rem] border border-white/60 bg-white/40 px-4 py-4 backdrop-blur-xl">
-                            <p class="text-sm font-bold text-slate-950">Ratings</p>
-                            <p class="mt-1 text-sm leading-6 text-slate-600">Structured ratings are not yet stored in the current schema.</p>
+                        <div class="rounded-2xl bg-slate-50 px-4 py-3">
+                            <p class="text-sm font-semibold text-slate-700">Ratings</p>
+                            <p class="mt-1 text-sm text-slate-500">Structured ratings are not yet stored in the current schema.</p>
                         </div>
                     </div>
                 @elseif ($secondaryType === 'moderation-activity')
-                    <div class="space-y-3 px-5 py-5">
+                    <div class="divide-y divide-slate-50">
                         @forelse ($moderationActivities as $activity)
-                            <div class="flex items-start gap-4 rounded-[1.35rem] border border-white/60 bg-white/40 px-4 py-4 shadow-sm backdrop-blur-xl transition hover:bg-white/55">
-                                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-950/90 text-sm font-bold text-white shadow-md">
+                            <div class="flex items-start gap-3 px-6 py-4 transition hover:bg-[#f7f8fc]">
+                                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-400 text-xs font-bold text-white">
                                     {{ $activity->user?->initials() ?: 'AD' }}
                                 </div>
-
                                 <div class="min-w-0 flex-1">
-                                    <p class="font-bold text-slate-950">{{ $activity->user?->name ?? 'System' }}</p>
-                                    <p class="mt-1 text-sm leading-6 text-slate-600">{{ $activity->action }}</p>
+                                    <p class="font-medium text-slate-700">{{ $activity->user?->name ?? 'System' }}</p>
+                                    <p class="text-sm text-slate-500">{{ $activity->action }}</p>
                                 </div>
-
-                                <p class="shrink-0 text-xs font-semibold text-slate-500">{{ $activity->created_at->diffForHumans() }}</p>
+                                <p class="shrink-0 text-xs text-slate-300">{{ $activity->created_at->diffForHumans() }}</p>
                             </div>
                         @empty
-                            <div class="rounded-[1.35rem] border border-white/60 bg-white/40 px-5 py-8 text-sm text-slate-500 backdrop-blur-xl">
-                                No moderation actions logged yet.
-                            </div>
+                            <div class="px-6 py-10 text-center text-sm text-slate-400">No moderation actions logged yet.</div>
                         @endforelse
                     </div>
                 @else
-                    <div class="space-y-3 px-5 py-5">
+                    <div class="divide-y divide-slate-50">
                         @forelse ($recentActivities as $activity)
-                            <div class="flex items-start gap-4 rounded-[1.35rem] border border-white/60 bg-white/40 px-4 py-4 shadow-sm backdrop-blur-xl transition hover:bg-white/55">
-                                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-950/90 text-sm font-bold text-white shadow-md">
+                            <div class="flex items-start gap-3 px-6 py-4 transition hover:bg-[#f7f8fc]">
+                                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-400 text-xs font-bold text-white">
                                     {{ $activity->user?->initials() ?: 'AD' }}
                                 </div>
-
                                 <div class="min-w-0 flex-1">
-                                    <p class="font-bold text-slate-950">{{ $activity->user?->name ?? 'System' }}</p>
-                                    <p class="mt-1 text-sm leading-6 text-slate-600">{{ $activity->action }}</p>
+                                    <p class="font-medium text-slate-700">{{ $activity->user?->name ?? 'System' }}</p>
+                                    <p class="text-sm text-slate-500">{{ $activity->action }}</p>
                                 </div>
-
-                                <p class="shrink-0 text-xs font-semibold text-slate-500">{{ $activity->created_at->diffForHumans() }}</p>
+                                <p class="shrink-0 text-xs text-slate-300">{{ $activity->created_at->diffForHumans() }}</p>
                             </div>
                         @empty
-                            <div class="rounded-[1.35rem] border border-white/60 bg-white/40 px-5 py-8 text-sm text-slate-500 backdrop-blur-xl">
-                                No recent activity yet.
-                            </div>
+                            <div class="px-6 py-10 text-center text-sm text-slate-400">No recent activity yet.</div>
                         @endforelse
                     </div>
                 @endif

@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Http\Responses\RegisterResponse;
 use Carbon\CarbonImmutable;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -28,6 +29,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Paginator::defaultView('pagination.compact');
+
         Mail::extend('brevo', function (array $config): BrevoApiTransport {
             $key = $config['key'] ?? null;
 

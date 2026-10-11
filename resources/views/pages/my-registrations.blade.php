@@ -11,7 +11,7 @@
     @forelse($registrations as $registration)
         <div style="background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
             <h3>{{ $registration->event->title }}</h3>
-            <p><strong>Category:</strong> {{ $registration->category->name }}</p>
+            <p><strong>Category:</strong> {{ $r egistration->category->name }}</p>
             <p><strong>Bib Number:</strong> {{ $registration->bib_number }}</p>
             <p><strong>Status:</strong> {{ ucfirst($registration->status) }}</p>
             <p><strong>Registered At:</strong> {{ optional($registration->registered_at)->format('F d, Y h:i A') }}</p>

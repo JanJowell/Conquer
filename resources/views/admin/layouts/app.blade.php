@@ -4,6 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Racetech Admin - @yield('title', 'Dashboard')</title>
+    @livewireStyles
+    <script>
+        window.adminOnPageReady = (callback) => document.addEventListener('livewire:navigated', callback, { once: true });
+    </script>
+    <script>
+        /*
+         * Keeps the sidebar nav scroll position between wire:navigate page
+         * changes. Guarded so it only registers once per full page load.
+         */
+        if (!window.__adminSidebarScrollInit) {
+            window.__adminSidebarScrollInit = true;
+            let sidebarScrollTop = 0;
+
+            document.addEventListener('livewire:navigating', () => {
+                const nav = document.querySelector('#admin-sidebar nav');
+                if (nav) sidebarScrollTop = nav.scrollTop;
+            });
+
+            document.addEventListener('livewire:navigated', () => {
+                const nav = document.querySelector('#admin-sidebar nav');
+                if (nav) nav.scrollTop = sidebarScrollTop;
+            });
+        }
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,19 +35,56 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --admin-bg: #eaf2f9;
-            --admin-card: rgba(255, 255, 255, 0.35);
-            --admin-border: rgba(255, 255, 255, 0.60);
-            --admin-text: #0f172a;
+            --admin-bg: #f7f8fc;
+            --admin-card: #ffffff;
+            --admin-text: #334155;
             --admin-muted: #64748b;
-            --admin-accent: #0f172a;
-            --admin-active: rgba(255, 255, 255, 0.55);
+            --admin-accent: #4f46e5;
         }
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background: var(--admin-bg);
             color: var(--admin-text);
+            overflow-x: hidden;
+        }
+
+        /* Ensure small labels and actions remain readable on white cards. */
+        .admin-shell-main .text-slate-400,
+        header .text-slate-400,
+        #admin-sidebar .text-slate-400 { color: #64748b !important; }
+        .admin-shell-main .text-indigo-400,
+        #admin-sidebar .text-indigo-400 { color: #4f46e5 !important; }
+        .admin-shell-main .text-rose-400,
+        header .text-rose-400 { color: #be123c !important; }
+        .admin-shell-main .bg-indigo-400,
+        #admin-sidebar .bg-indigo-400 { background-color: #4f46e5 !important; }
+
+        /* Tables may scroll inside their own card, but must never widen the page. */
+        .admin-shell-main .overflow-x-auto {
+            max-width: 100%;
+            overscroll-behavior-inline: contain;
+            scrollbar-gutter: stable;
+        }
+
+        #admin-sidebar nav a {
+            transition: background-color 200ms ease, color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+        }
+
+        #admin-sidebar nav a:hover { transform: translateX(3px); }
+        #admin-sidebar nav a:active { transform: translateX(3px) scale(0.98); }
+        #admin-sidebar { transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1); }
+
+        /* Disable all sidebar transitions while the active link is being re-synced after navigation. */
+        #admin-sidebar.is-syncing,
+        #admin-sidebar.is-syncing * {
+            transition: none !important;
+            animation: none !important;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            #admin-sidebar, #admin-sidebar nav a { transition: none; }
+            #admin-sidebar nav a:hover, #admin-sidebar nav a:active { transform: none; }
         }
 
         body.admin-mobile-sidebar-open {
@@ -64,18 +125,15 @@
         }
 
         .admin-shell-main {
-            background:
-                radial-gradient(circle at 6% -8%, rgba(125, 211, 252, 0.36), transparent 32rem),
-                radial-gradient(circle at 100% 18%, rgba(103, 232, 249, 0.25), transparent 34rem),
-                radial-gradient(circle at 38% 100%, rgba(165, 180, 252, 0.22), transparent 30rem),
-                var(--admin-bg);
+            background: var(--admin-bg);
         }
 
-        .admin-shell-main > * {
-            position: relative;
-            z-index: 1;
-        }
-
+        /*
+         * Soft-UI reskin shim: retroactively restyles any legacy Blade
+         * partial that still hardcodes the old bordered/hex-color classes,
+         * so every page reads as plain white cards with a soft diffused
+         * shadow instead of the old bordered/glass look.
+         */
         .admin-legacy-glass :is(section, article, div, form)[class*="border-[#d9dee7]"][class*="bg-white"],
         .admin-legacy-glass :is(section, article, div, form)[class*="border-[#eef1f4]"][class*="bg-white"],
         .admin-legacy-glass :is(section, article, div, form)[class*="border-[#d9dee7]"][class*="bg-[#fafbfc]"],
@@ -85,46 +143,41 @@
         .admin-legacy-glass :is(section, article, div, form)[class*="border-[#d9dee7]"][class*="bg-[#fbfcfd]"],
         .admin-legacy-glass :is(section, article, div, form)[class*="border-[#eef1f4]"][class*="bg-[#fbfcfd]"],
         .admin-legacy-glass :is(section, article, div, form)[class*="border-[var(--admin-border)]"][class*="bg-white"] {
-            border-color: rgba(255, 255, 255, 0.60) !important;
-            background: rgba(255, 255, 255, 0.35) !important;
-            box-shadow: 0 18px 55px rgba(15, 23, 42, 0.10) !important;
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
+            border: 0 !important;
+            background: #ffffff !important;
+            box-shadow: 0 8px 24px rgba(148, 163, 184, 0.12) !important;
         }
 
         .admin-legacy-glass :is(section, article, div, form)[class*="rounded-3xl"],
         .admin-legacy-glass :is(section, article, div, form)[class*="rounded-2xl"] {
-            border-radius: 1.6rem !important;
+            border-radius: 1.75rem !important;
         }
 
         .admin-legacy-glass :is(input, select, textarea)[class*="border-[#d9dee7]"],
         .admin-legacy-glass :is(input, select, textarea)[class*="border-[var(--admin-border)]"] {
-            border-color: rgba(255, 255, 255, 0.60) !important;
-            background: rgba(255, 255, 255, 0.50) !important;
-            color: #0f172a !important;
-            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            border: 0 !important;
+            background: #f8fafc !important;
+            color: #334155 !important;
+            box-shadow: none !important;
         }
 
         .admin-legacy-glass :is(input, select, textarea):focus {
-            border-color: rgba(125, 211, 252, 0.80) !important;
-            box-shadow: 0 0 0 4px rgba(224, 242, 254, 0.85) !important;
+            border-color: transparent !important;
+            box-shadow: 0 0 0 2px rgba(199, 210, 254, 0.9) !important;
         }
 
         .admin-legacy-glass :is(a, button)[class*="border-[#d9dee7]"],
         .admin-legacy-glass :is(a, button)[class*="border-[var(--admin-border)]"] {
-            border-color: rgba(255, 255, 255, 0.60) !important;
-            background: rgba(255, 255, 255, 0.45) !important;
-            color: #334155 !important;
-            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            border: 0 !important;
+            border-radius: 9999px !important;
+            background: #f8fafc !important;
+            color: #64748b !important;
+            box-shadow: none !important;
         }
 
         .admin-legacy-glass :is(a, button)[class*="border-[#d9dee7]"]:hover,
         .admin-legacy-glass :is(a, button)[class*="border-[var(--admin-border)]"]:hover {
-            background: rgba(255, 255, 255, 0.70) !important;
+            background: #f1f5f9 !important;
             transform: translateY(-1px);
         }
 
@@ -138,17 +191,15 @@
             min-height: 2.5rem;
             align-items: center;
             justify-content: center;
-            border: 1px solid rgba(255, 255, 255, 0.60) !important;
-            border-radius: 0.75rem !important;
-            background: rgba(255, 255, 255, 0.45) !important;
+            border: 0 !important;
+            border-radius: 9999px !important;
+            background: #f8fafc !important;
             padding: 0 1rem !important;
-            color: #334155 !important;
+            color: #64748b !important;
             font-size: 0.75rem !important;
             font-weight: 700 !important;
             line-height: 1rem !important;
-            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            box-shadow: none !important;
             transition: transform 150ms ease, background-color 150ms ease, color 150ms ease;
         }
 
@@ -156,8 +207,8 @@
         .admin-legacy-glass :is(td, [class*="justify-end"], [class*="gap-2"]) > form > :is(a, button)[class*="border-[#d9dee7]"]:hover,
         .admin-legacy-glass a[class*="text-blue-600"]:hover,
         .admin-legacy-glass a[class*="text-indigo-600"]:hover {
-            background: rgba(255, 255, 255, 0.70) !important;
-            color: #0f172a !important;
+            background: #f1f5f9 !important;
+            color: #334155 !important;
             transform: translateY(-1px);
         }
 
@@ -166,63 +217,18 @@
             display: inline-flex !important;
             align-items: center;
             justify-content: center;
-            border-radius: 0.75rem !important;
+            border-radius: 9999px !important;
+            background: #4f46e5 !important;
+            color: #ffffff !important;
             font-weight: 700 !important;
+            box-shadow: none !important;
             transition: transform 150ms ease, background-color 150ms ease;
         }
 
         .admin-legacy-glass :is(a, button)[class*="bg-[#151b26]"]:hover,
         .admin-legacy-glass :is(a, button)[class*="bg-[#111827]"]:hover {
-            background: rgba(30, 41, 59, 0.95) !important;
+            background: #6366f1 !important;
             transform: translateY(-1px);
-        }
-
-        .admin-legacy-glass > .mb-6.flex,
-        .admin-legacy-glass > .space-y-6 > .flex:first-child,
-        .admin-legacy-glass > .mx-auto > .flex:first-child,
-        .admin-legacy-glass > .mx-auto > .mb-6.flex,
-        .admin-legacy-glass > div > .mb-6.flex:first-child {
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.60);
-            border-radius: 2rem;
-            background: rgba(255, 255, 255, 0.35);
-            padding: 1.25rem;
-            box-shadow: 0 24px 80px rgba(15, 23, 42, 0.10);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-        }
-
-        .admin-legacy-glass > .mb-6.flex::before,
-        .admin-legacy-glass > .space-y-6 > .flex:first-child::before,
-        .admin-legacy-glass > .mx-auto > .flex:first-child::before,
-        .admin-legacy-glass > .mx-auto > .mb-6.flex::before,
-        .admin-legacy-glass > div > .mb-6.flex:first-child::before {
-            content: "";
-            position: absolute;
-            pointer-events: none;
-            inset: auto auto -4rem -4rem;
-            width: 14rem;
-            height: 14rem;
-            border-radius: 999px;
-            background: rgba(125, 211, 252, 0.22);
-            filter: blur(48px);
-        }
-
-        .admin-legacy-glass > .mb-6.flex,
-        .admin-legacy-glass > .space-y-6 > .flex:first-child,
-        .admin-legacy-glass > .mx-auto > .flex:first-child,
-        .admin-legacy-glass > .mx-auto > .mb-6.flex,
-        .admin-legacy-glass > div > .mb-6.flex:first-child {
-            position: relative;
-        }
-
-        .admin-legacy-glass > .mb-6.flex > *,
-        .admin-legacy-glass > .space-y-6 > .flex:first-child > *,
-        .admin-legacy-glass > .mx-auto > .flex:first-child > *,
-        .admin-legacy-glass > .mx-auto > .mb-6.flex > *,
-        .admin-legacy-glass > div > .mb-6.flex:first-child > * {
-            position: relative;
-            z-index: 1;
         }
 
         .admin-legacy-glass > .mb-6.flex p:first-child,
@@ -230,57 +236,40 @@
         .admin-legacy-glass > .mx-auto > .flex:first-child p:first-child,
         .admin-legacy-glass > .mx-auto > .mb-6.flex p:first-child,
         .admin-legacy-glass > div > .mb-6.flex:first-child p:first-child {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.60);
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.45);
-            padding: 0.5rem 1rem;
-            color: #0369a1 !important;
-            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            color: #4f46e5 !important;
         }
 
         .admin-legacy-glass form > div[class*="border-t"][class*="bg-[#fbfcfd]"],
         .admin-legacy-glass form > div[class*="border-t"][class*="bg-[#fafbfc]"],
         .admin-legacy-glass form > div[class*="border-t"][class*="bg-[#f8f9fb]"] {
-            border-color: rgba(255, 255, 255, 0.60) !important;
-            background: rgba(255, 255, 255, 0.35) !important;
-            box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.35);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            border-color: #f8fafc !important;
+            background: transparent !important;
+            box-shadow: none !important;
         }
 
         .admin-legacy-glass dialog {
-            border: 1px solid rgba(255, 255, 255, 0.60) !important;
-            border-radius: 2rem !important;
-            background: rgba(234, 242, 249, 0.92) !important;
+            border: 0 !important;
+            border-radius: 1.75rem !important;
+            background: #ffffff !important;
             padding: 1rem !important;
-            color: #0f172a;
-            box-shadow: 0 28px 90px rgba(15, 23, 42, 0.28) !important;
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
+            color: #334155;
+            box-shadow: 0 24px 70px rgba(148, 163, 184, 0.30) !important;
         }
 
         .admin-legacy-glass dialog::backdrop {
-            background: rgba(15, 23, 42, 0.42);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            background: rgba(148, 163, 184, 0.30);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
         }
 
         .admin-legacy-glass dialog > div {
-            border-color: rgba(255, 255, 255, 0.60) !important;
-            background: rgba(255, 255, 255, 0.35) !important;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.70);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            border: 0 !important;
+            background: transparent !important;
+            box-shadow: none !important;
         }
 
         .admin-legacy-glass table[class*="divide-y"] {
-            border-collapse: separate !important;
-            border-spacing: 0 0.75rem !important;
+            border-collapse: collapse !important;
         }
 
         .admin-legacy-glass :is(thead, tbody, tr)[class*="divide-y"],
@@ -296,30 +285,14 @@
             background: transparent !important;
         }
 
-        .admin-legacy-glass tbody tr > td {
-            border-top: 1px solid rgba(255, 255, 255, 0.60);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.60);
-            background: rgba(255, 255, 255, 0.40);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-        }
-
-        .admin-legacy-glass tbody tr > td:first-child {
-            border-left: 1px solid rgba(255, 255, 255, 0.60);
-            border-top-left-radius: 1rem;
-            border-bottom-left-radius: 1rem;
-        }
-
-        .admin-legacy-glass tbody tr > td:last-child {
-            border-right: 1px solid rgba(255, 255, 255, 0.60);
-            border-top-right-radius: 1rem;
-            border-bottom-right-radius: 1rem;
+        .admin-legacy-glass tbody tr:hover {
+            background: #f7f8fc;
         }
 
         .admin-legacy-glass [class*="text-[#151b26]"],
         .admin-legacy-glass [class*="text-[#111827]"],
         .admin-legacy-glass [class*="text-[#202733]"] {
-            color: #0f172a !important;
+            color: #334155 !important;
         }
 
         .admin-legacy-glass [class*="text-[#6d7685]"],
@@ -327,13 +300,6 @@
         .admin-legacy-glass [class*="text-[#7a8392]"],
         .admin-legacy-glass [class*="text-[#5e6878]"] {
             color: #64748b !important;
-        }
-
-        .admin-legacy-glass [class*="bg-[#151b26]"],
-        .admin-legacy-glass [class*="bg-[#111827]"] {
-            background: rgba(15, 23, 42, 0.92) !important;
-            color: #ffffff !important;
-            box-shadow: 0 14px 30px rgba(148, 163, 184, 0.35) !important;
         }
 
         /* Shared responsive safeguards for every admin page. */
@@ -481,10 +447,10 @@
                 width: 100%;
                 min-width: 0;
                 overflow: hidden;
-                border: 1px solid rgba(203, 213, 225, 0.78) !important;
-                border-radius: 1rem;
-                background: rgba(255, 255, 255, 0.78);
-                box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+                border: 0 !important;
+                border-radius: 1.5rem;
+                background: #ffffff;
+                box-shadow: 0 8px 24px rgba(148, 163, 184, 0.12);
             }
 
             .admin-responsive-table tbody > tr > td:not([colspan]) {
@@ -495,14 +461,12 @@
                 min-width: 0;
                 padding: 0.875rem 1rem !important;
                 border: 0 !important;
-                border-bottom: 1px solid rgba(226, 232, 240, 0.9) !important;
+                border-bottom: 1px solid #f8fafc !important;
                 border-radius: 0 !important;
                 background: transparent !important;
                 text-align: left !important;
                 white-space: normal;
                 box-shadow: none !important;
-                backdrop-filter: none !important;
-                -webkit-backdrop-filter: none !important;
             }
 
             .admin-responsive-table tbody > tr > td:not([colspan]):last-child {
@@ -597,12 +561,13 @@
         }
 
         .admin-scrollbar::-webkit-scrollbar-thumb {
-            background: #d2d8e1;
+            background: #e2e8f0;
             border-radius: 999px;
         }
     </style>
 </head>
 <body class="min-h-screen">
+    <span id="admin-current-route" data-route="{{ request()->route()?->getName() }}" hidden></span>
     @php
         $user = auth()->user();
         $navigationByRole = [
@@ -700,32 +665,33 @@
         id="admin-sidebar-backdrop"
         type="button"
         data-open="false"
-        class="fixed inset-0 z-40 bg-slate-950/45 backdrop-blur-sm transition-opacity duration-200 lg:hidden"
+        class="fixed inset-0 z-40 bg-slate-400/30 backdrop-blur-sm transition-opacity duration-200 lg:hidden"
         aria-label="Close navigation menu"
         tabindex="-1"
     ></button>
 
     <div class="min-h-screen lg:grid lg:grid-cols-[240px_minmax(0,1fr)]">
+        @persist('admin-sidebar')
         <aside
             id="admin-sidebar"
             data-open="false"
-            class="fixed inset-y-0 left-0 z-50 flex h-dvh w-[min(20rem,88vw)] flex-col border-r border-white/60 bg-[#eaf2f9]/95 shadow-[0_18px_55px_rgba(15,23,42,0.18)] backdrop-blur-2xl transition-transform duration-200 lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:w-auto lg:bg-white/35 lg:shadow-[0_18px_55px_rgba(15,23,42,0.08)]"
+            class="fixed inset-y-0 left-0 z-50 flex h-dvh w-[min(20rem,88vw)] flex-col bg-white shadow-[0_8px_24px_rgba(148,163,184,0.12)] lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:w-auto"
             aria-label="Admin navigation"
         >
-            <div class="border-b border-white/50 px-4 py-4">
+            <div class="border-b border-slate-50 px-4 py-4">
                 <div class="flex items-center justify-between gap-3">
                     <div class="flex min-w-0 items-center gap-3">
-                        <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-sm border border-[#cfd5de] bg-[#f4f5f7] text-[#98a1ae]">
+                        <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-400">
                             <i class="fas fa-flag-checkered text-xl"></i>
                         </div>
                         <div class="min-w-0">
-                            <p class="truncate text-xl font-bold tracking-tight text-[var(--admin-text)]">Racetech</p>
+                            <p class="truncate text-xl font-bold tracking-tight text-slate-700">Racetech</p>
                         </div>
                     </div>
                     <button
                         type="button"
                         data-admin-sidebar-close
-                        class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/60 bg-white/50 text-[#606978] shadow-sm lg:hidden"
+                        class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-50 text-slate-500 transition hover:bg-slate-100 lg:hidden"
                         aria-label="Close navigation menu"
                     >
                         <i class="fas fa-times"></i>
@@ -733,11 +699,15 @@
                 </div>
             </div>
 
-            <nav class="admin-scrollbar flex-1 space-y-1 overflow-y-auto px-3 py-6">
+            <nav
+                class="admin-scrollbar flex-1 space-y-1 overflow-y-auto px-3 py-6"
+                wire:navigate:scroll
+                wire:scroll
+            >
                 @foreach ($navigation as $section)
                     @if (isset($section['items']))
                         <div class="pb-4">
-                            <p class="px-4 pb-2 pt-3 text-[11px] font-bold uppercase tracking-[0.22em] text-[#7a8495]">{{ $section['heading'] }}</p>
+                            <p class="px-4 pb-2 pt-3 text-[11px] font-bold uppercase tracking-[0.22em] text-slate-400">{{ $section['heading'] }}</p>
                             <div class="space-y-1">
                                 @foreach ($section['items'] as $item)
                                     @php
@@ -745,12 +715,15 @@
                                     @endphp
                                     <a
                                         href="{{ $item['route'] }}"
-                                        class="relative flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium shadow-sm backdrop-blur-xl transition {{ $active ? 'border border-slate-950/90 bg-slate-950/90 text-white shadow-lg shadow-slate-300/40' : 'text-[#202733] hover:bg-white/45' }}"
+                                        wire:navigate.hover
+                                        data-route-match="{{ json_encode((array) $item['match']) }}"
+                                        class="relative flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium {{ $active ? 'bg-indigo-400 text-white shadow-[0_8px_20px_rgba(129,140,248,0.35)]' : 'text-slate-600 hover:bg-slate-50' }}"
+                                        @if ($active) aria-current="page" @endif
                                     >
                                         @if ($active)
-                                            <span class="absolute left-1 top-1/2 h-7 w-1 -translate-y-1/2 rounded-full bg-sky-300"></span>
+                                            <span class="absolute left-1 top-1/2 h-7 w-1 -translate-y-1/2 rounded-full bg-indigo-200"></span>
                                         @endif
-                                        <span class="flex h-5 w-5 items-center justify-center text-[15px] {{ $active ? 'text-white' : 'text-[#5e6878]' }}">
+                                        <span class="flex h-5 w-5 items-center justify-center text-[15px] {{ $active ? 'text-white' : 'text-slate-400' }}">
                                             <i class="fas {{ $item['icon'] }}"></i>
                                         </span>
                                         <span>{{ $item['label'] }}</span>
@@ -765,12 +738,15 @@
                         @endphp
                         <a
                             href="{{ $item['route'] }}"
-                            class="relative flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium shadow-sm backdrop-blur-xl transition {{ $active ? 'border border-slate-950/90 bg-slate-950/90 text-white shadow-lg shadow-slate-300/40' : 'text-[#202733] hover:bg-white/45' }}"
+                            wire:navigate.hover
+                            data-route-match="{{ json_encode((array) $item['match']) }}"
+                            class="relative flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium {{ $active ? 'bg-indigo-400 text-white shadow-[0_8px_20px_rgba(129,140,248,0.35)]' : 'text-slate-600 hover:bg-slate-50' }}"
+                            @if ($active) aria-current="page" @endif
                         >
                             @if ($active)
-                                <span class="absolute left-1 top-1/2 h-7 w-1 -translate-y-1/2 rounded-full bg-sky-300"></span>
+                                <span class="absolute left-1 top-1/2 h-7 w-1 -translate-y-1/2 rounded-full bg-indigo-200"></span>
                             @endif
-                            <span class="flex h-5 w-5 items-center justify-center text-[15px] {{ $active ? 'text-white' : 'text-[#5e6878]' }}">
+                            <span class="flex h-5 w-5 items-center justify-center text-[15px] {{ $active ? 'text-white' : 'text-slate-400' }}">
                                 <i class="fas {{ $item['icon'] }}"></i>
                             </span>
                             <span>{{ $item['label'] }}</span>
@@ -780,39 +756,39 @@
             </nav>
 
             <div class="p-4">
-                <div class="rounded-2xl border border-white/60 bg-white/40 p-4 shadow-sm backdrop-blur-xl">
+                <div class="rounded-2xl bg-white p-4 shadow-[0_8px_24px_rgba(148,163,184,0.12)]">
                     <details class="group">
                         <summary class="flex cursor-pointer list-none items-center gap-3 [&::-webkit-details-marker]:hidden">
                             @if ($user->avatar_path)
                                 <img
                                     src="{{ asset('storage/'.$user->avatar_path) }}"
                                     alt="{{ $user->name }}"
-                                    class="h-12 w-12 rounded-full border border-[#cfd5de] object-cover"
+                                    class="h-12 w-12 rounded-full object-cover"
                                 >
                             @else
-                                <div class="flex h-12 w-12 items-center justify-center rounded-full border border-[#cfd5de] bg-[#f5f6f8] text-sm font-semibold text-[#606978]">
+                                <div class="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-500">
                                     {{ $user->initials() ?: 'AD' }}
                                 </div>
                             @endif
                             <div class="min-w-0 flex-1">
-                                <p class="truncate text-sm font-semibold text-[var(--admin-text)]">{{ $user->name }}</p>
-                                <p class="truncate text-sm text-[var(--admin-muted)]">{{ $user->roleLabel() }}</p>
+                                <p class="truncate text-sm font-semibold text-slate-700">{{ $user->name }}</p>
+                                <p class="truncate text-sm text-slate-500">{{ $user->roleLabel() }}</p>
                             </div>
-                            <i class="fas fa-angle-down text-xs text-[#7d8694] transition group-open:rotate-180"></i>
+                            <i class="fas fa-angle-down text-xs text-slate-400 transition group-open:rotate-180"></i>
                         </summary>
 
-                        <div class="mt-4 space-y-3 border-t border-[#eef1f4] pt-4">
+                        <div class="mt-4 space-y-3 border-t border-slate-50 pt-4">
                             <a
                                 href="{{ route('profile.edit') }}"
-                                class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#d9dee7] px-4 py-2.5 text-sm font-medium text-[#202733] transition hover:bg-[#f8f9fb]"
+                                class="inline-flex w-full items-center justify-center gap-2 rounded-full bg-slate-50 px-5 py-2.5 text-sm font-semibold text-slate-500 transition hover:bg-slate-100"
                             >
-                                <i class="fas fa-user-gear text-sm text-[#5e6878]"></i>
+                                <i class="fas fa-user-gear text-sm text-slate-400"></i>
                                 Profile Settings
                             </a>
 
                             <form action="{{ route('logout') }}" method="POST">
                                 @csrf
-                                <button type="submit" class="inline-flex w-full items-center justify-center rounded-xl border border-[#d9dee7] px-4 py-2.5 text-sm font-medium text-[#202733] transition hover:bg-[#f8f9fb]">
+                                <button type="submit" class="inline-flex w-full items-center justify-center rounded-full bg-slate-50 px-5 py-2.5 text-sm font-semibold text-slate-500 transition hover:bg-slate-100">
                                     Sign out
                                 </button>
                             </form>
@@ -821,15 +797,16 @@
                 </div>
             </div>
         </aside>
+        @endpersist
 
         <div class="flex min-h-screen min-w-0 flex-col">
-            <header class="border-b border-white/60 bg-white/35 backdrop-blur-2xl">
+            <header class="border-b border-slate-50 bg-white">
                 <div class="flex flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
                     <div class="flex min-w-0 flex-1 items-center gap-4">
                         <button
                             type="button"
                             data-admin-sidebar-open
-                            class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/60 bg-white/45 text-[#606978] shadow-sm backdrop-blur-xl lg:hidden"
+                            class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-50 text-slate-500 transition hover:bg-slate-100 lg:hidden"
                             aria-label="Open navigation menu"
                             aria-controls="admin-sidebar"
                             aria-expanded="false"
@@ -838,7 +815,7 @@
                         </button>
 
                         <form method="GET" action="{{ route('admin.search') }}" class="relative w-full max-w-md">
-                            <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-[#8c95a3]">
+                            <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400">
                                 <i class="fas fa-magnifying-glass text-sm"></i>
                             </span>
                             <input
@@ -846,7 +823,7 @@
                                 name="q"
                                 value="{{ request('q') }}"
                                 placeholder="Search anything..."
-                                class="h-11 w-full rounded-xl border border-white/60 bg-white/50 pl-11 pr-4 text-sm text-[var(--admin-text)] shadow-sm outline-none backdrop-blur-xl transition placeholder:text-[#9aa3af] focus:border-sky-300 focus:ring-4 focus:ring-sky-100/70"
+                                class="h-11 w-full rounded-2xl border-0 bg-slate-50 pl-11 pr-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                             >
                         </form>
                     </div>
@@ -856,17 +833,17 @@
                 @if (session('success') || session('error') || $errors->any())
                     <div class="px-4 pb-4 sm:px-6 lg:px-8">
                         @if (session('success'))
-                            <div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                            <div class="rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-500">
                                 {{ session('success') }}
                             </div>
                         @endif
                         @if (session('error'))
-                            <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                            <div class="rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-400">
                                 {{ session('error') }}
                             </div>
                         @endif
                         @if ($errors->any())
-                            <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                            <div class="rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-400">
                                 {{ $errors->first() }}
                             </div>
                         @endif
@@ -883,7 +860,12 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        window.adminOnPageReady( () => {
+            window.adminSidebarListeners?.abort();
+            const listeners = new AbortController();
+            window.adminSidebarListeners = listeners;
+            const listenerOptions = { signal: listeners.signal };
+            document.addEventListener('livewire:navigating', () => listeners.abort(), { once: true });
             const sidebar = document.getElementById('admin-sidebar');
             const backdrop = document.getElementById('admin-sidebar-backdrop');
             const openButton = document.querySelector('[data-admin-sidebar-open]');
@@ -894,6 +876,30 @@
             if (!sidebar || !backdrop || !openButton || !closeButton) {
                 return;
             }
+
+            // Freeze transitions so the active-link swap happens instantly (no flash / re-animation).
+            sidebar.classList.add('is-syncing');
+
+            const routeName = document.getElementById('admin-current-route')?.dataset.route || '';
+            sidebar.querySelectorAll('nav a[data-route-match]').forEach((link) => {
+                const active = JSON.parse(link.dataset.routeMatch).some((pattern) =>
+                    new RegExp('^' + pattern.split('*').map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.*') + '$').test(routeName)
+                );
+                ['bg-indigo-400', 'text-white', 'shadow-[0_8px_20px_rgba(129,140,248,0.35)]'].forEach((name) => link.classList.toggle(name, active));
+                ['text-slate-600', 'hover:bg-slate-50'].forEach((name) => link.classList.toggle(name, !active));
+                if (active) link.setAttribute('aria-current', 'page');
+                else link.removeAttribute('aria-current');
+                const icon = link.querySelector('span.flex');
+                icon?.classList.toggle('text-white', active);
+                icon?.classList.toggle('text-slate-400', !active);
+                let marker = link.querySelector('span.absolute');
+                if (active && !marker) {
+                    marker = document.createElement('span');
+                    marker.className = 'absolute left-1 top-1/2 h-7 w-1 -translate-y-1/2 rounded-full bg-indigo-200';
+                    link.prepend(marker);
+                }
+                if (marker) marker.hidden = !active;
+            });
 
             const isOpen = () => sidebar.dataset.open === 'true' && !desktopQuery.matches;
 
@@ -921,16 +927,16 @@
 
             const closeSidebar = (restoreFocus = true) => syncSidebar(false, restoreFocus);
 
-            openButton.addEventListener('click', openSidebar);
-            closeButton.addEventListener('click', () => closeSidebar());
-            backdrop.addEventListener('click', () => closeSidebar());
+            openButton.addEventListener('click', openSidebar, listenerOptions);
+            closeButton.addEventListener('click', () => closeSidebar(), listenerOptions);
+            backdrop.addEventListener('click', () => closeSidebar(), listenerOptions);
 
             sidebar.querySelectorAll('nav a').forEach((link) => {
                 link.addEventListener('click', () => {
                     if (!desktopQuery.matches) {
                         closeSidebar(false);
                     }
-                });
+                }, listenerOptions);
             });
 
             document.addEventListener('keydown', (event) => {
@@ -966,15 +972,20 @@
                     event.preventDefault();
                     firstElement.focus();
                 }
-            });
+            }, listenerOptions);
 
-            desktopQuery.addEventListener('change', () => syncSidebar(false));
+            desktopQuery.addEventListener('change', () => syncSidebar(false), listenerOptions);
             syncSidebar(false);
+
+            // Re-enable transitions only after the new state has been painted.
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => sidebar.classList.remove('is-syncing'));
+            });
         });
     </script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        window.adminOnPageReady( () => {
             const adminContent = document.querySelector('.admin-legacy-glass');
 
             if (!adminContent) {
@@ -1054,41 +1065,41 @@
 
     @if (session('success'))
         <div id="admin-success-dialog" class="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto px-4 py-8 sm:px-6" role="dialog" aria-modal="true" aria-labelledby="admin-success-dialog-title">
-            <button type="button" data-close-success-dialog class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm" aria-label="Close dialog"></button>
+            <button type="button" data-close-success-dialog class="fixed inset-0 bg-slate-400/30 backdrop-blur-sm" aria-label="Close dialog"></button>
 
-            <div class="relative z-10 mt-10 w-full max-w-lg overflow-hidden rounded-[1.5rem] border border-white/60 bg-[#eaf2f9]/90 shadow-[0_28px_90px_rgba(15,23,42,0.28)] backdrop-blur-2xl ring-1 ring-white/40">
-                <div class="border-b border-white/50 bg-white/40 px-6 py-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.70)] backdrop-blur-xl">
+            <div class="relative z-10 mt-10 w-full max-w-lg overflow-hidden rounded-[1.75rem] bg-white shadow-[0_24px_70px_rgba(148,163,184,0.30)]">
+                <div class="border-b border-slate-50 px-6 py-5">
                     <div class="flex items-start justify-between gap-4">
                         <div class="flex items-start gap-4">
-                            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-emerald-200/70 bg-emerald-100/80 text-emerald-700 shadow-sm backdrop-blur-xl">
+                            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500">
                                 <i class="fas fa-check"></i>
                             </div>
                             <div>
-                                <p class="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-700">Success</p>
-                                <h2 id="admin-success-dialog-title" class="mt-1 text-2xl font-semibold tracking-tight text-[#151b26]">Entry Completed</h2>
+                                <p class="text-xs font-semibold uppercase tracking-wide text-emerald-500">Success</p>
+                                <h2 id="admin-success-dialog-title" class="mt-1 text-2xl font-bold tracking-tight text-slate-700">Entry Completed</h2>
                             </div>
                         </div>
-                        <button type="button" data-close-success-dialog class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/60 bg-white/45 text-[#6d7685] shadow-sm backdrop-blur-xl transition hover:bg-white/70 hover:text-[#151b26]" aria-label="Close dialog">
+                        <button type="button" data-close-success-dialog class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-50 text-slate-500 transition hover:bg-slate-100" aria-label="Close dialog">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
                 </div>
 
                 <div class="px-6 py-5">
-                    <p class="text-sm leading-7 text-[#202733]">{{ session('success') }}</p>
+                    <p class="text-sm leading-7 text-slate-600">{{ session('success') }}</p>
                 </div>
 
-                <div class="flex flex-wrap justify-end gap-3 border-t border-white/50 bg-white/40 px-6 py-4 backdrop-blur-xl">
-                    <button type="button" data-close-success-dialog class="inline-flex h-11 items-center justify-center rounded-xl border border-white/60 bg-white/45 px-5 text-sm font-semibold text-[#202733] shadow-sm backdrop-blur-xl transition hover:bg-white/70">
+                <div class="flex flex-wrap justify-end gap-3 border-t border-slate-50 px-6 py-4">
+                    <button type="button" data-close-success-dialog class="inline-flex h-11 items-center justify-center rounded-full bg-slate-50 px-5 text-sm font-semibold text-slate-500 transition hover:bg-slate-100">
                         Done
                     </button>
                     @if ($successCreateAction)
                         @if (isset($successCreateAction['target']))
-                            <button type="button" data-success-create-target="{{ $successCreateAction['target'] }}" class="inline-flex h-11 items-center justify-center rounded-xl bg-[#151b26] px-5 text-sm font-semibold text-white shadow-lg shadow-slate-300/40 transition hover:bg-[#232b39]">
+                            <button type="button" data-success-create-target="{{ $successCreateAction['target'] }}" class="inline-flex h-11 items-center justify-center rounded-full bg-indigo-400 px-5 text-sm font-semibold text-white transition hover:bg-indigo-500">
                                 {{ $successCreateAction['label'] }}
                             </button>
                         @else
-                            <a href="{{ $successCreateAction['url'] }}" class="inline-flex h-11 items-center justify-center rounded-xl bg-[#151b26] px-5 text-sm font-semibold text-white shadow-lg shadow-slate-300/40 transition hover:bg-[#232b39]">
+                            <a href="{{ $successCreateAction['url'] }}" class="inline-flex h-11 items-center justify-center rounded-full bg-indigo-400 px-5 text-sm font-semibold text-white transition hover:bg-indigo-500">
                                 {{ $successCreateAction['label'] }}
                             </a>
                         @endif
@@ -1098,7 +1109,7 @@
         </div>
 
         <script>
-            document.addEventListener('DOMContentLoaded', () => {
+            window.adminOnPageReady( () => {
                 const successDialog = document.getElementById('admin-success-dialog');
 
                 if (!successDialog) {
@@ -1137,5 +1148,6 @@
             });
         </script>
     @endif
+    @livewireScripts
 </body>
 </html>

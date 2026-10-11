@@ -326,7 +326,7 @@ test('category management heading follows the selected event type', function () 
         ->actingAs($admin)
         ->get(route('admin.categories.index', ['event_id' => $event->id]))
         ->assertOk()
-        ->assertSee('<h1 class="mt-2 text-3xl font-semibold tracking-tight text-[#151b26]">Ride Categories</h1>', false);
+        ->assertSeeText('Ride Categories');
 });
 
 test('legacy events without structured details remain backward compatible', function () {

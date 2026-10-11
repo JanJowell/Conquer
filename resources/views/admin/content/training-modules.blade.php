@@ -146,12 +146,12 @@
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex items-center justify-end gap-2">
-                                <button type="button" data-training-module-view-open="view-training-module-{{ $module->id }}" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#d9dee7] text-[#315fa8] transition hover:bg-[#f8f9fb]" title="Preview module">
-                                    <i class="fas fa-eye text-xs"></i>
+                                <button type="button" data-training-module-view-open="view-training-module-{{ $module->id }}" class="inline-flex h-9 px-4 text-xs font-semibold items-center justify-center rounded-xl border border-[#d9dee7] text-[#315fa8] transition hover:bg-[#f8f9fb]" title="Preview module">
+                                    View
                                 </button>
 
-                                <button type="button" data-training-module-edit-open="edit-training-module-{{ $module->id }}" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#d9dee7] text-[#5e6878] transition hover:bg-[#f8f9fb] hover:text-[#202733]" title="Edit module">
-                                    <i class="fas fa-pen text-xs"></i>
+                                <button type="button" data-training-module-edit-open="edit-training-module-{{ $module->id }}" class="inline-flex h-9 px-4 text-xs font-semibold items-center justify-center rounded-xl border border-[#d9dee7] text-[#5e6878] transition hover:bg-[#f8f9fb] hover:text-[#202733]" title="Edit module">
+                                    Edit
                                 </button>
 
                                 <form method="POST" action="{{ route('admin.content.training-modules.destroy', $module) }}" onsubmit="return confirm('Are you sure you want to delete this training module?')">
@@ -308,7 +308,7 @@
 @endforeach
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    window.adminOnPageReady( () => {
         const closeModal = (modal) => {
             if (!modal) {
                 return;

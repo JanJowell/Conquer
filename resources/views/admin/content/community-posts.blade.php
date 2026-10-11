@@ -103,8 +103,8 @@
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex items-center justify-end gap-2">
-                                <a href="{{ route('admin.content.community-posts.show', $post->id) }}" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#d9dee7] text-[#315fa8] transition hover:bg-[#f8f9fb]" title="View post">
-                                    <i class="fas fa-eye text-xs"></i>
+                                <a href="{{ route('admin.content.community-posts.show', $post->id) }}" class="inline-flex h-9 px-4 text-xs font-semibold items-center justify-center rounded-xl border border-[#d9dee7] text-[#315fa8] transition hover:bg-[#f8f9fb]" title="View post">
+                                    View
                                 </a>
 
                                 @if (! $post->trashed())

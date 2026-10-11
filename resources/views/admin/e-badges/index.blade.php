@@ -284,7 +284,7 @@
                     </tbody>
                 </table>
             </div>
-            <div class="ebadge-glass-pagination border-t border-white/60 bg-white/30 px-6 py-4 backdrop-blur-xl">
+            <div class="border-t border-white/60 bg-white/30 px-6 py-4 backdrop-blur-xl">
                 {{ $badges->links() }}
             </div>
         </div>
@@ -440,7 +440,7 @@
                     </tbody>
                 </table>
             </div>
-            <div class="ebadge-glass-pagination border-t border-white/60 bg-white/30 px-6 py-4 backdrop-blur-xl">
+            <div class="border-t border-white/60 bg-white/30 px-6 py-4 backdrop-blur-xl">
                 {{ $issuedBadges->links() }}
             </div>
         </div>
@@ -464,7 +464,7 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        window.adminOnPageReady( () => {
             const autoIssueRuleDescriptions = @json($autoIssueRuleDescriptions);
             const dialog = document.querySelector('[data-ebadge-preview-dialog]');
             const image = document.querySelector('[data-ebadge-preview-image]');

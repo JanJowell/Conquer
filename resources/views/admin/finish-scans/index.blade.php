@@ -104,7 +104,9 @@
                     </tbody>
                 </table>
             </div>
-            <div class="border-t border-[#eef1f4] px-5 py-4">{{ $scans->links() }}</div>
+            <div class="border-t border-[#eef1f4] px-5 py-4">
+                {{ $scans->links() }}
+            </div>
         </div>
     </div>
 @endsection
