@@ -94,7 +94,15 @@ class UserController extends Controller
         ]);
 
         if (($validated['role'] ?? null) !== User::ROLE_RUNNER) {
-            $validated['medical_conditions'] = null;
+            foreach ([
+                'address',
+                'medical_conditions',
+                'emergency_contact',
+                'emergency_contact_name',
+                'emergency_contact_number',
+            ] as $participantProfileField) {
+                $validated[$participantProfileField] = null;
+            }
         }
 
         $validated['password'] = Hash::make($validated['password'] ?? Str::random(64));

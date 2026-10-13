@@ -207,7 +207,11 @@
                     </section>
 
                     {{-- Personal Information --}}
-                    <section class="rounded-[1.5rem] bg-white p-5 shadow-[0_8px_24px_rgba(148,163,184,0.12)]">
+                    <section
+                        id="participant-personal-information"
+                        class="{{ old('role', $runnerRole) === $runnerRole ? '' : 'hidden' }} rounded-[1.5rem] bg-white p-5 shadow-[0_8px_24px_rgba(148,163,184,0.12)]"
+                        aria-hidden="{{ old('role', $runnerRole) === $runnerRole ? 'false' : 'true' }}"
+                    >
                         <div class="mb-5">
                             <p class="text-xs font-semibold uppercase tracking-wide text-indigo-400">Section 02</p>
                             <h3 class="mt-2 text-xl font-bold text-slate-700">Personal Information</h3>
@@ -230,7 +234,7 @@
                                 @enderror
                             </div>
 
-                            <div class="md:col-span-2 {{ old('role') === $runnerRole ? '' : 'hidden' }}" id="medical-conditions-group">
+                            <div class="md:col-span-2">
                                 <label for="medical_conditions" class="block mb-1.5 text-sm font-medium text-slate-600">Medical Conditions</label>
                                 <textarea
                                     name="medical_conditions"
@@ -307,8 +311,10 @@
 <script>
     (function () {
         const roleSelect = document.getElementById('role');
-        const medicalConditionsGroup = document.getElementById('medical-conditions-group');
-        const medicalConditionsInput = document.getElementById('medical_conditions');
+        const personalInformationSection = document.getElementById('participant-personal-information');
+        const personalInformationFields = personalInformationSection
+            ? Array.from(personalInformationSection.querySelectorAll('input, textarea, select'))
+            : [];
         const passwordGroup = document.getElementById('password-group');
         const passwordConfirmationGroup = document.getElementById('password-confirmation-group');
         const passwordInput = document.getElementById('password');
@@ -317,7 +323,7 @@
         const invitationNotice = document.getElementById('admin-invitation-notice');
         const runnerRole = @json($runnerRole);
 
-        if (!roleSelect || !medicalConditionsGroup || !medicalConditionsInput) {
+        if (!roleSelect || !personalInformationSection) {
             return;
         }
 
@@ -354,13 +360,22 @@
             });
         });
 
-        const toggleMedicalConditions = () => {
+        const toggleRoleSpecificFields = () => {
             const isRunner = roleSelect.value === runnerRole;
 
-            medicalConditionsGroup.classList.toggle('hidden', !isRunner);
+            personalInformationSection.classList.toggle('hidden', !isRunner);
+            personalInformationSection.setAttribute('aria-hidden', isRunner ? 'false' : 'true');
             passwordGroup?.classList.toggle('hidden', !isRunner);
             passwordConfirmationGroup?.classList.toggle('hidden', !isRunner);
             invitationNotice?.classList.toggle('hidden', isRunner);
+
+            personalInformationFields.forEach((field) => {
+                field.disabled = !isRunner;
+
+                if (!isRunner) {
+                    field.value = '';
+                }
+            });
 
             if (passwordInput) {
                 passwordInput.required = isRunner;
@@ -371,7 +386,6 @@
             }
 
             if (!isRunner) {
-                medicalConditionsInput.value = '';
                 if (passwordInput) passwordInput.value = '';
                 if (passwordConfirmationInput) passwordConfirmationInput.value = '';
 
@@ -382,8 +396,8 @@
             }
         };
 
-        roleSelect.addEventListener('change', toggleMedicalConditions);
-        toggleMedicalConditions();
+        roleSelect.addEventListener('change', toggleRoleSpecificFields);
+        toggleRoleSpecificFields();
     })();
 </script>
 @endsection
