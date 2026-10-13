@@ -41,7 +41,7 @@
         [
             'label' => 'Check-in Ready',
             'count' => $approvedCount,
-            'detail' => $approvedCount > 0 ? 'Approved runners can be checked in' : 'No runners ready for check-in',
+            'detail' => $approvedCount > 0 ? 'Approved participants can be checked in' : 'No participants ready for check-in',
             'href' => route('admin.check-in.index', ['event_id' => $event->id]),
             'enabled' => $canManage,
             'tone' => $approvedCount > 0 ? 'active' : 'muted',
@@ -49,7 +49,7 @@
         [
             'label' => 'Awaiting Results',
             'count' => $checkedInCount,
-            'detail' => $checkedInCount > 0 ? 'Checked-in runners need results' : 'No results waiting',
+            'detail' => $checkedInCount > 0 ? 'Checked-in participants need results' : 'No results waiting',
             'href' => route('admin.results.index', ['event_id' => $event->id]),
             'enabled' => $canManage,
             'tone' => $checkedInCount > 0 ? 'active' : 'muted',

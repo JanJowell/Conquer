@@ -71,7 +71,7 @@
                         <div class="soft-card rounded-2xl p-5">
                             <p class="text-xs font-semibold uppercase tracking-wide text-indigo-400">Participants</p>
                             <p class="mt-2 text-lg font-bold text-slate-700">Mobile App Flow</p>
-                            <p class="mt-2 text-sm leading-6 text-slate-500">Runner sign-in is planned for mobile, keeping the web app focused on back-office work.</p>
+                            <p class="mt-2 text-sm leading-6 text-slate-500">Participant sign-in is available in the mobile app, keeping the web portal focused on back-office work.</p>
                         </div>
                     </div>
                 </section>
@@ -157,7 +157,7 @@
                     </form>
 
                     <div class="mt-6 rounded-2xl bg-[#f7f8fc] px-4 py-4 text-sm leading-6 text-slate-500">
-                        Participant accounts are not allowed to access the web portal. Mobile access can be connected later without changing your runner data.
+                        Participant accounts are not allowed to access the web portal. Use the mobile app to access your participant account and data.
                     </div>
 
                     <p class="mt-6 text-center text-sm italic text-slate-500">

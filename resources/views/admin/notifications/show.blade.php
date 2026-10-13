@@ -19,9 +19,12 @@
         'emergency' => 'bg-rose-50 text-rose-400',
     ][$notification->type] ?? 'bg-slate-100 text-slate-500';
 
-    $audienceLabel = $notification->target_audience === 'runners'
-        ? 'Runners'
-        : str($notification->target_audience)->replace('_', ' ')->title();
+    $audienceLabel = [
+        'all' => 'All Users',
+        'runners' => 'All Participants',
+        'participants' => 'Registered Event Participants',
+        'admins' => 'Admin Users',
+    ][$notification->target_audience] ?? str($notification->target_audience)->replace('_', ' ')->title();
 
     $canManageNotification = auth()->user()->hasAdminRole([
         \App\Models\User::ROLE_SUPER_ADMIN,

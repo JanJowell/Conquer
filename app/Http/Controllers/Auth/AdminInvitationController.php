@@ -78,7 +78,7 @@ class AdminInvitationController extends Controller
 
         if (! $activated) {
             return back()->withErrors([
-                'invitation' => 'This invitation is invalid, expired, or has already been used. Ask a Super Admin to send a new invitation.',
+                'invitation' => 'This invitation is invalid, expired, or has already been used. Ask an Admin to send a new invitation.',
             ]);
         }
 

@@ -257,16 +257,12 @@
                                 <td class="px-6 py-5">{{ number_format($badge->issued_badges_count) }}</td>
                                 <td class="px-6 py-5 text-right">
                                     <div class="flex flex-wrap justify-end gap-2">
-                                        <button type="button" data-ebadge-edit-open="edit-ebadge-{{ $badge->id }}" class="inline-flex h-10 items-center justify-center rounded-xl border border-[#d9dee7] px-4 text-xs font-semibold text-[#151b26] transition hover:bg-[#f7f8fa]">
-                                            Edit
-                                        </button>
+                                        <x-admin.icon-action label="Edit E-Badge template" icon="fa-pen" data-ebadge-edit-open="edit-ebadge-{{ $badge->id }}" />
                                         @if ($badge->issued_badges_count === 0)
                                             <form method="POST" action="{{ route('admin.e-badges.destroy', $badge) }}" onsubmit="return confirm('Delete this e-badge template?');">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="inline-flex h-10 items-center justify-center rounded-xl border border-rose-200 px-4 text-xs font-semibold text-rose-600 transition hover:bg-rose-50">
-                                                    Delete
-                                                </button>
+                                                <x-admin.icon-action type="submit" label="Delete E-Badge template" icon="fa-trash" tone="danger" />
                                             </form>
                                         @else
                                             <span class="inline-flex h-10 items-center justify-center rounded-xl border border-[#d9dee7] px-4 text-xs font-semibold text-[#8a93a1]" title="Issued badge templates cannot be deleted.">

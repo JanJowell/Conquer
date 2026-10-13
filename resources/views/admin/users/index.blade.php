@@ -247,35 +247,20 @@
 
                                 <td class="rounded-r-2xl px-6 py-4 text-right">
                                     @if($canManageUsers)
-                                        <div class="admin-responsive-actions flex flex-wrap justify-end gap-2">
-                                            <button type="button" data-open-user-modal="view-user-{{ $user->id }}" class="inline-flex h-9 items-center justify-center rounded-full bg-slate-50 px-4 text-xs font-semibold text-slate-500 transition hover:bg-slate-100">
-                                                View
-                                            </button>
+                                        <div class="admin-responsive-actions admin-responsive-icon-actions flex flex-wrap justify-end gap-2">
+                                            <x-admin.icon-action label="View user" icon="fa-eye" data-open-user-modal="view-user-{{ $user->id }}" />
 
-                                            <button type="button" data-open-user-modal="edit-user-{{ $user->id }}" class="inline-flex h-9 items-center justify-center rounded-full bg-slate-50 px-4 text-xs font-semibold text-slate-500 transition hover:bg-slate-100">
-                                                Edit
-                                            </button>
+                                            <x-admin.icon-action label="Edit user" icon="fa-pen" data-open-user-modal="edit-user-{{ $user->id }}" />
 
                                             @if($user->id !== auth()->id())
+                                                <x-admin.icon-action label="Delete user" icon="fa-trash" tone="danger" data-open-user-modal="delete-user-{{ $user->id }}" />
+
                                                 @if($user->banned_at)
-                                                    <form method="POST" action="{{ route('admin.users.unban', $user) }}">
-                                                        @csrf
-                                                        <button type="submit" class="inline-flex h-10 w-full items-center justify-center rounded-xl border bg-emerald-100/60 px-4 text-xs font-bold text-emerald-500   transition hover:-translate-y-0.5 hover:bg-emerald-100">
-                                                            Unban
-                                                        </button>
-                                                    </form>
+                                                    <x-admin.icon-action label="Unban user" icon="fa-user-check" tone="success" data-open-user-modal="unban-user-{{ $user->id }}" />
                                                 @else
-                                                    <form method="POST" action="{{ route('admin.users.ban', $user) }}">
-                                                        @csrf
-                                                        <button type="submit" class="inline-flex h-10 w-full items-center justify-center rounded-xl border bg-rose-100/60 px-4 text-xs font-bold text-rose-400   transition hover:-translate-y-0.5 hover:bg-rose-100">
-                                                            Ban
-                                                        </button>
-                                                    </form>
+                                                    <x-admin.icon-action label="Ban user" icon="fa-user-slash" tone="danger" data-open-user-modal="ban-user-{{ $user->id }}" />
                                                 @endif
 
-                                                <button type="button" data-open-user-modal="delete-user-{{ $user->id }}" class="inline-flex h-10 items-center justify-center rounded-xl border bg-rose-100/60 px-4 text-xs font-bold text-rose-400   transition hover:-translate-y-0.5 hover:bg-rose-100">
-                                                    Delete
-                                                </button>
                                             @endif
                                         </div>
                                     @else
@@ -544,6 +529,82 @@
         </div>
 
         @if($modalUser->id !== auth()->id())
+            @if($modalUser->banned_at)
+                <div id="unban-user-{{ $modalUser->id }}" class="fixed inset-0 z-50 hidden items-center justify-center px-4 py-6" role="dialog" aria-modal="true" aria-labelledby="unban-user-title-{{ $modalUser->id }}" aria-describedby="unban-user-description-{{ $modalUser->id }}">
+                    <button type="button" data-close-user-modal class="absolute inset-0 bg-slate-400/30 backdrop-blur-sm" aria-label="Close unban confirmation"></button>
+
+                    <div class="relative w-full max-w-xl overflow-hidden rounded-[1.75rem] bg-white shadow-[0_24px_70px_rgba(148,163,184,0.30)]">
+                        <div class="p-6">
+                            <div class="flex items-start justify-between gap-4">
+                                <div class="flex items-start gap-4">
+                                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                                        <i class="fas fa-user-check" aria-hidden="true"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="text-xs font-semibold uppercase tracking-wide text-emerald-600">Restore Account Access</p>
+                                        <h2 id="unban-user-title-{{ $modalUser->id }}" class="mt-2 text-2xl font-bold tracking-tight text-slate-700">Unban {{ $modalUser->name }}?</h2>
+                                    </div>
+                                </div>
+
+                                <button type="button" data-close-user-modal class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-slate-500 transition hover:bg-slate-100" aria-label="Close unban confirmation">
+                                    <i class="fas fa-times" aria-hidden="true"></i>
+                                </button>
+                            </div>
+
+                            <p id="unban-user-description-{{ $modalUser->id }}" class="mt-5 text-sm leading-6 text-slate-600">
+                                This will remove the account ban. The user may sign in again when all other account and verification requirements are satisfied.
+                            </p>
+
+                            <form method="POST" action="{{ route('admin.users.unban', $modalUser) }}" class="mt-6 flex flex-wrap justify-end gap-3" data-confirmation-form>
+                                @csrf
+                                <button type="button" data-close-user-modal data-modal-initial-focus class="inline-flex h-11 items-center justify-center rounded-full bg-slate-100 px-5 text-sm font-semibold text-slate-600 transition hover:bg-slate-200">Cancel</button>
+                                <button type="submit" class="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-emerald-600 px-5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-wait disabled:opacity-60">
+                                    <i class="fas fa-user-check" aria-hidden="true"></i>
+                                    <span>Unban User</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @else
+                <div id="ban-user-{{ $modalUser->id }}" class="fixed inset-0 z-50 hidden items-center justify-center px-4 py-6" role="dialog" aria-modal="true" aria-labelledby="ban-user-title-{{ $modalUser->id }}" aria-describedby="ban-user-description-{{ $modalUser->id }}">
+                    <button type="button" data-close-user-modal class="absolute inset-0 bg-slate-400/30 backdrop-blur-sm" aria-label="Close ban confirmation"></button>
+
+                    <div class="relative w-full max-w-xl overflow-hidden rounded-[1.75rem] bg-white shadow-[0_24px_70px_rgba(148,163,184,0.30)]">
+                        <div class="p-6">
+                            <div class="flex items-start justify-between gap-4">
+                                <div class="flex items-start gap-4">
+                                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
+                                        <i class="fas fa-user-slash" aria-hidden="true"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="text-xs font-semibold uppercase tracking-wide text-rose-600">Restrict Account Access</p>
+                                        <h2 id="ban-user-title-{{ $modalUser->id }}" class="mt-2 text-2xl font-bold tracking-tight text-slate-700">Ban {{ $modalUser->name }}?</h2>
+                                    </div>
+                                </div>
+
+                                <button type="button" data-close-user-modal class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-slate-500 transition hover:bg-slate-100" aria-label="Close ban confirmation">
+                                    <i class="fas fa-times" aria-hidden="true"></i>
+                                </button>
+                            </div>
+
+                            <p id="ban-user-description-{{ $modalUser->id }}" class="mt-5 text-sm leading-6 text-slate-600">
+                                This will immediately prevent the user from signing in. Their account and records will remain stored, and an administrator can unban them later.
+                            </p>
+
+                            <form method="POST" action="{{ route('admin.users.ban', $modalUser) }}" class="mt-6 flex flex-wrap justify-end gap-3" data-confirmation-form>
+                                @csrf
+                                <button type="button" data-close-user-modal data-modal-initial-focus class="inline-flex h-11 items-center justify-center rounded-full bg-slate-100 px-5 text-sm font-semibold text-slate-600 transition hover:bg-slate-200">Cancel</button>
+                                <button type="submit" class="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-rose-600 px-5 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:cursor-wait disabled:opacity-60">
+                                    <i class="fas fa-user-slash" aria-hidden="true"></i>
+                                    <span>Ban User</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             <div id="delete-user-{{ $modalUser->id }}" class="fixed inset-0 z-50 hidden items-center justify-center px-4 py-6" role="dialog" aria-modal="true" aria-labelledby="delete-user-title-{{ $modalUser->id }}">
                 <button type="button" data-close-user-modal class="absolute inset-0 bg-slate-400/30 backdrop-blur-sm" aria-label="Close dialog"></button>
 
@@ -604,6 +665,8 @@
 
     <script>
         (function () {
+            let activeModalTrigger = null;
+
             const closeModal = (modal) => {
                 if (!modal) {
                     return;
@@ -612,20 +675,31 @@
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
                 document.body.classList.remove('overflow-hidden');
+
+                if (activeModalTrigger?.isConnected) {
+                    activeModalTrigger.focus();
+                }
+
+                activeModalTrigger = null;
             };
 
-            const openModal = (modal) => {
+            const openModal = (modal, trigger = null) => {
                 if (!modal) {
                     return;
                 }
 
+                activeModalTrigger = trigger;
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
                 document.body.classList.add('overflow-hidden');
+
+                window.requestAnimationFrame(() => {
+                    modal.querySelector('[data-modal-initial-focus]')?.focus();
+                });
             };
 
             document.querySelectorAll('[data-open-user-modal]').forEach((button) => {
-                button.addEventListener('click', () => openModal(document.getElementById(button.dataset.openUserModal)));
+                button.addEventListener('click', () => openModal(document.getElementById(button.dataset.openUserModal), button));
             });
 
             document.querySelectorAll('[data-close-user-modal]').forEach((button) => {
@@ -665,6 +739,19 @@
             if (document.querySelector('[role="dialog"].flex')) {
                 document.body.classList.add('overflow-hidden');
             }
+
+            document.querySelectorAll('[data-confirmation-form]').forEach((form) => {
+                form.addEventListener('submit', () => {
+                    const submitButton = form.querySelector('button[type="submit"]');
+
+                    if (!submitButton || submitButton.disabled) {
+                        return;
+                    }
+
+                    submitButton.disabled = true;
+                    submitButton.setAttribute('aria-busy', 'true');
+                });
+            });
 
             const resendButtons = Array.from(document.querySelectorAll('[data-invitation-resend-button]'));
 

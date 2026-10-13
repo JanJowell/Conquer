@@ -8,7 +8,7 @@
 - [Railway Staging](docs/railway-staging.md)
 
 ## Overview
-This document outlines the complete scope and limitations of the admin web interface for the event management system, including both standard admin features and super admin capabilities.
+This document outlines the complete scope and limitations of the admin web interface for the event management system, including both standard staff features and Admin capabilities.
 
 ## Standard Admin Features
 
@@ -57,7 +57,7 @@ This document outlines the complete scope and limitations of the admin web inter
 - **Limitations**: Issued only for system-recorded completed events
 - **Admin Actions**: Verify event completion, manage badge issuance process
 
-## Super Admin Features
+## Admin Features
 
 ### Core Access Overview
 - Users & Roles Management

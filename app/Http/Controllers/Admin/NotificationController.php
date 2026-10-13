@@ -191,7 +191,7 @@ class NotificationController extends Controller
     {
         $options = [
             'all' => 'All Users',
-            'runners' => 'All Runners',
+            'runners' => 'All Participants',
             'participants' => 'Event Participants',
         ];
 

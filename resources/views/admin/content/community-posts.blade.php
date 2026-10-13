@@ -103,26 +103,20 @@
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex items-center justify-end gap-2">
-                                <a href="{{ route('admin.content.community-posts.show', $post->id) }}" class="inline-flex h-9 px-4 text-xs font-semibold items-center justify-center rounded-xl border border-[#d9dee7] text-[#315fa8] transition hover:bg-[#f8f9fb]" title="View post">
-                                    View
-                                </a>
+                                <x-admin.icon-action :href="route('admin.content.community-posts.show', $post->id)" label="View post" icon="fa-eye" tone="primary" />
 
                                 @if (! $post->trashed())
                                     @if ($post->is_flagged)
                                         <form method="POST" action="{{ route('admin.content.community-posts.unflag', $post) }}" onsubmit="return collectModerationNote(this, 'Reason for unflagging this post?')">
                                             @csrf
                                             <input type="hidden" name="moderation_note">
-                                            <button type="submit" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-200 text-emerald-600 transition hover:bg-emerald-50" title="Unflag post">
-                                                <i class="fas fa-flag text-xs"></i>
-                                            </button>
+                                            <x-admin.icon-action type="submit" label="Clear post flag" icon="fa-check" tone="success" />
                                         </form>
                                     @else
                                         <form method="POST" action="{{ route('admin.content.community-posts.flag', $post) }}" onsubmit="return collectModerationNote(this, 'Reason for flagging this post?')">
                                             @csrf
                                             <input type="hidden" name="moderation_note">
-                                            <button type="submit" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-amber-200 text-amber-600 transition hover:bg-amber-50" title="Flag post">
-                                                <i class="fas fa-flag text-xs"></i>
-                                            </button>
+                                            <x-admin.icon-action type="submit" label="Flag post" icon="fa-flag" tone="warning" />
                                         </form>
                                     @endif
 
@@ -130,17 +124,13 @@
                                         @csrf
                                         @method('DELETE')
                                         <input type="hidden" name="moderation_note">
-                                        <button type="submit" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-rose-200 text-rose-600 transition hover:bg-rose-50" title="Delete post">
-                                            <i class="fas fa-trash text-xs"></i>
-                                        </button>
+                                        <x-admin.icon-action type="submit" label="Delete post" icon="fa-trash" tone="danger" />
                                     </form>
                                 @else
                                     <form method="POST" action="{{ route('admin.content.community-posts.restore', $post) }}" onsubmit="return collectModerationNote(this, 'Reason for restoring this post?')">
                                         @csrf
                                         <input type="hidden" name="moderation_note">
-                                        <button type="submit" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-200 text-emerald-600 transition hover:bg-emerald-50" title="Restore post">
-                                            <i class="fas fa-rotate-left text-xs"></i>
-                                        </button>
+                                        <x-admin.icon-action type="submit" label="Restore post" icon="fa-rotate-left" tone="success" />
                                     </form>
                                 @endif
                             </div>

@@ -37,7 +37,7 @@ class PruneUnverifiedUsers extends Command
         {--days=7 : Delete only accounts at least this many days old}
         {--dry-run : Report the number of eligible accounts without deleting them}';
 
-    protected $description = 'Delete abandoned, unverified runner accounts that have no activity.';
+    protected $description = 'Delete abandoned, unverified participant accounts that have no activity.';
 
     public function handle(): int
     {
@@ -56,7 +56,7 @@ class PruneUnverifiedUsers extends Command
         $dryRun = (bool) $this->option('dry-run');
 
         if ($dryRun) {
-            $this->info("Dry run: {$eligibleCount} unverified runner account(s) are eligible for deletion.");
+            $this->info("Dry run: {$eligibleCount} unverified participant account(s) are eligible for deletion.");
             $this->writeLog($days, $cutoff, $eligibleCount, 0, true);
 
             return self::SUCCESS;
@@ -97,7 +97,7 @@ class PruneUnverifiedUsers extends Command
 
         $skippedCount = max(0, $eligibleCount - $deletedCount);
 
-        $this->info("Deleted {$deletedCount} abandoned unverified runner account(s).");
+        $this->info("Deleted {$deletedCount} abandoned unverified participant account(s).");
 
         if ($skippedCount > 0) {
             $this->warn("Skipped {$skippedCount} account(s) because their eligibility changed during cleanup.");
@@ -146,7 +146,7 @@ class PruneUnverifiedUsers extends Command
         bool $dryRun,
         int $skippedCount = 0,
     ): void {
-        Log::info('Unverified runner cleanup completed.', [
+        Log::info('Unverified participant cleanup completed.', [
             'retention_days' => $days,
             'cutoff' => $cutoff->toIso8601String(),
             'eligible_count' => $eligibleCount,

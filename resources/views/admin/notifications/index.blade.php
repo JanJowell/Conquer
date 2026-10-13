@@ -15,8 +15,8 @@
     ];
     $audienceOptions = [
         'all' => 'All Users',
-        'runners' => 'All Runners',
-        'participants' => 'Event Participants',
+        'runners' => 'All Participants',
+        'participants' => 'Registered Event Participants',
     ];
 
     if ($canSendAdminScopedNotifications) {
@@ -34,7 +34,7 @@
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wide text-indigo-400">Communications</p>
                 <h1 class="mt-1 text-2xl font-bold text-slate-700">Push Notifications</h1>
-                <p class="mt-1 max-w-2xl text-sm text-slate-400">Create, schedule, and send mobile push alerts for runners, participants, and admin teams.</p>
+                <p class="mt-1 max-w-2xl text-sm text-slate-400">Create, schedule, and send mobile push alerts for all participants, registered event participants, and admin teams.</p>
             </div>
 
             <button type="button" data-open-notification-modal="create-notification" class="inline-flex items-center justify-center rounded-full bg-indigo-400 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-500">
@@ -89,7 +89,7 @@
                                 </td>
                                 <td class="px-6 py-4">
                                     <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold {{ $audienceClass }}">
-                                        {{ $notification->target_audience === 'runners' ? 'Runners' : str($notification->target_audience)->replace('_', ' ')->title() }}
+                                        {{ $audienceOptions[$notification->target_audience] ?? str($notification->target_audience)->replace('_', ' ')->title() }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4">
@@ -108,29 +108,21 @@
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex flex-wrap justify-end gap-2">
-                                        <button type="button" data-open-notification-modal="view-notification-{{ $notification->id }}" class="inline-flex h-9 px-4 text-xs font-semibold items-center justify-center rounded-full bg-indigo-50 text-indigo-400 transition hover:bg-indigo-100" title="View notification">
-                                            View
-                                        </button>
+                                        <x-admin.icon-action label="View notification" icon="fa-eye" tone="primary" data-open-notification-modal="view-notification-{{ $notification->id }}" />
                                         @if($canManageNotification)
-                                            <button type="button" data-open-notification-modal="edit-notification-{{ $notification->id }}" class="inline-flex h-9 px-4 text-xs font-semibold items-center justify-center rounded-full bg-slate-100 text-slate-500 transition hover:bg-slate-200" title="Edit notification">
-                                                Edit
-                                            </button>
+                                            <x-admin.icon-action label="Edit notification" icon="fa-pen" data-open-notification-modal="edit-notification-{{ $notification->id }}" />
                                         @endif
                                         @if($canManageNotification && !$notification->sent_at && $notification->is_active)
                                             <form method="POST" action="{{ route('admin.notifications.send-now', $notification) }}" onsubmit="return confirm('Send this notification now?')">
                                                 @csrf
-                                                <button type="submit" class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 text-emerald-500 transition hover:bg-emerald-100" title="Send now">
-                                                    <i class="fas fa-paper-plane text-xs"></i>
-                                                </button>
+                                                <x-admin.icon-action type="submit" label="Send notification now" icon="fa-paper-plane" tone="success" />
                                             </form>
                                         @endif
                                         @if($canManageNotification)
                                             <form method="POST" action="{{ route('admin.notifications.destroy', $notification) }}" onsubmit="return confirm('Are you sure you want to delete this notification?')">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-rose-50 text-rose-400 transition hover:bg-rose-100" title="Delete notification">
-                                                    <i class="fas fa-trash text-xs"></i>
-                                                </button>
+                                                <x-admin.icon-action type="submit" label="Delete notification" icon="fa-trash" tone="danger" />
                                             </form>
                                         @endif
                                     </div>
@@ -181,9 +173,8 @@
             'Ready' => 'bg-sky-50 text-sky-500',
             'Inactive' => 'bg-slate-100 text-slate-500',
         ][$status];
-        $audienceLabel = $notification->target_audience === 'runners'
-            ? 'Runners'
-            : str($notification->target_audience)->replace('_', ' ')->title();
+        $audienceLabel = $audienceOptions[$notification->target_audience]
+            ?? str($notification->target_audience)->replace('_', ' ')->title();
     @endphp
 
     <div id="view-notification-{{ $notification->id }}" class="fixed inset-0 z-50 hidden items-start justify-center overflow-y-auto text-left" role="dialog" aria-modal="true" aria-labelledby="view-notification-title-{{ $notification->id }}">

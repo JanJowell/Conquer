@@ -116,7 +116,7 @@
         $workflowSteps = [
             ['icon' => 'fa-pen-to-square', 'title' => 'Publish', 'description' => 'Post the event, venue, schedule, and categories.'],
             ['icon' => 'fa-user-plus', 'title' => 'Register', 'description' => 'Participants sign up and settle payments.'],
-            ['icon' => 'fa-clipboard-check', 'title' => 'Check in', 'description' => 'Verify runners quickly on event day.'],
+            ['icon' => 'fa-clipboard-check', 'title' => 'Check in', 'description' => 'Verify participants quickly on event day.'],
             ['icon' => 'fa-trophy', 'title' => 'Finish', 'description' => 'Record results and issue e-certificates.'],
         ];
 

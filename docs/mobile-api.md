@@ -115,7 +115,7 @@ Response:
   "token_type": "Bearer",
   "user": {
     "id": 1,
-    "name": "Runner Name",
+    "name": "Participant Name",
     "email": "runner@example.com",
     "role": "runner",
     "avatar_url": null
@@ -241,7 +241,7 @@ Request:
 }
 ```
 
-The API checks that the event is upcoming, the deadline has not passed, the category is open, slots are still available, the runner confirmed their personal first aid kit, and the runner accepted the event waiver.
+The API checks that the event is upcoming, the deadline has not passed, the category is open, slots are still available, the participant confirmed their personal first aid kit, and the participant accepted the event waiver.
 
 For categories with `distance_km` of `50` or higher, use `multipart/form-data` and include:
 
@@ -281,7 +281,7 @@ Category objects include direct-registration payment details when the category h
 }
 ```
 
-`payment_instructions` is `null` for free categories. For online direct registration, use these details for BPI, Maya, or GCash transfer instructions, then let the runner submit proof. Cash payments for in-store or onsite registration are handled from the admin payments page.
+`payment_instructions` is `null` for free categories. For online direct registration, use these details for BPI, Maya, or GCash transfer instructions, then let the participant submit proof. Cash payments for in-store or onsite registration are handled from the admin payments page.
 
 ## Payments
 
@@ -302,11 +302,11 @@ Category objects include direct-registration payment details when the category h
 Manual payment status values:
 
 ```text
-unpaid     Runner has not submitted proof yet.
-submitted  Runner submitted proof and is waiting for admin review.
+unpaid     Participant has not submitted proof yet.
+submitted  Participant submitted proof and is waiting for admin review.
 pending    Admin marked payment pending review.
 paid       Admin approved payment.
-failed     Admin rejected proof; runner can submit again while registration is pending.
+failed     Admin rejected proof; participant can submit again while registration is pending.
 waived     Admin waived payment; no payment is required.
 expired    Payment deadline passed and registration was rejected.
 refunded   Payment was refunded and registration was rejected.
@@ -474,7 +474,7 @@ video: mp4, mov, or webm, max 20MB
 GET /api/achievements
 ```
 
-Returns all active e-badge templates in `data`, with `locked` or `unlocked` status for the signed-in runner.
+Returns all active e-badge templates in `data`, with `locked` or `unlocked` status for the signed-in participant.
 
 ```json
 {

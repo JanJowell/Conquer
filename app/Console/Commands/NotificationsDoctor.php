@@ -37,7 +37,7 @@ class NotificationsDoctor extends Command
         $this->components->info('Audience readiness');
         $this->line('Saved device tokens: '.number_format(UserDeviceToken::count()));
         $this->line('All users: '.number_format(User::count()));
-        $this->line('Runners: '.number_format(User::whereIn('role', [User::ROLE_RUNNER, 'user'])->count()));
+        $this->line('Participants: '.number_format(User::whereIn('role', [User::ROLE_RUNNER, 'user'])->count()));
         $this->line('Participants: '.number_format(User::whereHas('registrations')->count()));
         $this->line('Admin users: '.number_format(User::whereIn('role', User::storedAdminRoles())->count()));
         $this->newLine();

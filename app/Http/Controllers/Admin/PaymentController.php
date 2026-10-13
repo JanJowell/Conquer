@@ -285,7 +285,7 @@ class PaymentController extends Controller
         }
 
         if ($action === Payment::STATUS_SUBMITTED) {
-            return 'Submitted proof status must come from the runner payment proof upload.';
+            return 'Submitted proof status must come from the participant payment proof upload.';
         }
 
         if ($registration->payment_status === Payment::STATUS_EXPIRED && $action !== Payment::STATUS_PAID) {

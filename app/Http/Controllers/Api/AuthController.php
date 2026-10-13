@@ -55,7 +55,7 @@ class AuthController extends Controller
             ?? trim(($validated['first_name'] ?? '').' '.($validated['last_name'] ?? ''));
 
         if ($validated['name'] === '') {
-            $validated['name'] = $validated['username'] ?? 'Runner';
+            $validated['name'] = $validated['username'] ?? 'Participant';
         }
 
         $usernameBase = $validated['username'] ?? Str::before($validated['email'], '@');

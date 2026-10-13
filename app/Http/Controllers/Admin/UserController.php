@@ -166,7 +166,7 @@ class UserController extends Controller
             && $validated['role'] !== User::ROLE_SUPER_ADMIN) {
             return back()
                 ->withInput()
-                ->with('error', 'You cannot remove your own Super Admin access.');
+                ->with('error', 'You cannot remove your own Admin access.');
         }
 
         $user->update($validated);

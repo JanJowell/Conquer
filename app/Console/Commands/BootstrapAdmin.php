@@ -74,7 +74,7 @@ class BootstrapAdmin extends Command
 
         $this->components->info($created
             ? 'Administrator account created.'
-            : 'Existing account promoted to super administrator.');
+            : 'Existing account promoted to administrator.');
         $this->components->warn('Remove all ADMIN_BOOTSTRAP_* variables and redeploy now.');
 
         return self::SUCCESS;

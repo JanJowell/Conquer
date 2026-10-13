@@ -184,9 +184,7 @@
                                             <input type="hidden" name="ip_address" value="{{ $ip }}">
                                             <input type="hidden" name="reason" value="Multiple failed login attempts">
                                             <input type="hidden" name="permanent" value="1">
-                                            <button type="submit" class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-rose-50 text-rose-400 transition hover:bg-rose-100" title="Ban IP">
-                                                <i class="fas fa-ban text-xs"></i>
-                                            </button>
+                                            <x-admin.icon-action type="submit" label="Ban IP address" icon="fa-ban" tone="danger" />
                                         </form>
                                     </td>
                                 </tr>

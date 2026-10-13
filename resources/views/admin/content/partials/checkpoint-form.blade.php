@@ -10,7 +10,7 @@
             @endforeach
         </select>
         @if ($events->isEmpty())
-            <p class="mt-2 text-sm text-rose-600">No events are available for your account yet. Ask a super admin to assign an event before creating checkpoints.</p>
+            <p class="mt-2 text-sm text-rose-600">No events are available for your account yet. Ask an Admin to assign an event before creating checkpoints.</p>
         @endif
         @error('event_id')
             <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>

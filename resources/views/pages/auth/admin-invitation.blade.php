@@ -86,7 +86,7 @@
                                 <i class="fas fa-clock mt-1"></i>
                                 <div>
                                     <p class="font-semibold">This invitation has expired.</p>
-                                    <p class="mt-1">Ask a Super Admin to resend it from User Management. Only the newest invitation link will work.</p>
+                                    <p class="mt-1">Ask an Admin to resend it from User Management. Only the newest invitation link will work.</p>
                                 </div>
                             </div>
                         </div>

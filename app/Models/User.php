@@ -213,13 +213,13 @@ class User extends Authenticatable
     public static function roleLabels(): array
     {
         return [
-            static::ROLE_RUNNER => 'Runner',
-            static::ROLE_SUPER_ADMIN => 'Super Admin',
+            static::ROLE_RUNNER => 'Participant',
+            static::ROLE_SUPER_ADMIN => 'Admin',
             static::ROLE_EXECUTIVE => 'Executive (CEO/COO)',
             static::ROLE_CONTENT_MODERATOR => 'Content Moderator',
             static::ROLE_EVENT_MANAGER => 'Event Manager',
             static::ROLE_LEGACY_ADMIN => 'Event Manager',
-            'user' => 'Runner',
+            'user' => 'Participant',
         ];
     }
 

@@ -49,6 +49,71 @@
             overflow-x: hidden;
         }
 
+        .admin-icon-action {
+            position: relative;
+            display: inline-flex;
+            width: 2.75rem;
+            height: 2.75rem;
+            flex: 0 0 2.75rem;
+            align-items: center;
+            justify-content: center;
+            border: 0;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            line-height: 1;
+            cursor: pointer;
+            transition: background-color 160ms ease, color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+        }
+
+        .admin-icon-action:hover {
+            transform: translateY(-1px);
+        }
+
+        .admin-icon-action:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.95), 0 0 0 6px rgba(148, 163, 184, 0.45);
+        }
+
+        .admin-icon-action::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 50%;
+            bottom: calc(100% + 0.55rem);
+            z-index: 70;
+            max-width: 12rem;
+            padding: 0.4rem 0.6rem;
+            border-radius: 0.5rem;
+            background: #0f172a;
+            color: #ffffff;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            line-height: 1rem;
+            text-align: center;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transform: translate(-50%, 0.25rem);
+            transition: opacity 140ms ease, transform 140ms ease;
+        }
+
+        .admin-icon-action:hover::after,
+        .admin-icon-action:focus-visible::after,
+        .admin-icon-action:focus::after {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .admin-icon-action,
+            .admin-icon-action::after {
+                transition: none;
+            }
+
+            .admin-icon-action:hover {
+                transform: none;
+            }
+        }
+
         /* Ensure small labels and actions remain readable on white cards. */
         .admin-shell-main .text-slate-400,
         header .text-slate-400,
@@ -512,6 +577,13 @@
                 width: 100%;
             }
 
+            .admin-responsive-table .admin-table-action-column .admin-icon-action,
+            .admin-responsive-table td[data-admin-label="Action"] .admin-icon-action,
+            .admin-responsive-table td[data-admin-label="Actions"] .admin-icon-action,
+            .admin-responsive-table td[data-admin-label="Manage"] .admin-icon-action {
+                width: 2.75rem;
+            }
+
             .admin-legacy-glass :is(button, input, select),
             .admin-legacy-glass a[class*="inline-flex"],
             .admin-legacy-glass a[class*="flex"] {
@@ -533,6 +605,20 @@
             .admin-responsive-actions > :is(a, button, form),
             .admin-responsive-actions > form > :is(a, button) {
                 width: 100%;
+            }
+
+            .admin-responsive-actions > .admin-icon-action {
+                width: 2.75rem;
+            }
+
+            .admin-responsive-icon-actions {
+                display: flex !important;
+                flex-wrap: wrap !important;
+                align-items: center !important;
+            }
+
+            .admin-responsive-icon-actions > form {
+                flex-basis: 100%;
             }
 
             .admin-legacy-glass [role="dialog"] {

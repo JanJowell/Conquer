@@ -28,7 +28,7 @@ test('dry run reports eligible accounts without deleting them', function () {
     addVerificationCodeFor($runner);
 
     $this->artisan('users:prune-unverified --dry-run')
-        ->expectsOutput('Dry run: 1 unverified runner account(s) are eligible for deletion.')
+        ->expectsOutput('Dry run: 1 unverified participant account(s) are eligible for deletion.')
         ->assertSuccessful();
 
     $this->assertDatabaseHas('users', ['id' => $runner->id]);
@@ -46,7 +46,7 @@ test('cleanup deletes only abandoned unverified runners and their temporary code
     ]);
 
     $this->artisan('users:prune-unverified')
-        ->expectsOutput('Deleted 1 abandoned unverified runner account(s).')
+        ->expectsOutput('Deleted 1 abandoned unverified participant account(s).')
         ->assertSuccessful();
 
     $this->assertDatabaseMissing('users', ['id' => $runner->id]);
@@ -90,7 +90,7 @@ test('cleanup preserves recent verified privileged active and manually created a
     ]);
 
     $this->artisan('users:prune-unverified')
-        ->expectsOutput('Deleted 0 abandoned unverified runner account(s).')
+        ->expectsOutput('Deleted 0 abandoned unverified participant account(s).')
         ->assertSuccessful();
 
     foreach ([$recent, $verified, $admin, $withoutVerificationCode, $loggedIn, $tokenHolder, $withSession] as $user) {

@@ -2,7 +2,7 @@
 
 @section('content')
 @php
-    $displayName = $user->name ?? 'Super Admin';
+    $displayName = $user->name ?? 'Admin';
     $displayEmail = $user->email ?? 'admin@eventmanager.com';
 
     $summaryCards = [

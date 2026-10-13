@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 
 class ExpireUnpaidRegistrations extends Command
 {
-    protected $signature = 'payments:expire-unpaid {--dry-run : Show matching registrations without changing them} {--no-notify : Do not notify runners}';
+    protected $signature = 'payments:expire-unpaid {--dry-run : Show matching registrations without changing them} {--no-notify : Do not notify participants}';
 
     protected $description = 'Reject pending paid registrations that missed the registration payment deadline.';
 

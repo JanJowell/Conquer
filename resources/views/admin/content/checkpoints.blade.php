@@ -100,15 +100,11 @@
                             <td class="px-6 py-5">{{ $checkpoint->order }}</td>
                             <td class="px-6 py-5 text-right">
                                 <div class="flex flex-wrap justify-end gap-2">
-                                    <a href="{{ route('admin.content.checkpoints.edit', $checkpoint) }}" class="inline-flex h-10 items-center justify-center rounded-xl border border-[#d9dee7] px-4 text-xs font-semibold text-[#151b26] transition hover:bg-[#f7f8fa]">
-                                        Edit
-                                    </a>
+                                    <x-admin.icon-action :href="route('admin.content.checkpoints.edit', $checkpoint)" label="Edit checkpoint" icon="fa-pen" />
                                     <form method="POST" action="{{ route('admin.content.checkpoints.destroy', $checkpoint) }}" onsubmit="return confirm('Are you sure you want to delete this checkpoint?')">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="inline-flex h-10 items-center justify-center rounded-xl border border-rose-200 px-4 text-xs font-semibold text-rose-600 transition hover:bg-rose-50">
-                                            Delete
-                                        </button>
+                                        <x-admin.icon-action type="submit" label="Delete checkpoint" icon="fa-trash" tone="danger" />
                                     </form>
                                 </div>
                             </td>

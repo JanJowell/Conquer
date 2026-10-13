@@ -30,7 +30,7 @@ class AdminMiddleware
             $request->session()->regenerateToken();
 
             return redirect('/login')->withErrors([
-                'email' => 'This account has been banned. Please contact the super administrator for assistance.',
+                'email' => 'This account has been banned. Please contact an administrator for assistance.',
             ]);
         }
 
@@ -45,7 +45,7 @@ class AdminMiddleware
             $request->session()->regenerateToken();
 
             return redirect('/login')->withErrors([
-                'email' => 'Your administrator email is not verified. Use your invitation link or ask a Super Admin to resend it.',
+                'email' => 'Your administrator email is not verified. Use your invitation link or ask an Admin to resend it.',
             ]);
         }
 

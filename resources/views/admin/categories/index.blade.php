@@ -142,9 +142,7 @@
                                 </td>
                                 <td class="px-6 py-5 text-right">
                                     <div class="flex justify-end gap-2">
-                                        <a href="{{ route('admin.categories.edit', $category) }}" class="inline-flex h-10 items-center justify-center rounded-full bg-slate-50 px-4 text-xs font-semibold text-slate-500 transition hover:bg-slate-100">
-                                            Edit
-                                        </a>
+                                        <x-admin.icon-action :href="route('admin.categories.edit', $category)" label="Edit category" icon="fa-pen" />
                                         <form method="POST" action="{{ route('admin.categories.destroy', $category) }}"
                                             @if ($category->registrations_count || $category->race_results_count)
                                                 onsubmit="return confirm('Warning: this category has {{ number_format($category->registrations_count) }} registration(s) and {{ number_format($category->race_results_count) }} result(s). Deleting it will also delete those related records. Continue?');"
@@ -157,9 +155,7 @@
                                             @if ($category->registrations_count || $category->race_results_count)
                                                 <input type="hidden" name="delete_with_records" value="1">
                                             @endif
-                                            <button type="submit" class="inline-flex h-10 items-center justify-center rounded-full bg-rose-50 px-4 text-xs font-semibold text-rose-400 transition hover:bg-rose-100">
-                                                Delete
-                                            </button>
+                                            <x-admin.icon-action type="submit" label="Delete category" icon="fa-trash" tone="danger" />
                                         </form>
                                     </div>
                                 </td>

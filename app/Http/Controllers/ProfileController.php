@@ -62,7 +62,7 @@ class ProfileController extends Controller
                 $status = 'Your email was changed. A 24-hour verification invitation was sent to the new address.';
             } catch (Throwable $exception) {
                 report($exception);
-                $status = 'Your email was changed and now requires verification, but the invitation could not be delivered. Ask another Super Admin to resend it.';
+                $status = 'Your email was changed and now requires verification, but the invitation could not be delivered. Ask another Admin to resend it.';
             }
 
             AdminActivityLog::create([

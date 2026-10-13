@@ -121,16 +121,10 @@
                             </td>
                             <td class="px-6 py-4 text-right">
                                 <div class="flex flex-wrap justify-end gap-2">
-                                    <button type="button" data-open-event-modal="view-event-{{ $event->id }}" class="inline-flex h-10 items-center justify-center rounded-full bg-slate-50 px-4 text-xs font-semibold text-slate-500 transition hover:bg-slate-100">
-                                        View
-                                    </button>
+                                    <x-admin.icon-action label="View event" icon="fa-eye" data-open-event-modal="view-event-{{ $event->id }}" />
                                     @if ($canManageEvents)
-                                        <button type="button" data-open-event-modal="edit-event-{{ $event->id }}" class="inline-flex h-10 items-center justify-center rounded-full bg-slate-50 px-4 text-xs font-semibold text-slate-500 transition hover:bg-slate-100">
-                                            Edit
-                                        </button>
-                                        <button type="button" data-open-event-modal="delete-event-{{ $event->id }}" class="inline-flex h-10 items-center justify-center rounded-full bg-rose-50 px-4 text-xs font-semibold text-rose-400 transition hover:bg-rose-100">
-                                            Delete
-                                        </button>
+                                        <x-admin.icon-action label="Edit event" icon="fa-pen" data-open-event-modal="edit-event-{{ $event->id }}" />
+                                        <x-admin.icon-action label="Delete event" icon="fa-trash" tone="danger" data-open-event-modal="delete-event-{{ $event->id }}" />
                                     @endif
                                 </div>
                             </td>

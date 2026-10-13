@@ -126,9 +126,7 @@
                                     </td>
                                     <td class="px-6 py-4 text-right">
                                         <div class="flex flex-wrap justify-end gap-2">
-                                            <button type="button" data-open-announcement-modal="edit-announcement-{{ $announcement->id }}" class="inline-flex h-9 items-center justify-center rounded-full bg-slate-100 px-4 text-xs font-semibold text-slate-500 transition hover:bg-slate-200">
-                                                Edit
-                                            </button>
+                                            <x-admin.icon-action label="Edit announcement" icon="fa-pen" data-open-announcement-modal="edit-announcement-{{ $announcement->id }}" />
                                             @if ($announcement->is_published)
                                                 <form method="POST" action="{{ route('admin.announcements.unpublish', $announcement) }}">
                                                     @csrf
@@ -149,9 +147,7 @@
                                             <form method="POST" action="{{ route('admin.announcements.destroy', $announcement) }}" onsubmit="return confirm('Delete this announcement?');">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="inline-flex h-9 items-center justify-center rounded-full bg-rose-50 px-4 text-xs font-semibold text-rose-400 transition hover:bg-rose-100">
-                                                    Delete
-                                                </button>
+                                                <x-admin.icon-action type="submit" label="Delete announcement" icon="fa-trash" tone="danger" />
                                             </form>
                                         </div>
                                     </td>

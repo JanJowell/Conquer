@@ -83,13 +83,28 @@
 
                             <div id="password-group">
                                 <label for="password" class="block mb-1.5 text-sm font-medium text-slate-600">Password</label>
-                                <input
-                                    type="password"
-                                    name="password"
-                                    id="password"
-                                    required
-                                    class="block w-full rounded-2xl border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:outline-none focus:ring-2 focus:ring-indigo-200 placeholder:text-slate-300 placeholder:text-slate-300"
-                                >
+                                <div class="relative">
+                                    <input
+                                        type="password"
+                                        name="password"
+                                        id="password"
+                                        required
+                                        autocomplete="new-password"
+                                        class="block w-full rounded-2xl border-0 bg-slate-50 py-2.5 pl-4 pr-12 text-sm text-slate-600 outline-none transition focus:outline-none focus:ring-2 focus:ring-indigo-200 placeholder:text-slate-300"
+                                    >
+                                    <button
+                                        type="button"
+                                        data-password-toggle="password"
+                                        aria-controls="password"
+                                        aria-label="Show password"
+                                        aria-pressed="false"
+                                        title="Show password"
+                                        class="absolute inset-y-0 right-0 inline-flex w-12 items-center justify-center rounded-r-2xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-300"
+                                    >
+                                        <i class="fas fa-eye" aria-hidden="true"></i>
+                                        <span class="sr-only" data-password-toggle-label>Show password</span>
+                                    </button>
+                                </div>
                                 @error('password')
                                     <p class="mt-2 text-sm text-rose-400">{{ $message }}</p>
                                 @enderror
@@ -97,13 +112,28 @@
 
                             <div id="password-confirmation-group">
                                 <label for="password_confirmation" class="block mb-1.5 text-sm font-medium text-slate-600">Confirm Password</label>
-                                <input
-                                    type="password"
-                                    name="password_confirmation"
-                                    id="password_confirmation"
-                                    required
-                                    class="block w-full rounded-2xl border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:outline-none focus:ring-2 focus:ring-indigo-200 placeholder:text-slate-300 placeholder:text-slate-300"
-                                >
+                                <div class="relative">
+                                    <input
+                                        type="password"
+                                        name="password_confirmation"
+                                        id="password_confirmation"
+                                        required
+                                        autocomplete="new-password"
+                                        class="block w-full rounded-2xl border-0 bg-slate-50 py-2.5 pl-4 pr-12 text-sm text-slate-600 outline-none transition focus:outline-none focus:ring-2 focus:ring-indigo-200 placeholder:text-slate-300"
+                                    >
+                                    <button
+                                        type="button"
+                                        data-password-toggle="password_confirmation"
+                                        aria-controls="password_confirmation"
+                                        aria-label="Show password confirmation"
+                                        aria-pressed="false"
+                                        title="Show password confirmation"
+                                        class="absolute inset-y-0 right-0 inline-flex w-12 items-center justify-center rounded-r-2xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-300"
+                                    >
+                                        <i class="fas fa-eye" aria-hidden="true"></i>
+                                        <span class="sr-only" data-password-toggle-label>Show password confirmation</span>
+                                    </button>
+                                </div>
                             </div>
 
                             <div>
@@ -283,12 +313,46 @@
         const passwordConfirmationGroup = document.getElementById('password-confirmation-group');
         const passwordInput = document.getElementById('password');
         const passwordConfirmationInput = document.getElementById('password_confirmation');
+        const passwordToggleButtons = Array.from(document.querySelectorAll('[data-password-toggle]'));
         const invitationNotice = document.getElementById('admin-invitation-notice');
         const runnerRole = @json($runnerRole);
 
         if (!roleSelect || !medicalConditionsGroup || !medicalConditionsInput) {
             return;
         }
+
+        const setPasswordVisibility = (button, input, visible) => {
+            const fieldName = input.id === 'password_confirmation' ? 'password confirmation' : 'password';
+            const actionLabel = `${visible ? 'Hide' : 'Show'} ${fieldName}`;
+            const icon = button.querySelector('i');
+
+            input.type = visible ? 'text' : 'password';
+            button.setAttribute('aria-pressed', visible ? 'true' : 'false');
+            button.setAttribute('aria-label', actionLabel);
+            button.setAttribute('title', actionLabel);
+
+            const accessibleLabel = button.querySelector('[data-password-toggle-label]');
+            if (accessibleLabel) {
+                accessibleLabel.textContent = actionLabel;
+            }
+
+            if (icon) {
+                icon.classList.toggle('fa-eye', !visible);
+                icon.classList.toggle('fa-eye-slash', visible);
+            }
+        };
+
+        passwordToggleButtons.forEach((button) => {
+            const input = document.getElementById(button.dataset.passwordToggle);
+
+            if (!input) {
+                return;
+            }
+
+            button.addEventListener('click', () => {
+                setPasswordVisibility(button, input, input.type === 'password');
+            });
+        });
 
         const toggleMedicalConditions = () => {
             const isRunner = roleSelect.value === runnerRole;
@@ -310,6 +374,11 @@
                 medicalConditionsInput.value = '';
                 if (passwordInput) passwordInput.value = '';
                 if (passwordConfirmationInput) passwordConfirmationInput.value = '';
+
+                passwordToggleButtons.forEach((button) => {
+                    const input = document.getElementById(button.dataset.passwordToggle);
+                    if (input) setPasswordVisibility(button, input, false);
+                });
             }
         };
 

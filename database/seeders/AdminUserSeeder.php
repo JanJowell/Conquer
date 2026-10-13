@@ -19,7 +19,7 @@ class AdminUserSeeder extends Seeder
         User::firstOrCreate(
             ['email' => 'admin@eventmanager.com'],
             [
-                'name' => 'Super Admin',
+                'name' => 'Admin',
                 'password' => Hash::make('password'),
                 'role' => 'super_admin',
                 'email_verified_at' => now(),
@@ -69,7 +69,7 @@ class AdminUserSeeder extends Seeder
         );
 
         $this->command->info('Admin users created successfully!');
-        $this->command->info('Super Admin: admin@eventmanager.com / password');
+        $this->command->info('Admin: admin@eventmanager.com / password');
         $this->command->info('Event Manager: manager@eventmanager.com / password');
         $this->command->info('Executive: executive@eventmanager.com / password');
         $this->command->info('Content Moderator: moderator@eventmanager.com / password');

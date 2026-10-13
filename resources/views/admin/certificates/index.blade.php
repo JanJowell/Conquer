@@ -71,7 +71,7 @@
                                 <div class="flex flex-wrap justify-end gap-2">
                                     <a target="_blank" href="{{ route('certificates.verify', $certificate->verification_token) }}" class="inline-flex items-center rounded-full bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-500 transition hover:bg-slate-200">Verify</a>
                                     @if ($certificate->isValid())
-                                        <a href="{{ route('certificates.download', $certificate->verification_token) }}" class="inline-flex items-center rounded-full bg-indigo-400 px-4 py-2 text-xs font-semibold text-white transition hover:bg-indigo-500">Download</a>
+                                        <x-admin.icon-action :href="route('certificates.download', $certificate->verification_token)" label="Download certificate" icon="fa-download" tone="primary" />
                                         <form method="POST" action="{{ route('admin.certificates.revoke', $certificate) }}" class="flex gap-2" onsubmit="return confirm('Revoke this E-Certificate? The record will remain visible as revoked.');">
                                             @csrf @method('PATCH')
                                             <input name="reason" required maxlength="500" placeholder="Revocation reason" class="w-40 rounded-2xl border-0 bg-rose-50 px-3 py-2 text-xs text-slate-700 placeholder:text-rose-300 focus:outline-none focus:ring-2 focus:ring-rose-200">
