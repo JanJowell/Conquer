@@ -380,6 +380,15 @@
                                 <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Medical Conditions</p>
                                 <p class="mt-2 text-sm leading-6 text-slate-600">{{ $modalUser->medical_conditions ?: 'No medical conditions recorded.' }}</p>
                             </div>
+                            <div class="rounded-[1.5rem] bg-white p-4 shadow-[0_8px_24px_rgba(148,163,184,0.12)] md:col-span-2">
+                                <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Health Measurements</p>
+                                @if($modalUser->bmi !== null)
+                                    <p class="mt-2 text-sm leading-6 text-slate-600">{{ number_format((float) $modalUser->height_cm, 2) }} cm · {{ number_format((float) $modalUser->weight_kg, 2) }} kg · BMI {{ number_format($modalUser->bmi, 1) }}@if($modalUser->bmi_category) ({{ $modalUser->bmi_category }})@endif</p>
+                                    <p class="mt-1 text-xs text-slate-400">Measured {{ $modalUser->bmi_measured_at?->format('F d, Y') ?: 'date unavailable' }}. Informational screening only.</p>
+                                @else
+                                    <p class="mt-2 text-sm leading-6 text-slate-600">No height and weight measurements recorded.</p>
+                                @endif
+                            </div>
                         @endif
                     </div>
                 </div>
@@ -506,6 +515,30 @@
                                         <label for="medical_conditions-{{ $modalUser->id }}" class="mb-1.5 block text-sm font-medium text-slate-600">Medical Conditions</label>
                                         <textarea name="medical_conditions" id="medical_conditions-{{ $modalUser->id }}" rows="3" placeholder="Any medical conditions or allergies organizers should know about" class="w-full rounded-2xl border-0 bg-slate-50 px-4 py-2.5 text-slate-600 outline-none placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-200">{{ $editingThisUser ? old('medical_conditions', $modalUser->medical_conditions) : $modalUser->medical_conditions }}</textarea>
                                         @if($editingThisUser) @error('medical_conditions') <p class="mt-2 text-sm text-rose-400">{{ $message }}</p> @enderror @endif
+
+                                        <div class="mt-5 grid gap-5 md:grid-cols-2">
+                                            <div>
+                                                <label for="height_cm-{{ $modalUser->id }}" class="mb-1.5 block text-sm font-medium text-slate-600">Height (cm)</label>
+                                                <input type="number" name="height_cm" id="height_cm-{{ $modalUser->id }}" value="{{ $editingThisUser ? old('height_cm', $modalUser->height_cm) : $modalUser->height_cm }}" min="50" max="250" step="0.01" inputmode="decimal" class="w-full rounded-2xl border-0 bg-slate-50 px-4 py-2.5 text-slate-600 outline-none focus:ring-2 focus:ring-indigo-200">
+                                                @if($editingThisUser) @error('height_cm') <p class="mt-2 text-sm text-rose-400">{{ $message }}</p> @enderror @endif
+                                            </div>
+                                            <div>
+                                                <label for="weight_kg-{{ $modalUser->id }}" class="mb-1.5 block text-sm font-medium text-slate-600">Weight (kg)</label>
+                                                <input type="number" name="weight_kg" id="weight_kg-{{ $modalUser->id }}" value="{{ $editingThisUser ? old('weight_kg', $modalUser->weight_kg) : $modalUser->weight_kg }}" min="10" max="500" step="0.01" inputmode="decimal" class="w-full rounded-2xl border-0 bg-slate-50 px-4 py-2.5 text-slate-600 outline-none focus:ring-2 focus:ring-indigo-200">
+                                                @if($editingThisUser) @error('weight_kg') <p class="mt-2 text-sm text-rose-400">{{ $message }}</p> @enderror @endif
+                                            </div>
+                                            <div>
+                                                <label for="bmi_measured_at-{{ $modalUser->id }}" class="mb-1.5 block text-sm font-medium text-slate-600">Measurement Date</label>
+                                                <input type="date" name="bmi_measured_at" id="bmi_measured_at-{{ $modalUser->id }}" value="{{ $editingThisUser ? old('bmi_measured_at', $modalUser->bmi_measured_at?->format('Y-m-d')) : $modalUser->bmi_measured_at?->format('Y-m-d') }}" max="{{ now()->toDateString() }}" class="w-full rounded-2xl border-0 bg-slate-50 px-4 py-2.5 text-slate-600 outline-none focus:ring-2 focus:ring-indigo-200">
+                                                @if($editingThisUser) @error('bmi_measured_at') <p class="mt-2 text-sm text-rose-400">{{ $message }}</p> @enderror @endif
+                                            </div>
+                                            <div class="rounded-2xl bg-slate-50 p-4">
+                                                <p class="text-sm font-medium text-slate-600">Current BMI</p>
+                                                <p class="mt-1 text-lg font-semibold text-slate-700">{{ $modalUser->bmi !== null ? number_format($modalUser->bmi, 1) : 'Not available' }}</p>
+                                                <p class="mt-1 text-xs text-slate-400">{{ $modalUser->bmi_category ?? 'No adult BMI category available.' }}</p>
+                                            </div>
+                                        </div>
+                                        <p class="mt-3 text-xs leading-5 text-slate-400">BMI is informational only and is never used automatically to approve or reject participation.</p>
                                     </div>
 
                                     <div class="md:col-span-2">
@@ -721,14 +754,16 @@
                     return;
                 }
 
-                const textarea = target.querySelector('textarea');
+                const healthInputs = target.querySelectorAll('input, textarea');
                 const toggleMedicalConditions = () => {
                     const isRunner = select.value === select.dataset.runnerRole;
 
                     target.classList.toggle('hidden', !isRunner);
 
-                    if (!isRunner && textarea) {
-                        textarea.value = '';
+                    if (!isRunner) {
+                        healthInputs.forEach((input) => {
+                            input.value = '';
+                        });
                     }
                 };
 

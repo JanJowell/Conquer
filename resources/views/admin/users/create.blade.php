@@ -248,6 +248,60 @@
                                 @enderror
                             </div>
 
+                            <div>
+                                <label for="height_cm" class="block mb-1.5 text-sm font-medium text-slate-600">Height (cm)</label>
+                                <input
+                                    type="number"
+                                    name="height_cm"
+                                    id="height_cm"
+                                    value="{{ old('height_cm') }}"
+                                    min="50"
+                                    max="250"
+                                    step="0.01"
+                                    inputmode="decimal"
+                                    placeholder="e.g. 170"
+                                    class="block w-full rounded-2xl border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:outline-none focus:ring-2 focus:ring-indigo-200 placeholder:text-slate-300"
+                                >
+                                @error('height_cm')
+                                    <p class="mt-2 text-sm text-rose-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label for="weight_kg" class="block mb-1.5 text-sm font-medium text-slate-600">Weight (kg)</label>
+                                <input
+                                    type="number"
+                                    name="weight_kg"
+                                    id="weight_kg"
+                                    value="{{ old('weight_kg') }}"
+                                    min="10"
+                                    max="500"
+                                    step="0.01"
+                                    inputmode="decimal"
+                                    placeholder="e.g. 65"
+                                    class="block w-full rounded-2xl border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:outline-none focus:ring-2 focus:ring-indigo-200 placeholder:text-slate-300"
+                                >
+                                @error('weight_kg')
+                                    <p class="mt-2 text-sm text-rose-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <label for="bmi_measured_at" class="block mb-1.5 text-sm font-medium text-slate-600">Measurement Date</label>
+                                <input
+                                    type="date"
+                                    name="bmi_measured_at"
+                                    id="bmi_measured_at"
+                                    value="{{ old('bmi_measured_at') }}"
+                                    max="{{ now()->toDateString() }}"
+                                    class="block w-full rounded-2xl border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                                >
+                                <p class="mt-2 text-xs leading-5 text-slate-400">Optional. BMI is calculated after saving and is not used to approve or reject participation.</p>
+                                @error('bmi_measured_at')
+                                    <p class="mt-2 text-sm text-rose-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+
                             <div class="md:col-span-2">
                                 <label for="emergency_contact_name" class="block mb-1.5 text-sm font-medium text-slate-600">Emergency Contact Name</label>
                                 <input

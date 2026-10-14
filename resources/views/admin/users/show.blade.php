@@ -103,6 +103,18 @@
                         <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#7a8392]">Medical Conditions</p>
                         <p class="mt-2 text-sm leading-6 text-[#202733]">{{ $user->medical_conditions ?: 'No medical conditions recorded.' }}</p>
                     </div>
+                    <div class="rounded-2xl border border-[#eef1f4] bg-[#f8f9fb] p-4 md:col-span-2">
+                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#7a8392]">Health Measurements</p>
+                        @if ($user->bmi !== null)
+                            <p class="mt-2 text-sm leading-6 text-[#202733]">
+                                {{ number_format((float) $user->height_cm, 2) }} cm · {{ number_format((float) $user->weight_kg, 2) }} kg · BMI {{ number_format($user->bmi, 1) }}
+                                @if ($user->bmi_category) ({{ $user->bmi_category }}) @endif
+                            </p>
+                            <p class="mt-1 text-xs text-[#7a8392]">Measured {{ $user->bmi_measured_at?->format('F d, Y') ?: 'date unavailable' }}. Informational screening only.</p>
+                        @else
+                            <p class="mt-2 text-sm leading-6 text-[#202733]">No height and weight measurements recorded.</p>
+                        @endif
+                    </div>
                 @endif
             </div>
         </section>

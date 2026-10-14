@@ -294,6 +294,75 @@
                                     <p class="{{ $errorClasses }}">{{ $message }}</p>
                                 @enderror
                             </div>
+
+                            <div>
+                                <label for="height_cm" class="{{ $labelClasses }}">Height (cm)</label>
+                                <input
+                                    id="height_cm"
+                                    type="number"
+                                    name="height_cm"
+                                    value="{{ old('height_cm', $user->height_cm) }}"
+                                    min="50"
+                                    max="250"
+                                    step="0.01"
+                                    inputmode="decimal"
+                                    class="{{ $inputClasses }}"
+                                >
+                                @error('height_cm')
+                                    <p class="{{ $errorClasses }}">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label for="weight_kg" class="{{ $labelClasses }}">Weight (kg)</label>
+                                <input
+                                    id="weight_kg"
+                                    type="number"
+                                    name="weight_kg"
+                                    value="{{ old('weight_kg', $user->weight_kg) }}"
+                                    min="10"
+                                    max="500"
+                                    step="0.01"
+                                    inputmode="decimal"
+                                    class="{{ $inputClasses }}"
+                                >
+                                @error('weight_kg')
+                                    <p class="{{ $errorClasses }}">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label for="bmi_measured_at" class="{{ $labelClasses }}">Measurement Date</label>
+                                <input
+                                    id="bmi_measured_at"
+                                    type="date"
+                                    name="bmi_measured_at"
+                                    value="{{ old('bmi_measured_at', $user->bmi_measured_at?->format('Y-m-d')) }}"
+                                    max="{{ now()->toDateString() }}"
+                                    class="{{ $inputClasses }}"
+                                >
+                                @error('bmi_measured_at')
+                                    <p class="{{ $errorClasses }}">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="rounded-xl border border-[#d9dee7] bg-[#f8f9fb] p-4">
+                                <p class="text-sm font-medium text-[#111827]">Current BMI</p>
+                                <p class="mt-1 text-lg font-semibold text-[#111827]">
+                                    {{ $user->bmi !== null ? number_format($user->bmi, 1) : 'Not available' }}
+                                </p>
+                                @if ($user->bmi_category)
+                                    <p class="mt-1 text-sm text-[#6d7685]">{{ $user->bmi_category }}</p>
+                                @elseif ($user->bmi_interpretation === 'age_specific_required')
+                                    <p class="mt-1 text-sm text-[#6d7685]">Adult categories are not applied to participants under 20.</p>
+                                @elseif ($user->bmi_interpretation === 'age_unknown')
+                                    <p class="mt-1 text-sm text-[#6d7685]">Add a birthdate to interpret the result appropriately.</p>
+                                @endif
+                            </div>
+
+                            <p class="md:col-span-2 text-xs leading-5 {{ $isAdminView ? 'text-[#6d7685]' : 'text-zinc-400' }}">
+                                BMI is a screening indicator, not a medical diagnosis or a measure of fitness to participate. It is never used automatically to approve or reject registration.
+                            </p>
                         @endif
                     </div>
 

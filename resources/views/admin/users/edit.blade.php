@@ -128,6 +128,30 @@
                         @error('medical_conditions')
                             <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                         @enderror
+
+                        <div class="mt-5 grid gap-5 md:grid-cols-2">
+                            <div>
+                                <label for="height_cm" class="mb-2 block text-sm font-medium text-[#111827]">Height (cm)</label>
+                                <input type="number" name="height_cm" id="height_cm" value="{{ old('height_cm', $user->height_cm) }}" min="50" max="250" step="0.01" inputmode="decimal" class="w-full rounded-xl border border-[#d9dee7] bg-white px-4 py-3 text-[#111827] outline-none transition focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]">
+                                @error('height_cm') <p class="mt-2 text-sm text-rose-600">{{ $message }}</p> @enderror
+                            </div>
+                            <div>
+                                <label for="weight_kg" class="mb-2 block text-sm font-medium text-[#111827]">Weight (kg)</label>
+                                <input type="number" name="weight_kg" id="weight_kg" value="{{ old('weight_kg', $user->weight_kg) }}" min="10" max="500" step="0.01" inputmode="decimal" class="w-full rounded-xl border border-[#d9dee7] bg-white px-4 py-3 text-[#111827] outline-none transition focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]">
+                                @error('weight_kg') <p class="mt-2 text-sm text-rose-600">{{ $message }}</p> @enderror
+                            </div>
+                            <div>
+                                <label for="bmi_measured_at" class="mb-2 block text-sm font-medium text-[#111827]">Measurement Date</label>
+                                <input type="date" name="bmi_measured_at" id="bmi_measured_at" value="{{ old('bmi_measured_at', $user->bmi_measured_at?->format('Y-m-d')) }}" max="{{ now()->toDateString() }}" class="w-full rounded-xl border border-[#d9dee7] bg-white px-4 py-3 text-[#111827] outline-none transition focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]">
+                                @error('bmi_measured_at') <p class="mt-2 text-sm text-rose-600">{{ $message }}</p> @enderror
+                            </div>
+                            <div class="rounded-xl border border-[#d9dee7] bg-[#f8f9fb] p-4">
+                                <p class="text-sm font-medium text-[#111827]">Current BMI</p>
+                                <p class="mt-1 text-lg font-semibold text-[#111827]">{{ $user->bmi !== null ? number_format($user->bmi, 1) : 'Not available' }}</p>
+                                <p class="mt-1 text-sm text-[#6d7685]">{{ $user->bmi_category ?? 'No adult BMI category available.' }}</p>
+                            </div>
+                        </div>
+                        <p class="mt-3 text-xs leading-5 text-[#6d7685]">BMI is informational only and is never used automatically to approve or reject participation.</p>
                     </div>
 
                     <div class="md:col-span-2">
@@ -174,10 +198,10 @@
     (function () {
         const roleSelect = document.getElementById('role');
         const medicalConditionsGroup = document.getElementById('medical-conditions-group');
-        const medicalConditionsInput = document.getElementById('medical_conditions');
+        const participantHealthInputs = medicalConditionsGroup?.querySelectorAll('input, textarea') ?? [];
         const runnerRole = @json($runnerRole);
 
-        if (!roleSelect || !medicalConditionsGroup || !medicalConditionsInput) {
+        if (!roleSelect || !medicalConditionsGroup) {
             return;
         }
 
@@ -187,7 +211,9 @@
             medicalConditionsGroup.classList.toggle('hidden', !isRunner);
 
             if (!isRunner) {
-                medicalConditionsInput.value = '';
+                participantHealthInputs.forEach((input) => {
+                    input.value = '';
+                });
             }
         };
 

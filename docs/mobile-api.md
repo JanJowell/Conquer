@@ -223,6 +223,26 @@ Each training module includes `interest_type`. `null` means general training.
 
 Use `/api/config.training_focus_types` for training focus filters.
 
+## Participant Health Profile
+
+`GET /api/me`, successful authentication responses, and successful `PATCH /api/me` responses include these private participant fields:
+
+```json
+{
+  "height_cm": 170,
+  "weight_kg": 65,
+  "bmi": 22.5,
+  "bmi_category": "Healthy weight",
+  "bmi_interpretation": "adult",
+  "bmi_measured_at": "2026-10-01",
+  "bmi_notice": "BMI is a screening indicator, not a medical diagnosis or a measure of fitness to participate."
+}
+```
+
+Update the measurements with `PATCH /api/me`. Send `height_cm` and `weight_kg` together. `bmi_measured_at` is optional and defaults to the current server date when measurements change. Send both measurements as `null` to clear them.
+
+BMI is always calculated by Laravel; clients must not submit a BMI value. `bmi_category` is returned only when the participant is at least 20 years old on the measurement date. For younger participants, `bmi_interpretation` is `age_specific_required`; when birthdate is unavailable it is `age_unknown`. BMI is informational and must not control registration eligibility, approval, rankings, or public profiles.
+
 ## Event Registration
 
 ```text

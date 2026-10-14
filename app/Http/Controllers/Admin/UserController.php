@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AdminActivityLog;
 use App\Models\User;
 use App\Services\AdminInvitationService;
+use App\Support\ParticipantHealthProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
@@ -91,6 +92,7 @@ class UserController extends Controller
             'emergency_contact' => 'nullable|string|max:255',
             'emergency_contact_name' => 'nullable|string|max:255',
             'emergency_contact_number' => ['nullable', 'digits:11'],
+            ...ParticipantHealthProfile::validationRules(),
         ]);
 
         if (($validated['role'] ?? null) !== User::ROLE_RUNNER) {
@@ -100,9 +102,16 @@ class UserController extends Controller
                 'emergency_contact',
                 'emergency_contact_name',
                 'emergency_contact_number',
+                'height_cm',
+                'weight_kg',
+                'bmi_measured_at',
             ] as $participantProfileField) {
                 $validated[$participantProfileField] = null;
             }
+        }
+
+        if (($validated['role'] ?? null) === User::ROLE_RUNNER) {
+            $validated = ParticipantHealthProfile::normalize($validated);
         }
 
         $validated['password'] = Hash::make($validated['password'] ?? Str::random(64));
@@ -163,10 +172,16 @@ class UserController extends Controller
             'emergency_contact' => 'nullable|string|max:255',
             'emergency_contact_name' => 'nullable|string|max:255',
             'emergency_contact_number' => ['nullable', 'digits:11'],
+            ...ParticipantHealthProfile::validationRules(),
         ]);
 
         if (($validated['role'] ?? null) !== User::ROLE_RUNNER) {
             $validated['medical_conditions'] = null;
+            $validated['height_cm'] = null;
+            $validated['weight_kg'] = null;
+            $validated['bmi_measured_at'] = null;
+        } else {
+            $validated = ParticipantHealthProfile::normalize($validated, $user);
         }
 
         if ($user->id === auth()->id()

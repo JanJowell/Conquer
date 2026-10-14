@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AdminActivityLog;
 use App\Models\User;
 use App\Services\AdminInvitationService;
+use App\Support\ParticipantHealthProfile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -39,10 +40,16 @@ class ProfileController extends Controller
             'emergency_contact_name' => ['nullable', 'string', 'max:255'],
             'emergency_contact_number' => ['nullable', 'digits:11'],
             'medical_conditions' => ['nullable', 'string'],
+            ...ParticipantHealthProfile::validationRules(),
         ]);
 
         if ($user->normalizedRole() !== User::ROLE_RUNNER) {
             $validated['medical_conditions'] = null;
+            $validated['height_cm'] = null;
+            $validated['weight_kg'] = null;
+            $validated['bmi_measured_at'] = null;
+        } else {
+            $validated = ParticipantHealthProfile::normalize($validated, $user);
         }
 
         $user->update($validated);

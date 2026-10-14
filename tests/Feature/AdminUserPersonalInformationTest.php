@@ -14,10 +14,10 @@ test('personal information section is shown only for participant account creatio
         ->assertOk()
         ->assertSee('id="participant-personal-information"', false)
         ->assertSee("personalInformationSection.classList.toggle('hidden', !isRunner)", false)
-        ->assertSee("field.disabled = !isRunner", false)
+        ->assertSee('field.disabled = !isRunner', false)
         ->assertSee("field.value = ''", false);
 
-    $document = new DOMDocument();
+    $document = new DOMDocument;
     @$document->loadHTML($response->getContent());
     $form = new DOMXPath($document);
 
@@ -26,6 +26,9 @@ test('personal information section is shown only for participant account creatio
         ->and($form->query('//section[.//h3[normalize-space()="Basic Information"]][@id]')->length)->toBe(0)
         ->and($form->query('//*[@id="participant-personal-information"]//*[@id="address"]')->length)->toBe(1)
         ->and($form->query('//*[@id="participant-personal-information"]//*[@id="medical_conditions"]')->length)->toBe(1)
+        ->and($form->query('//*[@id="participant-personal-information"]//*[@id="height_cm"]')->length)->toBe(1)
+        ->and($form->query('//*[@id="participant-personal-information"]//*[@id="weight_kg"]')->length)->toBe(1)
+        ->and($form->query('//*[@id="participant-personal-information"]//*[@id="bmi_measured_at"]')->length)->toBe(1)
         ->and($form->query('//*[@id="participant-personal-information"]//*[@id="emergency_contact_name"]')->length)->toBe(1)
         ->and($form->query('//*[@id="participant-personal-information"]//*[@id="emergency_contact_number"]')->length)->toBe(1);
 });
@@ -48,6 +51,9 @@ test('administrator creation discards participant-only personal information', fu
             'emergency_contact' => 'Legacy value',
             'emergency_contact_name' => 'Should not be stored',
             'emergency_contact_number' => '09123456789',
+            'height_cm' => 170,
+            'weight_kg' => 65,
+            'bmi_measured_at' => '2026-10-01',
         ])
         ->assertRedirect(route('admin.users.index'))
         ->assertSessionHasNoErrors();
@@ -58,7 +64,10 @@ test('administrator creation discards participant-only personal information', fu
         ->and($createdAdmin->medical_conditions)->toBeNull()
         ->and($createdAdmin->emergency_contact)->toBeNull()
         ->and($createdAdmin->emergency_contact_name)->toBeNull()
-        ->and($createdAdmin->emergency_contact_number)->toBeNull();
+        ->and($createdAdmin->emergency_contact_number)->toBeNull()
+        ->and($createdAdmin->height_cm)->toBeNull()
+        ->and($createdAdmin->weight_kg)->toBeNull()
+        ->and($createdAdmin->bmi_measured_at)->toBeNull();
 });
 
 test('participant creation keeps supplied personal information', function () {
@@ -78,6 +87,10 @@ test('participant creation keeps supplied personal information', function () {
             'medical_conditions' => 'No known conditions',
             'emergency_contact_name' => 'Emergency Contact',
             'emergency_contact_number' => '09123456789',
+            'birthdate' => '1995-05-15',
+            'height_cm' => 170,
+            'weight_kg' => 65,
+            'bmi_measured_at' => '2026-10-01',
         ])
         ->assertRedirect(route('admin.users.index'))
         ->assertSessionHasNoErrors();
@@ -87,5 +100,9 @@ test('participant creation keeps supplied personal information', function () {
     expect($participant->address)->toBe('Participant address')
         ->and($participant->medical_conditions)->toBe('No known conditions')
         ->and($participant->emergency_contact_name)->toBe('Emergency Contact')
-        ->and($participant->emergency_contact_number)->toBe('09123456789');
+        ->and($participant->emergency_contact_number)->toBe('09123456789')
+        ->and($participant->height_cm)->toBe('170.00')
+        ->and($participant->weight_kg)->toBe('65.00')
+        ->and($participant->bmi)->toBe(22.5)
+        ->and($participant->bmi_category)->toBe('Healthy weight');
 });

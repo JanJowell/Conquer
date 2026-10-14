@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\BannedIP;
 use App\Models\User;
 use App\Services\InterestNormalizer;
+use App\Support\ParticipantHealthProfile;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -47,6 +48,7 @@ class AuthController extends Controller
             'emergency_contact_name' => ['nullable', 'string', 'max:255'],
             'emergency_contact_number' => ['nullable', 'digits:11'],
             'medical_conditions' => ['nullable', 'string'],
+            ...ParticipantHealthProfile::validationRules(),
             'interests' => ['nullable', 'array'],
             'interests.*' => ['string', 'max:80'],
         ]);
@@ -71,6 +73,7 @@ class AuthController extends Controller
         $validated['role'] = User::ROLE_RUNNER;
         $validated['password'] = Hash::make($validated['password']);
         $this->normalizeInterests($validated);
+        $validated = ParticipantHealthProfile::normalize($validated);
         unset($validated['first_name'], $validated['last_name']);
 
         $user = User::create($validated);
@@ -268,12 +271,18 @@ class AuthController extends Controller
             'emergency_contact_name' => ['nullable', 'string', 'max:255'],
             'emergency_contact_number' => ['nullable', 'digits:11'],
             'medical_conditions' => ['nullable', 'string'],
+            ...ParticipantHealthProfile::validationRules(),
             'interests' => ['nullable', 'array'],
             'interests.*' => ['string', 'max:80'],
         ]);
 
         if ($user->normalizedRole() !== User::ROLE_RUNNER) {
             $validated['medical_conditions'] = null;
+            $validated['height_cm'] = null;
+            $validated['weight_kg'] = null;
+            $validated['bmi_measured_at'] = null;
+        } else {
+            $validated = ParticipantHealthProfile::normalize($validated, $user);
         }
 
         $this->normalizeInterests($validated);
@@ -546,6 +555,13 @@ class AuthController extends Controller
             'emergency_contact_name' => $user->emergency_contact_name,
             'emergency_contact_number' => $user->emergency_contact_number,
             'medical_conditions' => $user->medical_conditions,
+            'height_cm' => $user->height_cm !== null ? (float) $user->height_cm : null,
+            'weight_kg' => $user->weight_kg !== null ? (float) $user->weight_kg : null,
+            'bmi' => $user->bmi,
+            'bmi_category' => $user->bmi_category,
+            'bmi_interpretation' => $user->bmi_interpretation,
+            'bmi_measured_at' => optional($user->bmi_measured_at)?->format('Y-m-d'),
+            'bmi_notice' => ParticipantHealthProfile::BMI_NOTICE,
             'interests' => $user->interests ?? [],
             'avatar_url' => $user->avatar_path ? asset('storage/'.$user->avatar_path) : null,
             'certificates_count' => $certificatesCount,

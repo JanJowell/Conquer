@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\ParticipantHealthProfile;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -39,6 +40,9 @@ class User extends Authenticatable
         'emergency_contact_name',
         'emergency_contact_number',
         'medical_conditions',
+        'height_cm',
+        'weight_kg',
+        'bmi_measured_at',
         'interests',
         'emergency_contact',
         'suspended_at',
@@ -66,6 +70,9 @@ class User extends Authenticatable
             'api_token_expires_at' => 'datetime',
             'password' => 'hashed',
             'birthdate' => 'date',
+            'height_cm' => 'decimal:2',
+            'weight_kg' => 'decimal:2',
+            'bmi_measured_at' => 'date',
             'interests' => 'array',
             'suspended_at' => 'datetime',
             'banned_at' => 'datetime',
@@ -77,6 +84,25 @@ class User extends Authenticatable
     public function registrations()
     {
         return $this->hasMany(Registration::class);
+    }
+
+    public function getBmiAttribute(): ?float
+    {
+        return ParticipantHealthProfile::calculate($this->height_cm, $this->weight_kg);
+    }
+
+    public function getBmiInterpretationAttribute(): string
+    {
+        return ParticipantHealthProfile::interpretation(
+            $this->birthdate,
+            $this->bmi_measured_at,
+            $this->bmi
+        );
+    }
+
+    public function getBmiCategoryAttribute(): ?string
+    {
+        return ParticipantHealthProfile::category($this->bmi, $this->bmi_interpretation);
     }
 
     public function raceResults()
