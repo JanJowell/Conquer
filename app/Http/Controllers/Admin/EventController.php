@@ -9,6 +9,7 @@ use App\Models\CommunityPost;
 use App\Models\Event;
 use App\Models\EventPaymentMethod;
 use App\Models\User;
+use App\Services\EventManagerAvailability;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -21,6 +22,8 @@ use Illuminate\View\View;
 
 class EventController extends Controller
 {
+    public function __construct(private readonly EventManagerAvailability $managerAvailability) {}
+
     public function index(Request $request): View
     {
         $user = auth()->user();
@@ -78,8 +81,9 @@ class EventController extends Controller
             ->whereIn('role', [User::ROLE_EVENT_MANAGER, User::ROLE_LEGACY_ADMIN])
             ->orderBy('name')
             ->get(['id', 'name', 'email']);
+        $managerSchedules = $this->managerSchedules($managers->pluck('id')->all());
 
-        return view('admin.events.create', compact('interestTypes', 'managers', 'categoryTypes', 'distanceOptions', 'paymentMethods'));
+        return view('admin.events.create', compact('interestTypes', 'managers', 'managerSchedules', 'categoryTypes', 'distanceOptions', 'paymentMethods'));
     }
 
     public function show(Event $event): View
@@ -181,6 +185,14 @@ class EventController extends Controller
             return back()->withErrors($errors)->withInput();
         }
 
+        if ($user->managesAssignedEventsOnly()) {
+            $validated['manager_id'] = $user->id;
+        }
+
+        if ($errors = $this->managerAvailabilityErrors($validated)) {
+            return back()->withErrors($errors)->withInput();
+        }
+
         if ($errors = $this->categorySetupErrors($validated['categories'] ?? [], $validated)) {
             return back()->withErrors($errors)->withInput();
         }
@@ -196,10 +208,6 @@ class EventController extends Controller
         $this->normalizeTypeDetails($validated, $request);
 
         $validated['status'] = 'draft';
-
-        if ($user->managesAssignedEventsOnly()) {
-            $validated['manager_id'] = $user->id;
-        }
 
         if ($request->hasFile('banner_image_upload')) {
             $validated['banner_image'] = $request->file('banner_image_upload')->store('events/banners', 'public');
@@ -249,8 +257,9 @@ class EventController extends Controller
             ->whereIn('role', [User::ROLE_EVENT_MANAGER, User::ROLE_LEGACY_ADMIN])
             ->orderBy('name')
             ->get(['id', 'name', 'email']);
+        $managerSchedules = $this->managerSchedules($managers->pluck('id')->all(), $event->id);
 
-        return view('admin.events.edit', compact('event', 'interestTypes', 'managers', 'categoryTypes', 'distanceOptions', 'paymentMethods', 'categoryRows'));
+        return view('admin.events.edit', compact('event', 'interestTypes', 'managers', 'managerSchedules', 'categoryTypes', 'distanceOptions', 'paymentMethods', 'categoryRows'));
     }
 
     public function update(Request $request, Event $event): RedirectResponse
@@ -330,6 +339,14 @@ class EventController extends Controller
             return back()->withErrors($errors)->withInput();
         }
 
+        if ($user->managesAssignedEventsOnly()) {
+            $validated['manager_id'] = $user->id;
+        }
+
+        if ($errors = $this->managerAvailabilityErrors($validated, $event->id)) {
+            return back()->withErrors($errors)->withInput();
+        }
+
         if ($errors = $this->categorySetupErrors($validated['categories'] ?? [], $validated)) {
             return back()->withErrors($errors)->withInput();
         }
@@ -347,10 +364,6 @@ class EventController extends Controller
         $paymentMethodsSubmitted = $request->boolean('payment_methods_submitted');
         unset($validated['categories'], $validated['payment_methods'], $validated['payment_methods_submitted']);
         $this->normalizeTypeDetails($validated, $request, $event);
-
-        if ($user->managesAssignedEventsOnly()) {
-            $validated['manager_id'] = $user->id;
-        }
 
         if ($request->hasFile('banner_image_upload')) {
             $validated['banner_image'] = $request->file('banner_image_upload')->store('events/banners', 'public');
@@ -934,6 +947,45 @@ class EventController extends Controller
         return $endAt->lte($startAt)
             ? ['end_time' => 'The event end date and time must be after the event start date and time.']
             : [];
+    }
+
+    private function managerAvailabilityErrors(array $data, ?int $exceptEventId = null): array
+    {
+        $managerId = $data['manager_id'] ?? null;
+
+        if (! $managerId) {
+            return [];
+        }
+
+        $conflict = $this->managerAvailability->conflictingEvent((int) $managerId, $data, $exceptEventId);
+
+        return $conflict
+            ? ['manager_id' => $this->managerAvailability->conflictMessage($conflict)]
+            : [];
+    }
+
+    private function managerSchedules(array $managerIds, ?int $exceptEventId = null): array
+    {
+        if ($managerIds === []) {
+            return [];
+        }
+
+        return Event::query()
+            ->whereIn('manager_id', $managerIds)
+            ->when($exceptEventId, fn ($query) => $query->whereKeyNot($exceptEventId))
+            ->orderBy('event_date')
+            ->orderBy('start_time')
+            ->get(['id', 'manager_id', 'title', 'event_date', 'event_end_date', 'start_time', 'end_time'])
+            ->groupBy('manager_id')
+            ->map(fn ($events) => $events->map(fn (Event $event) => [
+                'id' => $event->id,
+                'title' => $event->title,
+                'event_date' => $event->event_date?->format('Y-m-d'),
+                'event_end_date' => $event->event_end_date?->format('Y-m-d') ?? $event->event_date?->format('Y-m-d'),
+                'start_time' => $event->start_time?->format('H:i'),
+                'end_time' => $event->end_time?->format('H:i'),
+            ])->values()->all())
+            ->all();
     }
 
     /** @return array{field: string, message: string}|null */

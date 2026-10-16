@@ -758,6 +758,9 @@
                     </option>
                 @endforeach
             </select>
+            <p id="manager-availability-message" class="mt-2 text-xs leading-5 text-[#6d7685]" aria-live="polite">
+                Select the event dates and times to check the manager's availability.
+            </p>
         </div>
     @endif
 
@@ -792,6 +795,102 @@
         const categoryHeading = document.querySelector('[data-category-heading]');
         const categoryLabels = @json($categoryLabels);
         const eventStartDate = document.querySelector('#event_date');
+        const eventEndDate = document.querySelector('#event_end_date');
+        const eventStartTime = document.querySelector('#start_time');
+        const eventEndTime = document.querySelector('#end_time');
+        const managerSelect = document.querySelector('#manager_id');
+        const managerAvailabilityMessage = document.querySelector('#manager-availability-message');
+        const managerSchedules = @json($managerSchedules ?? []);
+
+        const schedulesOverlap = (candidate, existing) => {
+            if (! candidate.event_date || ! existing.event_date) return false;
+
+            const candidateEndDate = candidate.event_end_date || candidate.event_date;
+            const existingEndDate = existing.event_end_date || existing.event_date;
+            const datesOverlap = candidate.event_date <= existingEndDate
+                && candidateEndDate >= existing.event_date;
+
+            if (! datesOverlap) return false;
+
+            const hasCompleteTimes = candidate.start_time && candidate.end_time
+                && existing.start_time && existing.end_time;
+
+            if (! hasCompleteTimes) return true;
+
+            const candidateStart = new Date(`${candidate.event_date}T${candidate.start_time}`);
+            const candidateEnd = new Date(`${candidateEndDate}T${candidate.end_time}`);
+            const existingStart = new Date(`${existing.event_date}T${existing.start_time}`);
+            const existingEnd = new Date(`${existingEndDate}T${existing.end_time}`);
+
+            return candidateStart < existingEnd && candidateEnd > existingStart;
+        };
+
+        const formatManagerConflict = (event) => {
+            const dateOptions = { month: 'short', day: 'numeric', year: 'numeric' };
+            const startDate = new Date(`${event.event_date}T00:00:00`).toLocaleDateString(undefined, dateOptions);
+            const endDateValue = event.event_end_date || event.event_date;
+            const endDate = new Date(`${endDateValue}T00:00:00`).toLocaleDateString(undefined, dateOptions);
+            const dateRange = event.event_date === endDateValue ? startDate : `${startDate} to ${endDate}`;
+
+            return `${event.title} (${dateRange})`;
+        };
+
+        const refreshManagerAvailability = () => {
+            if (! managerSelect || ! managerAvailabilityMessage) return;
+
+            const candidate = {
+                event_date: eventStartDate?.value || '',
+                event_end_date: eventEndDate?.value || eventStartDate?.value || '',
+                start_time: eventStartTime?.value || '',
+                end_time: eventEndTime?.value || '',
+            };
+
+            Array.from(managerSelect.options).forEach((option) => {
+                if (! option.value) return;
+                option.dataset.baseLabel ||= option.textContent.trim();
+                option.textContent = option.dataset.baseLabel;
+            });
+
+            if (! candidate.event_date) {
+                managerAvailabilityMessage.className = 'mt-2 text-xs leading-5 text-[#6d7685]';
+                managerAvailabilityMessage.textContent = 'Select the event dates and times to check the manager\'s availability.';
+                return;
+            }
+
+            Array.from(managerSelect.options).forEach((option) => {
+                if (! option.value) return;
+                const conflict = (managerSchedules[option.value] || [])
+                    .find((event) => schedulesOverlap(candidate, event));
+                option.dataset.conflict = conflict ? 'true' : 'false';
+                option.textContent = conflict
+                    ? `${option.dataset.baseLabel} — Unavailable`
+                    : `${option.dataset.baseLabel} — Available`;
+            });
+
+            const selectedOption = managerSelect.selectedOptions[0];
+            if (! selectedOption?.value) {
+                managerAvailabilityMessage.className = 'mt-2 text-xs leading-5 text-[#6d7685]';
+                managerAvailabilityMessage.textContent = 'Choose a manager to see their availability for this schedule.';
+                return;
+            }
+
+            const conflict = (managerSchedules[selectedOption.value] || [])
+                .find((event) => schedulesOverlap(candidate, event));
+
+            if (conflict) {
+                managerAvailabilityMessage.className = 'mt-2 text-xs font-medium leading-5 text-rose-600';
+                managerAvailabilityMessage.textContent = `Unavailable: already assigned to ${formatManagerConflict(conflict)}. Change the manager or schedule.`;
+                return;
+            }
+
+            managerAvailabilityMessage.className = 'mt-2 text-xs font-medium leading-5 text-emerald-700';
+            managerAvailabilityMessage.textContent = 'Available for this event schedule.';
+        };
+
+        [eventStartDate, eventEndDate, eventStartTime, eventEndTime, managerSelect].forEach((field) => {
+            field?.addEventListener('change', refreshManagerAvailability);
+        });
+        refreshManagerAvailability();
 
         const refreshCategoryDistanceFields = (row) => {
             const selectedType = eventTypeSelect?.value || '';
