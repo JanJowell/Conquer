@@ -45,6 +45,7 @@ Route::post('/paymongo/webhook', [PaymentController::class, 'payMongoWebhook'])
 Route::middleware(['mobile.auth', 'throttle:mobile-api'])->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::patch('/me', [AuthController::class, 'updateProfile']);
+    Route::put('/me/health-profile', [AuthController::class, 'updateHealthProfile']);
     Route::patch('/me/interests', [AuthController::class, 'updateInterests']);
     Route::post('/me/avatar', [AuthController::class, 'updateAvatar']);
     Route::patch('/me/password', [AuthController::class, 'changePassword']);

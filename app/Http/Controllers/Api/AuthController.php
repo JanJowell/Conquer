@@ -276,6 +276,10 @@ class AuthController extends Controller
             'interests.*' => ['string', 'max:80'],
         ]);
 
+        $healthMeasurementsWereSubmitted = $request->exists('height_cm')
+            || $request->exists('weight_kg')
+            || $request->exists('bmi_measured_at');
+
         if ($user->normalizedRole() !== User::ROLE_RUNNER) {
             $validated['medical_conditions'] = null;
             $validated['height_cm'] = null;
@@ -283,6 +287,10 @@ class AuthController extends Controller
             $validated['bmi_measured_at'] = null;
         } else {
             $validated = ParticipantHealthProfile::normalize($validated, $user);
+
+            if ($healthMeasurementsWereSubmitted) {
+                $validated['health_profile_updated_at'] = now();
+            }
         }
 
         $this->normalizeInterests($validated);
@@ -292,6 +300,89 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Profile updated successfully.',
             'user' => $this->userPayload($user->fresh()),
+        ]);
+    }
+
+    public function updateHealthProfile(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if ($user->normalizedRole() !== User::ROLE_RUNNER) {
+            return response()->json([
+                'message' => 'Health measurements are available to participants only.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'client_update_id' => ['required', 'uuid'],
+            'client_updated_at' => ['required', 'date'],
+            'base_version' => ['nullable', 'date'],
+            'height_cm' => ['present', 'nullable', 'required_with:weight_kg', 'numeric', 'between:50,250'],
+            'weight_kg' => ['present', 'nullable', 'required_with:height_cm', 'numeric', 'between:10,500'],
+            'bmi_measured_at' => ['nullable', 'date', 'before_or_equal:today'],
+        ]);
+
+        $result = DB::transaction(function () use ($user, $validated): array {
+            $lockedUser = User::query()->lockForUpdate()->findOrFail($user->id);
+
+            $duplicate = DB::table('participant_health_updates')
+                ->where('user_id', $lockedUser->id)
+                ->where('client_update_id', $validated['client_update_id'])
+                ->exists();
+
+            if ($duplicate) {
+                return ['status' => 'duplicate', 'user' => $lockedUser];
+            }
+
+            $currentVersion = $lockedUser->health_profile_updated_at;
+            $baseVersion = filled($validated['base_version'] ?? null)
+                ? Carbon::parse($validated['base_version'])->utc()->startOfSecond()
+                : null;
+
+            $versionMatches = ($currentVersion === null && $baseVersion === null)
+                || ($currentVersion !== null
+                    && $baseVersion !== null
+                    && $currentVersion->copy()->utc()->startOfSecond()->equalTo($baseVersion));
+
+            if (! $versionMatches) {
+                return ['status' => 'conflict', 'user' => $lockedUser];
+            }
+
+            $measurements = ParticipantHealthProfile::normalize([
+                'height_cm' => $validated['height_cm'],
+                'weight_kg' => $validated['weight_kg'],
+                'bmi_measured_at' => $validated['bmi_measured_at'] ?? null,
+            ], $lockedUser);
+
+            $measurements['health_profile_updated_at'] = now();
+            $lockedUser->update($measurements);
+
+            DB::table('participant_health_updates')->insert([
+                'user_id' => $lockedUser->id,
+                'client_update_id' => $validated['client_update_id'],
+                'client_updated_at' => Carbon::parse($validated['client_updated_at'])->utc(),
+                'base_version' => $baseVersion,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            return ['status' => 'applied', 'user' => $lockedUser->fresh()];
+        });
+
+        if ($result['status'] === 'conflict') {
+            return response()->json([
+                'message' => 'Your saved Health Profile changed after this offline edit was created. Review the latest measurements before saving again.',
+                'code' => 'health_profile_conflict',
+                'user' => $this->userPayload($result['user']),
+            ], 409);
+        }
+
+        return response()->json([
+            'message' => $result['status'] === 'duplicate'
+                ? 'This Health Profile update was already synchronized.'
+                : 'Health Profile synchronized successfully.',
+            'sync_status' => $result['status'],
+            'user' => $this->userPayload($result['user']),
         ]);
     }
 
@@ -561,6 +652,7 @@ class AuthController extends Controller
             'bmi_category' => $user->bmi_category,
             'bmi_interpretation' => $user->bmi_interpretation,
             'bmi_measured_at' => optional($user->bmi_measured_at)?->format('Y-m-d'),
+            'health_profile_updated_at' => optional($user->health_profile_updated_at)?->toISOString(),
             'bmi_notice' => ParticipantHealthProfile::BMI_NOTICE,
             'interests' => $user->interests ?? [],
             'avatar_url' => $user->avatar_path ? asset('storage/'.$user->avatar_path) : null,

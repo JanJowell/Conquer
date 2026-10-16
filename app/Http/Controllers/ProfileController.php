@@ -50,6 +50,9 @@ class ProfileController extends Controller
             $validated['bmi_measured_at'] = null;
         } else {
             $validated = ParticipantHealthProfile::normalize($validated, $user);
+            if ($request->exists('height_cm') || $request->exists('weight_kg')) {
+                $validated['health_profile_updated_at'] = now();
+            }
         }
 
         $user->update($validated);

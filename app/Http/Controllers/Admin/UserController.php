@@ -112,6 +112,9 @@ class UserController extends Controller
 
         if (($validated['role'] ?? null) === User::ROLE_RUNNER) {
             $validated = ParticipantHealthProfile::normalize($validated);
+            if ($request->exists('height_cm') || $request->exists('weight_kg')) {
+                $validated['health_profile_updated_at'] = now();
+            }
         }
 
         $validated['password'] = Hash::make($validated['password'] ?? Str::random(64));
@@ -182,6 +185,9 @@ class UserController extends Controller
             $validated['bmi_measured_at'] = null;
         } else {
             $validated = ParticipantHealthProfile::normalize($validated, $user);
+            if ($request->exists('height_cm') || $request->exists('weight_kg')) {
+                $validated['health_profile_updated_at'] = now();
+            }
         }
 
         if ($user->id === auth()->id()

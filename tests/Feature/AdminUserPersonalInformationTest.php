@@ -104,5 +104,6 @@ test('participant creation keeps supplied personal information', function () {
         ->and($participant->height_cm)->toBe('170.00')
         ->and($participant->weight_kg)->toBe('65.00')
         ->and($participant->bmi)->toBe(22.5)
-        ->and($participant->bmi_category)->toBe('Healthy weight');
+        ->and($participant->bmi_category)->toBe('Healthy weight')
+        ->and($participant->health_profile_updated_at)->not->toBeNull();
 });
