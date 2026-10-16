@@ -306,7 +306,7 @@
                                 <p class="mt-1 text-xs text-slate-400">{{ $category->description ?: 'No description' }}</p>
                             </div>
                             <div>
-                                <p>{{ number_format((float) $category->distance_km, 2) }} km{{ $category->formattedTypeDetails() ? ' total' : '' }}</p>
+                                <p>{{ $category->formattedDistance($category->formattedTypeDetails() !== []) }}</p>
                                 @foreach ($category->formattedTypeDetails() as $detail)
                                     <p class="mt-1 text-xs text-slate-400">{{ $detail['label'] }}: {{ $detail['value'] }}</p>
                                 @endforeach

@@ -75,23 +75,29 @@
 
                 <div data-standard-distance class="{{ $usesSegmentedDistances ? 'hidden' : '' }}">
                     <label for="distance_option" class="mb-2 block text-sm font-medium text-[#3d4757]">Distance</label>
-                    <select id="distance_option" name="distance_option" class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none">
-                        @foreach ([
-                            '1' => '1K',
-                            '3' => '3K',
-                            '5' => '5K',
-                            '10' => '10K',
-                            '21' => '21K',
-                            '42' => '42K',
-                            'custom' => 'Custom',
-                        ] as $value => $label)
-                            <option value="{{ $value }}" @selected(old('distance_option', '5') === $value)>{{ $label }}</option>
-                        @endforeach
-                    </select>
+                    <div class="grid grid-cols-[minmax(0,1fr)_110px] gap-2">
+                        <select id="distance_option" name="distance_option" class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none">
+                            @foreach ([
+                                '1' => '1',
+                                '3' => '3',
+                                '5' => '5',
+                                '10' => '10',
+                                '21' => '21',
+                                '42' => '42',
+                                'custom' => 'Custom',
+                            ] as $value => $label)
+                                <option value="{{ $value }}" @selected(old('distance_option', '5') === $value)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                        <select id="distance_unit" name="distance_unit" aria-label="Distance unit" class="h-12 w-full rounded-2xl border border-[#d9dee7] px-3 text-sm font-semibold text-[#151b26] outline-none">
+                            <option value="km" @selected(old('distance_unit', 'km') === 'km')>km</option>
+                            <option value="mi" @selected(old('distance_unit', 'km') === 'mi')>miles</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div id="custom-distance-wrapper" data-standard-distance class="{{ $usesSegmentedDistances || old('distance_option', '5') !== 'custom' ? 'hidden' : '' }}">
-                    <label for="custom_distance_km" class="mb-2 block text-sm font-medium text-[#3d4757]">Custom Distance (km)</label>
+                    <label for="custom_distance_km" class="mb-2 block text-sm font-medium text-[#3d4757]">Custom Distance</label>
                     <input id="custom_distance_km" name="custom_distance_km" type="number" step="0.01" min="0.01" value="{{ old('custom_distance_km') }}"
                         class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none">
                 </div>

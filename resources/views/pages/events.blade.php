@@ -21,7 +21,7 @@
                 @foreach($event->categories as $category)
                     <form method="POST" action="{{ route('events.register', [$event, $category]) }}" style="margin-bottom: 10px;">
                         @csrf
-                        <strong>{{ $category->name }}</strong> - {{ $category->distance_km }} KM
+                        <strong>{{ $category->name }}</strong> - {{ $category->formattedDistance() }}
                         <select name="shirt_size">
                             <option value="XS">XS</option>
                             <option value="S">S</option>

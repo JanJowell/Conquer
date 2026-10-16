@@ -79,6 +79,7 @@ class CategoryController extends Controller
                     'scheduled_end_date',
                     $request->input('scheduled_start_date', $selectedEvent->event_date?->format('Y-m-d'))
                 ),
+                'distance_unit' => $request->input('distance_unit', Category::DISTANCE_UNIT_KILOMETERS),
             ]);
         }
 
@@ -90,6 +91,7 @@ class CategoryController extends Controller
             'custom_category_name' => ['nullable', 'required_if:category_type,custom', 'string', 'max:255'],
             'distance_option' => [Rule::requiredIf(! $usesSegmentedDistances), 'nullable', Rule::in(array_keys($this->distanceOptions()))],
             'custom_distance_km' => ['nullable', 'required_if:distance_option,custom', 'numeric', 'min:0.01'],
+            'distance_unit' => [Rule::requiredIf(! $usesSegmentedDistances), 'nullable', Rule::in(array_keys(Category::distanceUnits()))],
             'scheduled_start_date' => ['required', 'date'],
             'scheduled_start_time' => ['required', 'date_format:H:i'],
             'scheduled_end_date' => ['required', 'date'],
@@ -129,9 +131,16 @@ class CategoryController extends Controller
         }
 
         $validated['type_details'] = $this->normalizedCategoryTypeDetails($event->interest_type, $validated['type_details'] ?? []);
+        $validated['distance_unit'] = $usesSegmentedDistances
+            ? Category::DISTANCE_UNIT_KILOMETERS
+            : ($validated['distance_unit'] ?? Category::DISTANCE_UNIT_KILOMETERS);
         $validated['distance_km'] = Category::distanceFromTypeDetails($event->interest_type, $validated['type_details'])
             ?? $this->distanceValue($validated);
-        $validated['name'] = $this->nameWithDistance($this->categoryTypeName($validated), (float) $validated['distance_km']);
+        $validated['name'] = $this->nameWithDistance(
+            $this->categoryTypeName($validated),
+            (float) $validated['distance_km'],
+            $validated['distance_unit']
+        );
         $this->applyPriceFields($validated);
         $this->normalizeGroupFields($validated);
         unset($validated['category_type'], $validated['custom_category_name'], $validated['distance_option'], $validated['custom_distance_km']);
@@ -173,7 +182,7 @@ class CategoryController extends Controller
         $category->load('event')->loadCount(['registrations', 'raceResults']);
         $categoryInUse = $category->registrations_count > 0 || $category->race_results_count > 0;
         $categoryType = $this->categoryTypeFromName($category);
-        $distanceOption = $this->distanceOptionFromValue((float) $category->distance_km);
+        $distanceOption = $this->distanceOptionFromValue($category->displayDistance());
         $paymentMethods = Category::paymentMethods();
 
         return view('admin.categories.edit', compact('category', 'categoryInUse', 'categoryType', 'distanceOption', 'paymentMethods'));
@@ -192,6 +201,10 @@ class CategoryController extends Controller
                 : ($request->input('category_type') === 'group'
                     ? Category::PARTICIPATION_GROUP
                     : Category::PARTICIPATION_INDIVIDUAL),
+            'distance_unit' => $request->input(
+                'distance_unit',
+                $category->distance_unit ?? Category::DISTANCE_UNIT_KILOMETERS
+            ),
         ]);
 
         if (! $category->started_at) {
@@ -237,6 +250,7 @@ class CategoryController extends Controller
                 'custom_category_name' => ['nullable', 'required_if:category_type,custom', 'string', 'max:255'],
                 'distance_option' => [Rule::requiredIf(! $usesSegmentedDistances), 'nullable', Rule::in(array_keys($this->distanceOptions()))],
                 'custom_distance_km' => ['nullable', 'required_if:distance_option,custom', 'numeric', 'min:0.01'],
+                'distance_unit' => [Rule::requiredIf(! $usesSegmentedDistances), 'nullable', Rule::in(array_keys(Category::distanceUnits()))],
                 'participation_mode' => ['required', Rule::in([Category::PARTICIPATION_INDIVIDUAL, Category::PARTICIPATION_GROUP])],
                 'group_min_members' => ['nullable', 'required_if:participation_mode,group', 'integer', 'min:2', 'max:100'],
                 'group_max_members' => ['nullable', 'required_if:participation_mode,group', 'integer', 'min:2', 'max:100'],
@@ -271,9 +285,16 @@ class CategoryController extends Controller
                 $category->event?->interest_type,
                 $validated['type_details'] ?? []
             );
+            $validated['distance_unit'] = $usesSegmentedDistances
+                ? Category::DISTANCE_UNIT_KILOMETERS
+                : ($validated['distance_unit'] ?? Category::DISTANCE_UNIT_KILOMETERS);
             $validated['distance_km'] = Category::distanceFromTypeDetails($category->event?->interest_type, $validated['type_details'])
                 ?? $this->distanceValue($validated);
-            $validated['name'] = $this->nameWithDistance($this->categoryTypeName($validated), (float) $validated['distance_km']);
+            $validated['name'] = $this->nameWithDistance(
+                $this->categoryTypeName($validated),
+                (float) $validated['distance_km'],
+                $validated['distance_unit']
+            );
             unset($validated['category_type'], $validated['custom_category_name'], $validated['distance_option'], $validated['custom_distance_km']);
         } elseif (array_key_exists('type_details', $validated)) {
             $mutableKeys = collect(config("conquer.event_category_type_details.{$category->event?->interest_type}", []))
@@ -448,12 +469,12 @@ class CategoryController extends Controller
     private function distanceOptions(): array
     {
         return [
-            '1' => '1K',
-            '3' => '3K',
-            '5' => '5K',
-            '10' => '10K',
-            '21' => '21K',
-            '42' => '42K',
+            '1' => '1',
+            '3' => '3',
+            '5' => '5',
+            '10' => '10',
+            '21' => '21',
+            '42' => '42',
             'custom' => 'Custom',
         ];
     }
@@ -504,16 +525,22 @@ class CategoryController extends Controller
 
     private function distanceValue(array $data): float
     {
-        if ($data['distance_option'] === 'custom') {
-            return (float) $data['custom_distance_km'];
-        }
+        $distance = $data['distance_option'] === 'custom'
+            ? (float) $data['custom_distance_km']
+            : (float) $data['distance_option'];
 
-        return (float) $data['distance_option'];
+        return Category::toKilometers(
+            $distance,
+            $data['distance_unit'] ?? Category::DISTANCE_UNIT_KILOMETERS
+        );
     }
 
     private function categoryTypeFromName(Category $category): array
     {
-        $typeName = trim(preg_replace('/^'.preg_quote($this->distanceLabel((float) $category->distance_km) ?? '', '/').'\s*/i', '', $category->name));
+        $typeName = trim(preg_replace('/^'.preg_quote($this->distanceLabel(
+            (float) $category->distance_km,
+            $category->distance_unit
+        ) ?? '', '/').'\s*/i', '', $category->name));
         $matchedKey = collect($this->categoryTypes())
             ->filter(fn ($label, $key) => $key !== 'custom' && strtolower($label) === strtolower($typeName))
             ->keys()
@@ -532,10 +559,10 @@ class CategoryController extends Controller
         return array_key_exists($distance, $this->distanceOptions()) ? $distance : 'custom';
     }
 
-    private function nameWithDistance(string $name, float $distanceKm): string
+    private function nameWithDistance(string $name, float $distanceKm, ?string $unit = null): string
     {
         $name = trim($name);
-        $distanceLabel = $this->distanceLabel($distanceKm);
+        $distanceLabel = $this->distanceLabel($distanceKm, $unit);
 
         if ($distanceLabel === null || str_contains(strtolower($name), strtolower($distanceLabel))) {
             return $name;
@@ -544,15 +571,18 @@ class CategoryController extends Controller
         return trim($distanceLabel.' '.$name);
     }
 
-    private function distanceLabel(float $distanceKm): ?string
+    private function distanceLabel(float $distanceKm, ?string $unit = null): ?string
     {
         if ($distanceKm <= 0) {
             return null;
         }
 
-        $distance = rtrim(rtrim(number_format($distanceKm, 2, '.', ''), '0'), '.');
+        $distance = Category::fromKilometers($distanceKm, $unit);
+        $distance = rtrim(rtrim(number_format($distance, 2, '.', ''), '0'), '.');
 
-        return $distance.'K';
+        return $unit === Category::DISTANCE_UNIT_MILES
+            ? $distance.'mi'
+            : $distance.'K';
     }
 
     private function applyPriceFields(array &$data): void
@@ -602,8 +632,7 @@ class CategoryController extends Controller
         string $scheduledStartTime,
         string $scheduledEndDate,
         string $scheduledEndTime
-    ): array
-    {
+    ): array {
         if (! $event) {
             return ['event_id' => 'Select a valid event for this category.'];
         }

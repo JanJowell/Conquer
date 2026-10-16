@@ -11,6 +11,7 @@ use App\Models\EventPaymentMethod;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -152,6 +153,7 @@ class EventController extends Controller
             'categories.*.custom_category_name' => ['nullable', 'required_if:categories.*.category_type,custom', 'string', 'max:255'],
             'categories.*.distance_option' => [Rule::requiredIf(! $usesSegmentedDistances), 'nullable', Rule::in(array_keys($this->distanceOptions()))],
             'categories.*.custom_distance_km' => ['nullable', 'required_if:categories.*.distance_option,custom', 'numeric', 'min:0.01'],
+            'categories.*.distance_unit' => [Rule::requiredIf(! $usesSegmentedDistances), 'nullable', Rule::in(array_keys(Category::distanceUnits()))],
             'categories.*.scheduled_start_date' => ['required', 'date'],
             'categories.*.scheduled_start_time' => ['required', 'date_format:H:i'],
             'categories.*.scheduled_end_date' => ['required', 'date'],
@@ -300,6 +302,7 @@ class EventController extends Controller
             'categories.*.custom_category_name' => ['nullable', 'required_if:categories.*.category_type,custom', 'string', 'max:255'],
             'categories.*.distance_option' => [Rule::requiredIf(! $usesSegmentedDistances), 'nullable', Rule::in(array_keys($this->distanceOptions()))],
             'categories.*.custom_distance_km' => ['nullable', 'required_if:categories.*.distance_option,custom', 'numeric', 'min:0.01'],
+            'categories.*.distance_unit' => [Rule::requiredIf(! $usesSegmentedDistances), 'nullable', Rule::in(array_keys(Category::distanceUnits()))],
             'categories.*.scheduled_start_date' => ['required', 'date'],
             'categories.*.scheduled_start_time' => ['required', 'date_format:H:i'],
             'categories.*.scheduled_end_date' => ['required', 'date'],
@@ -495,12 +498,12 @@ class EventController extends Controller
     private function distanceOptions(): array
     {
         return [
-            '1' => '1K',
-            '3' => '3K',
-            '5' => '5K',
-            '10' => '10K',
-            '21' => '21K',
-            '42' => '42K',
+            '1' => '1',
+            '3' => '3',
+            '5' => '5',
+            '10' => '10',
+            '21' => '21',
+            '42' => '42',
             'custom' => 'Custom',
         ];
     }
@@ -633,6 +636,7 @@ class EventController extends Controller
                     : Category::PARTICIPATION_INDIVIDUAL;
                 $row['scheduled_start_date'] ??= $eventStartDate;
                 $row['scheduled_end_date'] ??= $row['scheduled_start_date'] ?? $eventStartDate;
+                $row['distance_unit'] ??= Category::DISTANCE_UNIT_KILOMETERS;
 
                 return $row;
             })
@@ -646,19 +650,23 @@ class EventController extends Controller
         try {
             foreach ($rows as $row) {
                 $typeDetails = $this->normalizedCategoryTypeDetails($event->interest_type, $row['type_details'] ?? []);
+                $distanceUnit = $this->usesSegmentedCategoryDistances($event->interest_type)
+                    ? Category::DISTANCE_UNIT_KILOMETERS
+                    : ($row['distance_unit'] ?? Category::DISTANCE_UNIT_KILOMETERS);
                 $distanceKm = Category::distanceFromTypeDetails($event->interest_type, $typeDetails)
                     ?? $this->distanceValue($row);
                 $checkpointMapPath = null;
 
-                if (($row['checkpoint_map_image_upload'] ?? null) instanceof \Illuminate\Http\UploadedFile) {
+                if (($row['checkpoint_map_image_upload'] ?? null) instanceof UploadedFile) {
                     $checkpointMapPath = $row['checkpoint_map_image_upload']
                         ->store('categories/checkpoint-maps', 'public');
                     $storedCheckpointMaps[] = $checkpointMapPath;
                 }
 
                 $event->categories()->create([
-                    'name' => $this->nameWithDistance($this->categoryTypeName($row), $distanceKm),
+                    'name' => $this->nameWithDistance($this->categoryTypeName($row), $distanceKm, $distanceUnit),
                     'distance_km' => $distanceKm,
+                    'distance_unit' => $distanceUnit,
                     'type_details' => $typeDetails ?: null,
                     'description' => $row['description'] ?? null,
                     'qualification_notes' => $row['qualification_notes'] ?? null,
@@ -705,12 +713,16 @@ class EventController extends Controller
             $category = $event->categories()->findOrFail((int) $row['id']);
             $categoryInUse = $category->registrations()->exists() || $category->raceResults()->exists();
             $typeDetails = $this->normalizedCategoryTypeDetails($event->interest_type, $row['type_details'] ?? []);
+            $distanceUnit = $this->usesSegmentedCategoryDistances($event->interest_type)
+                ? Category::DISTANCE_UNIT_KILOMETERS
+                : ($row['distance_unit'] ?? Category::DISTANCE_UNIT_KILOMETERS);
             $distanceKm = Category::distanceFromTypeDetails($event->interest_type, $typeDetails)
                 ?? $this->distanceValue($row);
 
             $attributes = [
-                'name' => $this->nameWithDistance($this->categoryTypeName($row), $distanceKm),
+                'name' => $this->nameWithDistance($this->categoryTypeName($row), $distanceKm, $distanceUnit),
                 'distance_km' => $distanceKm,
+                'distance_unit' => $distanceUnit,
                 'type_details' => $typeDetails ?: null,
                 'description' => $row['description'] ?? null,
                 'qualification_notes' => $row['qualification_notes'] ?? null,
@@ -742,6 +754,7 @@ class EventController extends Controller
 
                 $attributes['name'] = $category->name;
                 $attributes['distance_km'] = $category->distance_km;
+                $attributes['distance_unit'] = $category->distance_unit;
                 $attributes['requires_medical_certificate'] = $category->requiresMedicalCertificate();
                 $attributes['participation_mode'] = $category->participation_mode;
                 $attributes['group_min_members'] = $category->group_min_members;
@@ -767,14 +780,15 @@ class EventController extends Controller
     private function categoryRowForEditing(Category $category): array
     {
         $categoryType = $this->categoryTypeFromName($category);
-        $distanceOption = $this->distanceOptionFromValue((float) $category->distance_km);
+        $distanceOption = $this->distanceOptionFromValue($category->displayDistance());
 
         return [
             'id' => $category->id,
             'category_type' => $categoryType['key'],
             'custom_category_name' => $categoryType['custom'],
             'distance_option' => $distanceOption,
-            'custom_distance_km' => $distanceOption === 'custom' ? $category->distance_km : null,
+            'custom_distance_km' => $distanceOption === 'custom' ? $category->displayDistance() : null,
+            'distance_unit' => $category->distance_unit ?? Category::DISTANCE_UNIT_KILOMETERS,
             'type_details' => $category->resolvedTypeDetails(),
             'scheduled_start_date' => ($category->scheduled_start_date ?? $category->event?->event_date)?->format('Y-m-d'),
             'scheduled_start_time' => $category->scheduled_start_time?->format('H:i') ?? $category->event?->start_time?->format('H:i'),
@@ -801,7 +815,7 @@ class EventController extends Controller
     /** @return array{key: string, custom: ?string} */
     private function categoryTypeFromName(Category $category): array
     {
-        $distanceLabel = $this->distanceLabel((float) $category->distance_km) ?? '';
+        $distanceLabel = $this->distanceLabel((float) $category->distance_km, $category->distance_unit) ?? '';
         $typeName = trim(preg_replace('/^'.preg_quote($distanceLabel, '/').'\s*/i', '', $category->name));
         $matchedKey = collect($this->categoryTypes())
             ->filter(fn (string $label, string $key) => $key !== 'custom' && strtolower($label) === strtolower($typeName))
@@ -973,17 +987,20 @@ class EventController extends Controller
 
     private function distanceValue(array $data): float
     {
-        if ($data['distance_option'] === 'custom') {
-            return (float) $data['custom_distance_km'];
-        }
+        $distance = $data['distance_option'] === 'custom'
+            ? (float) $data['custom_distance_km']
+            : (float) $data['distance_option'];
 
-        return (float) $data['distance_option'];
+        return Category::toKilometers(
+            $distance,
+            $data['distance_unit'] ?? Category::DISTANCE_UNIT_KILOMETERS
+        );
     }
 
-    private function nameWithDistance(string $name, float $distanceKm): string
+    private function nameWithDistance(string $name, float $distanceKm, ?string $unit = null): string
     {
         $name = trim($name);
-        $distanceLabel = $this->distanceLabel($distanceKm);
+        $distanceLabel = $this->distanceLabel($distanceKm, $unit);
 
         if ($distanceLabel === null || str_contains(strtolower($name), strtolower($distanceLabel))) {
             return $name;
@@ -992,15 +1009,18 @@ class EventController extends Controller
         return trim($distanceLabel.' '.$name);
     }
 
-    private function distanceLabel(float $distanceKm): ?string
+    private function distanceLabel(float $distanceKm, ?string $unit = null): ?string
     {
         if ($distanceKm <= 0) {
             return null;
         }
 
-        $distance = rtrim(rtrim(number_format($distanceKm, 2, '.', ''), '0'), '.');
+        $distance = Category::fromKilometers($distanceKm, $unit);
+        $distance = rtrim(rtrim(number_format($distance, 2, '.', ''), '0'), '.');
 
-        return $distance.'K';
+        return $unit === Category::DISTANCE_UNIT_MILES
+            ? $distance.'mi'
+            : $distance.'K';
     }
 
     private function completePastUpcomingEvents(User $user): void

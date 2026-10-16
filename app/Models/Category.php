@@ -11,6 +11,12 @@ class Category extends Model
 {
     use HasFactory;
 
+    public const DISTANCE_UNIT_KILOMETERS = 'km';
+
+    public const DISTANCE_UNIT_MILES = 'mi';
+
+    public const KILOMETERS_PER_MILE = 1.609344;
+
     public const PARTICIPATION_INDIVIDUAL = 'individual';
 
     public const PARTICIPATION_GROUP = 'group';
@@ -35,6 +41,7 @@ class Category extends Model
         'event_id',
         'name',
         'distance_km',
+        'distance_unit',
         'type_details',
         'description',
         'qualification_notes',
@@ -260,6 +267,41 @@ class Category extends Model
                 : null,
             default => null,
         };
+    }
+
+    public static function distanceUnits(): array
+    {
+        return [
+            self::DISTANCE_UNIT_KILOMETERS => 'km',
+            self::DISTANCE_UNIT_MILES => 'miles',
+        ];
+    }
+
+    public static function toKilometers(float $distance, ?string $unit): float
+    {
+        return $unit === self::DISTANCE_UNIT_MILES
+            ? $distance * self::KILOMETERS_PER_MILE
+            : $distance;
+    }
+
+    public static function fromKilometers(float $distanceKm, ?string $unit): float
+    {
+        return $unit === self::DISTANCE_UNIT_MILES
+            ? $distanceKm / self::KILOMETERS_PER_MILE
+            : $distanceKm;
+    }
+
+    public function displayDistance(): float
+    {
+        return self::fromKilometers((float) $this->distance_km, $this->distance_unit);
+    }
+
+    public function formattedDistance(bool $includeTotal = false): string
+    {
+        $distance = rtrim(rtrim(number_format($this->displayDistance(), 2, '.', ''), '0'), '.');
+        $unit = $this->distance_unit === self::DISTANCE_UNIT_MILES ? 'mi' : 'km';
+
+        return trim($distance.' '.$unit.($includeTotal ? ' total' : ''));
     }
 
     public static function paymentMethods(): array

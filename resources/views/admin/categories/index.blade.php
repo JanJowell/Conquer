@@ -82,7 +82,7 @@
                                 </td>
                                 <td class="px-6 py-5">{{ $category->event?->title ?: 'Removed event' }}</td>
                                 <td class="px-6 py-5">
-                                    <p>{{ number_format((float) $category->distance_km, 2) }} km{{ $category->formattedTypeDetails() ? ' total' : '' }}</p>
+                                    <p>{{ $category->formattedDistance($category->formattedTypeDetails() !== []) }}</p>
                                     @foreach ($category->formattedTypeDetails() as $detail)
                                         <p class="mt-1 text-xs text-slate-400">{{ $detail['label'] }}: {{ $detail['value'] }}</p>
                                     @endforeach

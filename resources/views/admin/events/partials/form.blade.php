@@ -281,6 +281,7 @@
                 'custom_category_name' => '',
                 'distance_option' => '',
                 'custom_distance_km' => '',
+                'distance_unit' => 'km',
                 'scheduled_start_date' => old('event_date', $event?->event_date?->format('Y-m-d')),
                 'scheduled_start_time' => '',
                 'scheduled_end_date' => old('event_date', $event?->event_date?->format('Y-m-d')),
@@ -368,16 +369,22 @@
 
                         <div data-standard-distance>
                             <label class="mb-2 block text-sm font-medium text-[#3d4757]">Distance</label>
-                            <select name="categories[{{ $index }}][distance_option]" data-distance-option class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
-                                <option value="">Select distance</option>
-                                @foreach (($distanceOptions ?? []) as $value => $label)
-                                    <option value="{{ $value }}" @selected(($categoryRow['distance_option'] ?? '') === $value)>{{ $label }}</option>
-                                @endforeach
-                            </select>
+                            <div class="grid grid-cols-[minmax(0,1fr)_110px] gap-2">
+                                <select name="categories[{{ $index }}][distance_option]" data-distance-option class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
+                                    <option value="">Select distance</option>
+                                    @foreach (($distanceOptions ?? []) as $value => $label)
+                                        <option value="{{ $value }}" @selected(($categoryRow['distance_option'] ?? '') === $value)>{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                                <select name="categories[{{ $index }}][distance_unit]" data-distance-unit aria-label="Distance unit" class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-3 text-sm font-semibold text-[#151b26] outline-none">
+                                    <option value="km" @selected(($categoryRow['distance_unit'] ?? 'km') === 'km')>km</option>
+                                    <option value="mi" @selected(($categoryRow['distance_unit'] ?? 'km') === 'mi')>miles</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div data-standard-distance data-custom-distance-wrapper class="{{ ($categoryRow['distance_option'] ?? '') === 'custom' ? '' : 'hidden' }}">
-                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Custom Distance (km)</label>
+                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Custom Distance</label>
                             <input name="categories[{{ $index }}][custom_distance_km]" type="number" step="0.01" min="0.01" value="{{ $categoryRow['custom_distance_km'] ?? '' }}"
                                 class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                         </div>
@@ -566,15 +573,21 @@
                     </div>
                     <div data-standard-distance>
                         <label class="mb-2 block text-sm font-medium text-[#3d4757]">Distance</label>
-                        <select name="categories[__INDEX__][distance_option]" data-distance-option class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
-                            <option value="">Select distance</option>
-                            @foreach (($distanceOptions ?? []) as $value => $label)
-                                <option value="{{ $value }}">{{ $label }}</option>
-                            @endforeach
-                        </select>
+                        <div class="grid grid-cols-[minmax(0,1fr)_110px] gap-2">
+                            <select name="categories[__INDEX__][distance_option]" data-distance-option class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
+                                <option value="">Select distance</option>
+                                @foreach (($distanceOptions ?? []) as $value => $label)
+                                    <option value="{{ $value }}">{{ $label }}</option>
+                                @endforeach
+                            </select>
+                            <select name="categories[__INDEX__][distance_unit]" data-distance-unit aria-label="Distance unit" class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-3 text-sm font-semibold text-[#151b26] outline-none">
+                                <option value="km">km</option>
+                                <option value="mi">miles</option>
+                            </select>
+                        </div>
                     </div>
                     <div data-standard-distance data-custom-distance-wrapper class="hidden">
-                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Custom Distance (km)</label>
+                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Custom Distance</label>
                         <input name="categories[__INDEX__][custom_distance_km]" type="number" step="0.01" min="0.01" class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                     </div>
                     @foreach ($categoryTypeDetailSchemas as $eventType => $detailSchema)

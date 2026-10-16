@@ -36,6 +36,8 @@ class CategoryResource extends JsonResource
             'event_id' => $this->event_id,
             'name' => $this->name,
             'distance_km' => $this->distance_km !== null ? (float) $this->distance_km : null,
+            'distance_value' => $this->distance_km !== null ? round($this->displayDistance(), 2) : null,
+            'distance_unit' => $this->distance_unit ?? 'km',
             'type_details' => $this->resolvedTypeDetails(),
             'type_detail_items' => $this->formattedTypeDetails(),
             'requires_medical_certificate' => $this->requiresMedicalCertificate(),
