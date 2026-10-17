@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\EmailVerificationCodeMail;
+use App\Mail\PasswordResetCodeMail;
 use App\Models\BannedIP;
 use App\Models\User;
 use App\Services\InterestNormalizer;
@@ -452,13 +454,8 @@ class AuthController extends Controller
         );
 
         try {
-            Mail::raw(
-                "Your RaceTech password reset code is {$code}.\n\nThis code expires in 15 minutes.",
-                function ($message) use ($validated) {
-                    $message->to($validated['email'])
-                        ->subject('RaceTech Password Reset Code');
-                }
-            );
+            $user = User::where('email', $validated['email'])->first();
+            Mail::to($validated['email'])->send(new PasswordResetCodeMail($code, $user?->name));
         } catch (\Throwable $e) {
             Log::error('Forgot password email failed.', [
                 'email' => $validated['email'],
@@ -552,13 +549,8 @@ class AuthController extends Controller
         );
 
         try {
-            Mail::raw(
-                "Your RaceTech email verification code is {$code}.\n\nThis code expires in 15 minutes.",
-                function ($message) use ($email) {
-                    $message->to($email)
-                        ->subject('RaceTech Email Verification Code');
-                }
-            );
+            $user = User::where('email', $email)->first();
+            Mail::to($email)->send(new EmailVerificationCodeMail($code, $user?->name));
         } catch (\Throwable $e) {
             Log::error('Email verification code failed.', [
                 'email' => $email,
