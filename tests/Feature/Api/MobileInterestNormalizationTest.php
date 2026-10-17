@@ -17,6 +17,7 @@ test('mobile registration normalizes known interests while keeping unknown inter
             'name' => 'Interest Runner',
             'username' => 'interest_runner',
             'email' => 'interest.runner@example.com',
+            'birthdate' => '1995-05-15',
             'password' => 'password123',
             'password_confirmation' => 'password123',
             'interests' => [' marathon ', 'MARATHON', 'trail run', 'Custom Hobby'],

@@ -9,6 +9,7 @@ test('mobile registration requires email verification before login', function ()
         'name' => 'Mobile Runner',
         'username' => 'mobile_runner',
         'email' => 'mobile.runner@example.com',
+        'birthdate' => '1995-05-15',
         'password' => 'password123',
         'password_confirmation' => 'password123',
     ]);

@@ -11,6 +11,7 @@ use App\Models\Registration;
 use App\Services\CategoryRegistrationEligibility;
 use App\Services\GroupRegistrationService;
 use App\Services\MobileRecommendationContext;
+use App\Support\ParticipantBirthdate;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -146,6 +147,15 @@ class EventController extends Controller
         if ($category->event_id !== $event->id) {
             return response()->json([
                 'message' => 'Invalid category for this event.',
+            ], 422);
+        }
+
+        if ($reason = ParticipantBirthdate::registrationBlockReason($request->user()->birthdate)) {
+            return response()->json([
+                'message' => $reason,
+                'errors' => [
+                    'birthdate' => [$reason],
+                ],
             ], 422);
         }
 

@@ -8,6 +8,7 @@ use App\Mail\PasswordResetCodeMail;
 use App\Models\BannedIP;
 use App\Models\User;
 use App\Services\InterestNormalizer;
+use App\Support\ParticipantBirthdate;
 use App\Support\ParticipantHealthProfile;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -45,7 +46,7 @@ class AuthController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'phone' => ['nullable', 'digits:11'],
             'gender' => ['nullable', 'string', 'max:50'],
-            'birthdate' => ['nullable', 'date'],
+            'birthdate' => ParticipantBirthdate::rules(required: true),
             'address' => ['nullable', 'string', 'max:500'],
             'emergency_contact_name' => ['nullable', 'string', 'max:255'],
             'emergency_contact_number' => ['nullable', 'digits:11'],
@@ -53,7 +54,7 @@ class AuthController extends Controller
             ...ParticipantHealthProfile::validationRules(),
             'interests' => ['nullable', 'array'],
             'interests.*' => ['string', 'max:80'],
-        ]);
+        ], ParticipantBirthdate::messages());
 
         $validated['name'] = $validated['name']
             ?? trim(($validated['first_name'] ?? '').' '.($validated['last_name'] ?? ''));
@@ -268,7 +269,7 @@ class AuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['nullable', 'digits:11'],
             'gender' => ['nullable', 'string', 'max:50'],
-            'birthdate' => ['nullable', 'date'],
+            'birthdate' => ParticipantBirthdate::rules(),
             'address' => ['nullable', 'string', 'max:500'],
             'emergency_contact_name' => ['nullable', 'string', 'max:255'],
             'emergency_contact_number' => ['nullable', 'digits:11'],
@@ -276,7 +277,7 @@ class AuthController extends Controller
             ...ParticipantHealthProfile::validationRules(),
             'interests' => ['nullable', 'array'],
             'interests.*' => ['string', 'max:80'],
-        ]);
+        ], ParticipantBirthdate::messages());
 
         $healthMeasurementsWereSubmitted = $request->exists('height_cm')
             || $request->exists('weight_kg')

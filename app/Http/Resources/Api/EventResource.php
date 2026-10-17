@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Api;
 
 use App\Services\CategoryRegistrationEligibility;
+use App\Support\ParticipantBirthdate;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -26,17 +27,26 @@ class EventResource extends JsonResource
         $hasRegistrationState = $this->relationLoaded('currentUserRegistrations')
             || $this->relationLoaded('currentUserRegistration');
         $eligibilityService = app(CategoryRegistrationEligibility::class);
+        $birthdateBlockReason = $request->user()
+            ? ParticipantBirthdate::registrationBlockReason($request->user()->birthdate)
+            : null;
         $categoryRegistrationStates = $this->relationLoaded('categories')
-            ? $this->categories->map(function ($category) use ($currentRegistrations, $eligibilityService) {
+            ? $this->categories->map(function ($category) use ($birthdateBlockReason, $currentRegistrations, $eligibilityService) {
                 $registration = $currentRegistrations->firstWhere('category_id', $category->id);
                 $hasBlockingRegistration = $registration && $registration->status !== 'rejected';
-                $eligibility = $hasBlockingRegistration
+                $eligibility = $birthdateBlockReason && ! $hasBlockingRegistration
+                    ? [
+                        'allowed' => false,
+                        'reason' => $birthdateBlockReason,
+                        'conflicting_registration' => null,
+                    ]
+                    : ($hasBlockingRegistration
                     ? [
                         'allowed' => false,
                         'reason' => 'You are already registered for this category.',
                         'conflicting_registration' => $registration,
                     ]
-                    : $eligibilityService->evaluate($category, $currentRegistrations);
+                    : $eligibilityService->evaluate($category, $currentRegistrations));
 
                 return [
                     'category_id' => $category->id,
@@ -69,6 +79,7 @@ class EventResource extends JsonResource
             'status' => $status,
             'can_register' => $canRegister,
             'registration_deadline_passed' => $registrationDeadlinePassed,
+            'registration_block_reason' => $birthdateBlockReason,
             'banner_url' => $this->banner_image ? asset('storage/'.$this->banner_image) : null,
             'organized_by' => $this->organized_by,
             'interest_type' => $this->interest_type,

@@ -197,8 +197,12 @@
                                     name="birthdate"
                                     id="birthdate"
                                     value="{{ old('birthdate') }}"
+                                    min="{{ \App\Support\ParticipantBirthdate::oldestAllowedDate() }}"
+                                    max="{{ \App\Support\ParticipantBirthdate::latestAllowedDate() }}"
+                                    @required(old('role', $runnerRole) === $runnerRole)
                                     class="block w-full rounded-2xl border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:outline-none focus:ring-2 focus:ring-indigo-200 placeholder:text-slate-300 placeholder:text-slate-300"
                                 >
+                                <p class="mt-2 text-xs leading-5 text-slate-400">Required for participants. Birthdate must be before today.</p>
                                 @error('birthdate')
                                     <p class="mt-2 text-sm text-rose-400">{{ $message }}</p>
                                 @enderror
@@ -373,6 +377,7 @@
         const passwordConfirmationGroup = document.getElementById('password-confirmation-group');
         const passwordInput = document.getElementById('password');
         const passwordConfirmationInput = document.getElementById('password_confirmation');
+        const birthdateInput = document.getElementById('birthdate');
         const passwordToggleButtons = Array.from(document.querySelectorAll('[data-password-toggle]'));
         const invitationNotice = document.getElementById('admin-invitation-notice');
         const runnerRole = @json($runnerRole);
@@ -437,6 +442,10 @@
 
             if (passwordConfirmationInput) {
                 passwordConfirmationInput.required = isRunner;
+            }
+
+            if (birthdateInput) {
+                birthdateInput.required = isRunner;
             }
 
             if (!isRunner) {

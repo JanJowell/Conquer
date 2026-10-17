@@ -229,8 +229,13 @@
                                 type="date"
                                 name="birthdate"
                                 value="{{ old('birthdate', $user->birthdate?->format('Y-m-d')) }}"
+                                min="{{ \App\Support\ParticipantBirthdate::oldestAllowedDate() }}"
+                                max="{{ \App\Support\ParticipantBirthdate::latestAllowedDate() }}"
                                 class="{{ $inputClasses }}"
                             >
+                            @if ($user->normalizedRole() === \App\Models\User::ROLE_RUNNER && ! $user->birthdate)
+                                <p class="mt-1 text-sm text-amber-600">Add your birthdate before registering for an event.</p>
+                            @endif
                             @error('birthdate')
                                 <p class="{{ $errorClasses }}">{{ $message }}</p>
                             @enderror

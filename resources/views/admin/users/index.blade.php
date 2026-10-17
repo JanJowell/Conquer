@@ -490,7 +490,7 @@
 
                                     <div>
                                         <label for="birthdate-{{ $modalUser->id }}" class="mb-1.5 block text-sm font-medium text-slate-600">Birthdate</label>
-                                        <input type="date" name="birthdate" id="birthdate-{{ $modalUser->id }}" value="{{ $editingThisUser ? old('birthdate', $modalUser->birthdate?->format('Y-m-d')) : $modalUser->birthdate?->format('Y-m-d') }}" class="w-full rounded-2xl border-0 bg-slate-50 px-4 py-2.5 text-slate-600 outline-none placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                                        <input type="date" name="birthdate" id="birthdate-{{ $modalUser->id }}" value="{{ $editingThisUser ? old('birthdate', $modalUser->birthdate?->format('Y-m-d')) : $modalUser->birthdate?->format('Y-m-d') }}" min="{{ \App\Support\ParticipantBirthdate::oldestAllowedDate() }}" max="{{ \App\Support\ParticipantBirthdate::latestAllowedDate() }}" class="w-full rounded-2xl border-0 bg-slate-50 px-4 py-2.5 text-slate-600 outline-none placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-200">
                                         @if($editingThisUser) @error('birthdate') <p class="mt-2 text-sm text-rose-400">{{ $message }}</p> @enderror @endif
                                     </div>
                                 </div>

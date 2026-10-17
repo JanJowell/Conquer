@@ -26,6 +26,8 @@ class MobileRecommendationContext
             return null;
         }
 
+        $request->setUserResolver(fn () => $user);
+
         return $user;
     }
 

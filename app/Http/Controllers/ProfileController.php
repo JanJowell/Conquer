@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AdminActivityLog;
 use App\Models\User;
 use App\Services\AdminInvitationService;
+use App\Support\ParticipantBirthdate;
 use App\Support\ParticipantHealthProfile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -35,13 +36,13 @@ class ProfileController extends Controller
             'email' => ['required', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
             'phone' => ['nullable', 'digits:11'],
             'gender' => ['nullable', 'string', 'max:50'],
-            'birthdate' => ['nullable', 'date'],
+            'birthdate' => ParticipantBirthdate::rules(),
             'address' => ['nullable', 'string', 'max:500'],
             'emergency_contact_name' => ['nullable', 'string', 'max:255'],
             'emergency_contact_number' => ['nullable', 'digits:11'],
             'medical_conditions' => ['nullable', 'string'],
             ...ParticipantHealthProfile::validationRules(),
-        ]);
+        ], ParticipantBirthdate::messages());
 
         if ($user->normalizedRole() !== User::ROLE_RUNNER) {
             $validated['medical_conditions'] = null;

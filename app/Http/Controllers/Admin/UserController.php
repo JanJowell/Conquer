@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AdminActivityLog;
 use App\Models\User;
 use App\Services\AdminInvitationService;
+use App\Support\ParticipantBirthdate;
 use App\Support\ParticipantHealthProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -86,14 +87,16 @@ class UserController extends Controller
             'role' => ['required', Rule::in(User::manageableRoles())],
             'phone' => ['nullable', 'digits:11'],
             'gender' => 'nullable|string|max:50',
-            'birthdate' => 'nullable|date',
+            'birthdate' => ParticipantBirthdate::rules(
+                required: $request->input('role') === User::ROLE_RUNNER
+            ),
             'address' => 'nullable|string|max:500',
             'medical_conditions' => 'nullable|string',
             'emergency_contact' => 'nullable|string|max:255',
             'emergency_contact_name' => 'nullable|string|max:255',
             'emergency_contact_number' => ['nullable', 'digits:11'],
             ...ParticipantHealthProfile::validationRules(),
-        ]);
+        ], ParticipantBirthdate::messages());
 
         if (($validated['role'] ?? null) !== User::ROLE_RUNNER) {
             foreach ([
@@ -169,14 +172,14 @@ class UserController extends Controller
             'role' => ['required', Rule::in(User::manageableRoles())],
             'phone' => ['nullable', 'digits:11'],
             'gender' => 'nullable|string|max:50',
-            'birthdate' => 'nullable|date',
+            'birthdate' => ParticipantBirthdate::rules(),
             'address' => 'nullable|string|max:500',
             'medical_conditions' => 'nullable|string',
             'emergency_contact' => 'nullable|string|max:255',
             'emergency_contact_name' => 'nullable|string|max:255',
             'emergency_contact_number' => ['nullable', 'digits:11'],
             ...ParticipantHealthProfile::validationRules(),
-        ]);
+        ], ParticipantBirthdate::messages());
 
         if (($validated['role'] ?? null) !== User::ROLE_RUNNER) {
             $validated['medical_conditions'] = null;

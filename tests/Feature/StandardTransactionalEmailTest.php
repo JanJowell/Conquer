@@ -70,6 +70,7 @@ test('mobile authentication endpoints send the dedicated branded mailables', fun
         'name' => 'Email Design Runner',
         'username' => 'email_design_runner',
         'email' => 'email.design.runner@example.com',
+        'birthdate' => '1995-05-15',
         'password' => 'password123',
         'password_confirmation' => 'password123',
     ])->assertCreated();

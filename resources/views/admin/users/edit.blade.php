@@ -96,6 +96,8 @@
                     <div>
                         <label for="birthdate" class="mb-2 block text-sm font-medium text-[#111827]">Birthdate</label>
                         <input type="date" name="birthdate" id="birthdate" value="{{ old('birthdate', $user->birthdate?->format('Y-m-d')) }}"
+                               min="{{ \App\Support\ParticipantBirthdate::oldestAllowedDate() }}"
+                               max="{{ \App\Support\ParticipantBirthdate::latestAllowedDate() }}"
                                class="w-full rounded-xl border border-[#d9dee7] bg-white px-4 py-3 text-[#111827] outline-none transition focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]">
                         @error('birthdate')
                             <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>

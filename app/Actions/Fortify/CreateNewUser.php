@@ -2,14 +2,16 @@
 
 namespace App\Actions\Fortify;
 
+use App\Concerns\PasswordValidationRules;
 use App\Models\User;
+use App\Support\ParticipantBirthdate;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 
 class CreateNewUser implements CreatesNewUsers
 {
-    use \App\Concerns\PasswordValidationRules;
+    use PasswordValidationRules;
 
     /**
      * Validate and create a newly registered user.
@@ -23,11 +25,11 @@ class CreateNewUser implements CreatesNewUsers
 
             'phone' => ['nullable', 'string', 'max:20'],
             'gender' => ['nullable', 'string', 'max:20'],
-            'birthdate' => ['nullable', 'date'],
+            'birthdate' => ParticipantBirthdate::rules(required: true),
             'address' => ['nullable', 'string', 'max:255'],
             'emergency_contact_name' => ['nullable', 'string', 'max:255'],
             'emergency_contact_number' => ['nullable', 'string', 'max:20'],
-        ])->validate();
+        ], ParticipantBirthdate::messages())->validate();
 
         return User::create([
             'name' => $input['name'],
