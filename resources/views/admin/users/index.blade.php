@@ -86,6 +86,50 @@
             </div>
         </div>
 
+        @if($canManageUsers)
+            <section class="rounded-[1.75rem] bg-white p-5 shadow-[0_8px_24px_rgba(148,163,184,0.12)] sm:p-6" aria-labelledby="account-capacity-heading">
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wide text-indigo-400">Account safeguards</p>
+                        <h2 id="account-capacity-heading" class="mt-1 text-lg font-bold text-slate-700">Administrative Account Capacity</h2>
+                    </div>
+                    <p class="max-w-xl text-xs leading-5 text-slate-500">
+                        Pending, verified, suspended, and banned accounts all occupy a slot until they are deleted or moved to another role.
+                    </p>
+                </div>
+
+                <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    @foreach($administratorCapacity as $capacity)
+                        <article
+                            class="rounded-2xl bg-slate-50 p-4"
+                            data-capacity-summary="{{ $capacity['count'] }}/{{ $capacity['limited'] ? $capacity['limit'] : 'unlimited' }}"
+                        >
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <p class="text-sm font-semibold text-slate-600">{{ $capacity['label'] }}</p>
+                                    <p class="mt-1 text-2xl font-bold text-slate-700">
+                                        {{ $capacity['count'] }}
+                                        <span class="text-sm font-semibold text-slate-400">/ {{ $capacity['limited'] ? $capacity['limit'] : 'Unlimited' }}</span>
+                                    </p>
+                                </div>
+                                <span @class([
+                                    'rounded-full px-2.5 py-1 text-[11px] font-semibold',
+                                    'bg-rose-50 text-rose-500' => $capacity['at_limit'],
+                                    'bg-emerald-50 text-emerald-600' => ! $capacity['at_limit'],
+                                ])>
+                                    @if($capacity['limited'])
+                                        {{ $capacity['remaining'] }} {{ Str::plural('slot', $capacity['remaining']) }} left
+                                    @else
+                                        No limit
+                                    @endif
+                                </span>
+                            </div>
+                        </article>
+                    @endforeach
+                </div>
+            </section>
+        @endif
+
         {{-- Filters --}}
         <form method="GET" class="grid gap-3 rounded-[1.5rem] bg-white p-4 shadow-[0_8px_24px_rgba(148,163,184,0.12)] lg:grid-cols-[minmax(240px,1fr)_220px_180px_auto_auto] lg:items-end">
             <div>
@@ -462,8 +506,20 @@
                                         <label for="role-{{ $modalUser->id }}" class="mb-1.5 block text-sm font-medium text-slate-600">Role</label>
                                         <select name="role" id="role-{{ $modalUser->id }}" required data-user-role-select data-runner-role="{{ $runnerRole }}" data-medical-target="medical-conditions-group-{{ $modalUser->id }}" class="w-full rounded-2xl border-0 bg-slate-50 px-4 py-2.5 text-slate-600 outline-none placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-200">
                                             @foreach (\App\Models\User::manageableRoles() as $role)
-                                                <option value="{{ $role }}" @selected(($editingThisUser ? old('role', $modalUser->normalizedRole()) : $modalUser->normalizedRole()) === $role)>
-                                                    {{ $roleLabels[$role] ?? str($role)->replace('_', ' ')->title() }}
+                                                @php
+                                                    $roleCapacity = $administratorCapacity[$role] ?? null;
+                                                    $currentRole = $modalUser->normalizedRole();
+                                                    $roleUnavailable = ($roleCapacity['at_limit'] ?? false) && $currentRole !== $role;
+                                                    $roleCapacityLabel = $roleCapacity && $roleCapacity['limited']
+                                                        ? ' - '.$roleCapacity['count'].'/'.$roleCapacity['limit'].' used'
+                                                        : '';
+                                                @endphp
+                                                <option
+                                                    value="{{ $role }}"
+                                                    @selected(($editingThisUser ? old('role', $currentRole) : $currentRole) === $role)
+                                                    @disabled($roleUnavailable)
+                                                >
+                                                    {{ $roleLabels[$role] ?? str($role)->replace('_', ' ')->title() }}{{ $roleCapacityLabel }}
                                                 </option>
                                             @endforeach
                                         </select>

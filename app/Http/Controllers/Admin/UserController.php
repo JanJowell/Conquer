@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\AdminActivityLog;
 use App\Models\User;
 use App\Services\AdminInvitationService;
+use App\Support\AdministrativeAccountPolicy;
 use App\Support\ParticipantBirthdate;
 use App\Support\ParticipantHealthProfile;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
@@ -17,7 +19,7 @@ use Throwable;
 
 class UserController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, AdministrativeAccountPolicy $accountPolicy)
     {
         $query = User::query();
 
@@ -64,15 +66,23 @@ class UserController extends Controller
 
         $users = $query->latest()->paginate(10);
 
-        return view('admin.users.index', compact('users'));
+        $administratorCapacity = $accountPolicy->capacity();
+
+        return view('admin.users.index', compact('users', 'administratorCapacity'));
     }
 
-    public function create()
+    public function create(AdministrativeAccountPolicy $accountPolicy)
     {
-        return view('admin.users.create');
+        $administratorCapacity = $accountPolicy->capacity();
+
+        return view('admin.users.create', compact('administratorCapacity'));
     }
 
-    public function store(Request $request, AdminInvitationService $invitations)
+    public function store(
+        Request $request,
+        AdminInvitationService $invitations,
+        AdministrativeAccountPolicy $accountPolicy
+    )
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -122,7 +132,15 @@ class UserController extends Controller
 
         $validated['password'] = Hash::make($validated['password'] ?? Str::random(64));
 
-        $user = User::create($validated);
+        $user = DB::transaction(function () use ($accountPolicy, $validated): User {
+            if ($validated['role'] !== User::ROLE_RUNNER) {
+                $accountPolicy->lockAdministrativeAccounts();
+            }
+
+            $accountPolicy->assertRoleAvailable($validated['role']);
+
+            return User::create($validated);
+        });
 
         if ($user->isAdmin()) {
             try {
@@ -162,10 +180,13 @@ class UserController extends Controller
         return view('admin.users.edit', compact('user'));
     }
 
-    public function update(Request $request, User $user, AdminInvitationService $invitations)
+    public function update(
+        Request $request,
+        User $user,
+        AdminInvitationService $invitations,
+        AdministrativeAccountPolicy $accountPolicy
+    )
     {
-        $wasAdmin = $user->isAdmin();
-        $originalEmail = $user->email;
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
@@ -201,26 +222,53 @@ class UserController extends Controller
                 ->with('error', 'You cannot remove your own Admin access.');
         }
 
-        $user->update($validated);
+        $updateState = DB::transaction(function () use ($accountPolicy, $user, $validated): array {
+            $accountPolicy->lockAdministrativeAccounts();
+            $lockedUser = User::query()->lockForUpdate()->findOrFail($user->getKey());
 
-        $emailChanged = $originalEmail !== $user->email;
+            $accountPolicy->assertRoleAvailable($validated['role'], $lockedUser);
+            $accountPolicy->assertLastActiveAdminRemains(
+                $lockedUser,
+                $validated['role'],
+                $validated['email']
+            );
 
-        if (! $user->isAdmin()) {
-            $user->forceFill([
-                'admin_invitation_token' => null,
-                'admin_invitation_sent_at' => null,
-                'admin_invitation_expires_at' => null,
-                'admin_invited_by' => null,
-            ])->save();
-        } elseif ($emailChanged) {
-            $user->forceFill([
-                'email_verified_at' => null,
-                'api_token' => null,
-                'api_token_expires_at' => null,
-                'admin_invitation_token' => null,
-                'admin_invitation_sent_at' => null,
-                'admin_invitation_expires_at' => null,
-            ])->save();
+            $wasAdmin = $lockedUser->isAdmin();
+            $originalEmail = $lockedUser->email;
+            $lockedUser->update($validated);
+            $emailChanged = $originalEmail !== $lockedUser->email;
+
+            if (! $lockedUser->isAdmin()) {
+                $lockedUser->forceFill([
+                    'admin_invitation_token' => null,
+                    'admin_invitation_sent_at' => null,
+                    'admin_invitation_expires_at' => null,
+                    'admin_invited_by' => null,
+                ])->save();
+            } elseif ($emailChanged) {
+                $lockedUser->forceFill([
+                    'email_verified_at' => null,
+                    'api_token' => null,
+                    'api_token_expires_at' => null,
+                    'admin_invitation_token' => null,
+                    'admin_invitation_sent_at' => null,
+                    'admin_invitation_expires_at' => null,
+                ])->save();
+            }
+
+            return [
+                'user' => $lockedUser,
+                'was_admin' => $wasAdmin,
+                'email_changed' => $emailChanged,
+            ];
+        });
+
+        /** @var User $user */
+        $user = $updateState['user'];
+        $wasAdmin = $updateState['was_admin'];
+        $emailChanged = $updateState['email_changed'];
+
+        if ($emailChanged && $user->isAdmin()) {
 
             try {
                 $invitations->send($user, $request->user());
@@ -297,27 +345,59 @@ class UserController extends Controller
         return back()->with('success', 'A new 24-hour invitation was sent to '.$user->email.'. Previous invitation links are no longer valid.');
     }
 
-    public function destroy(User $user)
+    public function destroy(User $user, AdministrativeAccountPolicy $accountPolicy)
     {
         if ($user->id === auth()->id()) {
             return redirect()->route('admin.users.index')
                 ->with('error', 'You cannot delete your own account.');
         }
 
-        $user->delete();
+        $deleted = DB::transaction(function () use ($accountPolicy, $user): bool {
+            $accountPolicy->lockAdministrativeAccounts();
+            $lockedUser = User::query()->lockForUpdate()->findOrFail($user->getKey());
+
+            if (! $accountPolicy->canDeactivate($lockedUser)) {
+                return false;
+            }
+
+            $lockedUser->delete();
+
+            return true;
+        });
+
+        if (! $deleted) {
+            return redirect()->route('admin.users.index')
+                ->with('error', $this->lastAdminError('delete'));
+        }
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User deleted successfully.');
     }
 
-    public function suspend(User $user)
+    public function suspend(User $user, AdministrativeAccountPolicy $accountPolicy)
     {
         if ($user->id === auth()->id()) {
             return redirect()->route('admin.users.index')
                 ->with('error', 'You cannot suspend your own account.');
         }
 
-        $user->update(['suspended_at' => now()]);
+        $suspended = DB::transaction(function () use ($accountPolicy, $user): bool {
+            $accountPolicy->lockAdministrativeAccounts();
+            $lockedUser = User::query()->lockForUpdate()->findOrFail($user->getKey());
+
+            if (! $accountPolicy->canDeactivate($lockedUser)) {
+                return false;
+            }
+
+            $lockedUser->update(['suspended_at' => now()]);
+
+            return true;
+        });
+
+        if (! $suspended) {
+            return redirect()->route('admin.users.index')
+                ->with('error', $this->lastAdminError('suspend'));
+        }
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User suspended successfully.');
@@ -331,14 +411,30 @@ class UserController extends Controller
             ->with('success', 'User unsuspended successfully.');
     }
 
-    public function ban(User $user)
+    public function ban(User $user, AdministrativeAccountPolicy $accountPolicy)
     {
         if ($user->id === auth()->id()) {
             return redirect()->route('admin.users.index')
                 ->with('error', 'You cannot ban your own account.');
         }
 
-        $user->update(['banned_at' => now()]);
+        $banned = DB::transaction(function () use ($accountPolicy, $user): bool {
+            $accountPolicy->lockAdministrativeAccounts();
+            $lockedUser = User::query()->lockForUpdate()->findOrFail($user->getKey());
+
+            if (! $accountPolicy->canDeactivate($lockedUser)) {
+                return false;
+            }
+
+            $lockedUser->update(['banned_at' => now()]);
+
+            return true;
+        });
+
+        if (! $banned) {
+            return redirect()->route('admin.users.index')
+                ->with('error', $this->lastAdminError('ban'));
+        }
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User banned successfully.');
@@ -373,5 +469,11 @@ class UserController extends Controller
         $minutes = (int) ceil($seconds / 60);
 
         return $minutes.' minute'.($minutes === 1 ? '' : 's');
+    }
+
+    private function lastAdminError(string $action): string
+    {
+        return 'At least one verified, active Admin account must remain. Verify or reactivate another Admin before you '
+            .$action.' this account.';
     }
 }

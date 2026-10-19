@@ -30,6 +30,33 @@
             </div>
         </div>
 
+        <section class="rounded-[1.75rem] bg-white p-5 shadow-[0_8px_24px_rgba(148,163,184,0.12)]" aria-labelledby="account-capacity-heading">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wide text-indigo-400">Account safeguards</p>
+                <h2 id="account-capacity-heading" class="mt-1 text-lg font-bold text-slate-700">Administrative Account Capacity</h2>
+                <p class="mt-1 text-xs leading-5 text-slate-500">All existing accounts occupy a slot, including pending, suspended, and banned accounts.</p>
+            </div>
+
+            <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                @foreach($administratorCapacity as $capacity)
+                    <div class="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3">
+                        <span class="text-sm font-semibold text-slate-600">{{ $capacity['label'] }}</span>
+                        <span @class([
+                            'text-xs font-semibold',
+                            'text-rose-500' => $capacity['at_limit'],
+                            'text-emerald-600' => ! $capacity['at_limit'],
+                        ])>
+                            @if($capacity['limited'])
+                                {{ $capacity['count'] }}/{{ $capacity['limit'] }} used · {{ $capacity['remaining'] }} left
+                            @else
+                                {{ $capacity['count'] }} used · Unlimited
+                            @endif
+                        </span>
+                    </div>
+                @endforeach
+            </div>
+        </section>
+
         {{-- Form Card --}}
         <div class="overflow-hidden rounded-[1.75rem] bg-white shadow-[0_8px_24px_rgba(148,163,184,0.12)]">
             <form method="POST" action="{{ route('admin.users.store') }}">
@@ -145,11 +172,19 @@
                                     class="block w-full rounded-2xl border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:outline-none focus:ring-2 focus:ring-indigo-200 placeholder:text-slate-300 placeholder:text-slate-300"
                                 >
                                     @foreach (\App\Models\User::manageableRoles() as $role)
-                                        <option value="{{ $role }}" {{ old('role') == $role ? 'selected' : '' }}>
-                                            {{ $roleLabels[$role] ?? str($role)->replace('_', ' ')->title() }}
+                                        @php
+                                            $roleCapacity = $administratorCapacity[$role] ?? null;
+                                            $roleUnavailable = $roleCapacity['at_limit'] ?? false;
+                                            $roleCapacityLabel = $roleCapacity && $roleCapacity['limited']
+                                                ? ' - '.$roleCapacity['count'].'/'.$roleCapacity['limit'].' used'
+                                                : '';
+                                        @endphp
+                                        <option value="{{ $role }}" @selected(old('role') == $role) @disabled($roleUnavailable)>
+                                            {{ $roleLabels[$role] ?? str($role)->replace('_', ' ')->title() }}{{ $roleCapacityLabel }}
                                         </option>
                                     @endforeach
                                 </select>
+                                <p class="mt-2 text-xs leading-5 text-slate-400">Roles at capacity cannot be selected. Participant accounts are unrestricted.</p>
                                 @error('role')
                                     <p class="mt-2 text-sm text-rose-400">{{ $message }}</p>
                                 @enderror
