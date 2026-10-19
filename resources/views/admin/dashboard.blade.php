@@ -398,8 +398,14 @@
                             <p class="mt-1 text-sm text-slate-500">{{ number_format($feedbackInsights['suggestions']) }} posts contain improvement suggestions.</p>
                         </div>
                         <div class="rounded-2xl bg-slate-50 px-4 py-3">
-                            <p class="text-sm font-semibold text-slate-700">Ratings</p>
-                            <p class="mt-1 text-sm text-slate-500">Structured ratings are not yet stored in the current schema.</p>
+                            <p class="text-sm font-semibold text-slate-700">Average Overall Rating</p>
+                            <p class="mt-1 text-sm text-slate-500">
+                                @if ($feedbackInsights['average_overall_rating'] !== null)
+                                    {{ number_format($feedbackInsights['average_overall_rating'], 1) }} / 5 from {{ number_format($feedbackInsights['structured_feedback_count']) }} verified {{ \Illuminate\Support\Str::plural('response', $feedbackInsights['structured_feedback_count']) }}.
+                                @else
+                                    No verified post-event ratings have been submitted yet.
+                                @endif
+                            </p>
                         </div>
                     </div>
                 @elseif ($secondaryType === 'moderation-activity')

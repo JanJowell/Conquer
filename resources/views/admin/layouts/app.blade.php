@@ -698,8 +698,7 @@
             ],
             \App\Models\User::ROLE_EXECUTIVE => [
                 ['route' => route('admin.dashboard'), 'match' => 'admin.dashboard', 'icon' => 'fa-house', 'label' => 'Executive Dashboard'],
-                ['route' => route('admin.analytics'), 'match' => 'admin.analytics', 'icon' => 'fa-chart-column', 'label' => 'Analytics'],
-                ['route' => route('admin.reports'), 'match' => 'admin.reports', 'icon' => 'fa-chart-line', 'label' => 'Reports'],
+                ['route' => route('admin.analytics'), 'match' => 'admin.analytics', 'icon' => 'fa-chart-column', 'label' => 'Analytics & Reports'],
                 ['route' => route('admin.events.index'), 'match' => 'admin.events.index', 'icon' => 'fa-calendar-days', 'label' => 'Events Overview'],
                 ['route' => route('admin.users.index'), 'match' => 'admin.users.*', 'icon' => 'fa-user', 'label' => 'Users Overview'],
                 ['route' => route('admin.feedback-insights'), 'match' => 'admin.feedback-insights', 'icon' => 'fa-message', 'label' => 'Feedback Insights'],
@@ -731,18 +730,26 @@
         $navigation = $navigationByRole[$user->normalizedRole()] ?? $navigationByRole[\App\Models\User::ROLE_SUPER_ADMIN];
         $currentRouteName = request()->route()?->getName();
         $successCreateAction = null;
+        $canManageUsers = $user->hasAdminRole(\App\Models\User::ROLE_SUPER_ADMIN);
+        $canManageEvents = $user->hasAdminRole([\App\Models\User::ROLE_SUPER_ADMIN, \App\Models\User::ROLE_EVENT_MANAGER]);
+        $canManageContent = $user->hasAdminRole([\App\Models\User::ROLE_SUPER_ADMIN, \App\Models\User::ROLE_CONTENT_MODERATOR]);
+        $canPublishCommunications = $user->hasAdminRole([
+            \App\Models\User::ROLE_SUPER_ADMIN,
+            \App\Models\User::ROLE_CONTENT_MODERATOR,
+            \App\Models\User::ROLE_EVENT_MANAGER,
+        ]);
 
-        if ($currentRouteName === 'admin.announcements.index') {
+        if ($currentRouteName === 'admin.announcements.index' && $canPublishCommunications) {
             $successCreateAction = ['label' => 'Create another announcement', 'target' => 'create-announcement'];
-        } elseif ($currentRouteName === 'admin.notifications.index') {
+        } elseif ($currentRouteName === 'admin.notifications.index' && $canPublishCommunications) {
             $successCreateAction = ['label' => 'Create another notification', 'target' => 'create-notification'];
-        } elseif ($currentRouteName === 'admin.users.index' && \Illuminate\Support\Facades\Route::has('admin.users.create')) {
+        } elseif ($currentRouteName === 'admin.users.index' && $canManageUsers && \Illuminate\Support\Facades\Route::has('admin.users.create')) {
             $successCreateAction = ['label' => 'Create another user', 'url' => route('admin.users.create')];
-        } elseif ($currentRouteName === 'admin.events.index' && \Illuminate\Support\Facades\Route::has('admin.events.create')) {
+        } elseif ($currentRouteName === 'admin.events.index' && $canManageEvents && \Illuminate\Support\Facades\Route::has('admin.events.create')) {
             $successCreateAction = ['label' => 'Create another event', 'url' => route('admin.events.create')];
-        } elseif ($currentRouteName === 'admin.categories.index' && \Illuminate\Support\Facades\Route::has('admin.categories.create')) {
+        } elseif ($currentRouteName === 'admin.categories.index' && $canManageEvents && \Illuminate\Support\Facades\Route::has('admin.categories.create')) {
             $successCreateAction = ['label' => 'Create another category', 'url' => route('admin.categories.create')];
-        } elseif ($currentRouteName === 'admin.content.training-modules' && \Illuminate\Support\Facades\Route::has('admin.content.training-modules.create')) {
+        } elseif ($currentRouteName === 'admin.content.training-modules' && $canManageContent && \Illuminate\Support\Facades\Route::has('admin.content.training-modules.create')) {
             $successCreateAction = ['label' => 'Create another training module', 'url' => route('admin.content.training-modules.create')];
         }
     @endphp

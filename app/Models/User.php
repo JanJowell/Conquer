@@ -270,7 +270,10 @@ class User extends Authenticatable
         $matrix = [
             'dashboard' => static::adminWebRoles(),
             'analytics' => [static::ROLE_SUPER_ADMIN, static::ROLE_EXECUTIVE],
-            'users' => [static::ROLE_SUPER_ADMIN],
+            'reports' => [static::ROLE_SUPER_ADMIN, static::ROLE_EXECUTIVE, static::ROLE_EVENT_MANAGER],
+            'users' => [static::ROLE_SUPER_ADMIN, static::ROLE_EXECUTIVE],
+            'events' => [static::ROLE_SUPER_ADMIN, static::ROLE_EXECUTIVE, static::ROLE_EVENT_MANAGER],
+            'feedback' => [static::ROLE_SUPER_ADMIN, static::ROLE_EXECUTIVE, static::ROLE_CONTENT_MODERATOR, static::ROLE_EVENT_MANAGER],
             'notifications' => [static::ROLE_SUPER_ADMIN, static::ROLE_CONTENT_MODERATOR, static::ROLE_EVENT_MANAGER],
             'community' => [static::ROLE_SUPER_ADMIN, static::ROLE_CONTENT_MODERATOR],
             'training' => [static::ROLE_SUPER_ADMIN, static::ROLE_CONTENT_MODERATOR],

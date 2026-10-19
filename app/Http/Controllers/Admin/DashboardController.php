@@ -245,11 +245,19 @@ class DashboardController extends Controller
 
     public function analytics()
     {
-        return view('admin.analytics', $this->analyticsData('Analytics Dashboard'));
+        $pageTitle = auth()->user()->hasAdminRole(User::ROLE_EXECUTIVE)
+            ? 'Analytics & Reports'
+            : 'Analytics Dashboard';
+
+        return view('admin.analytics', $this->analyticsData($pageTitle));
     }
 
     public function reports()
     {
+        if (auth()->user()->hasAdminRole(User::ROLE_EXECUTIVE)) {
+            return redirect()->route('admin.analytics');
+        }
+
         return view('admin.analytics', $this->analyticsData('Reports'));
     }
 
