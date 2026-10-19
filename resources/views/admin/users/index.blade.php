@@ -527,11 +527,12 @@
                                                 <input type="number" name="weight_kg" id="weight_kg-{{ $modalUser->id }}" value="{{ $editingThisUser ? old('weight_kg', $modalUser->weight_kg) : $modalUser->weight_kg }}" min="10" max="500" step="0.01" inputmode="decimal" class="w-full rounded-2xl border-0 bg-slate-50 px-4 py-2.5 text-slate-600 outline-none focus:ring-2 focus:ring-indigo-200">
                                                 @if($editingThisUser) @error('weight_kg') <p class="mt-2 text-sm text-rose-400">{{ $message }}</p> @enderror @endif
                                             </div>
-                                            <div>
-                                                <label for="bmi_measured_at-{{ $modalUser->id }}" class="mb-1.5 block text-sm font-medium text-slate-600">Measurement Date</label>
-                                                <input type="date" name="bmi_measured_at" id="bmi_measured_at-{{ $modalUser->id }}" value="{{ $editingThisUser ? old('bmi_measured_at', $modalUser->bmi_measured_at?->format('Y-m-d')) : $modalUser->bmi_measured_at?->format('Y-m-d') }}" max="{{ now()->toDateString() }}" class="w-full rounded-2xl border-0 bg-slate-50 px-4 py-2.5 text-slate-600 outline-none focus:ring-2 focus:ring-indigo-200">
-                                                @if($editingThisUser) @error('bmi_measured_at') <p class="mt-2 text-sm text-rose-400">{{ $message }}</p> @enderror @endif
-                                            </div>
+                                            <p class="text-sm text-slate-500">
+                                                @if($modalUser->bmi_measured_at)
+                                                    Measurements updated {{ $modalUser->bmi_measured_at->format('F d, Y') }}.
+                                                @endif
+                                                The date updates automatically when height or weight changes.
+                                            </p>
                                             <div class="rounded-2xl bg-slate-50 p-4">
                                                 <p class="text-sm font-medium text-slate-600">Current BMI</p>
                                                 <p class="mt-1 text-lg font-semibold text-slate-700">{{ $modalUser->bmi !== null ? number_format($modalUser->bmi, 1) : 'Not available' }}</p>

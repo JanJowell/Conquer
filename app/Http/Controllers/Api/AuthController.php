@@ -280,8 +280,7 @@ class AuthController extends Controller
         ], ParticipantBirthdate::messages());
 
         $healthMeasurementsWereSubmitted = $request->exists('height_cm')
-            || $request->exists('weight_kg')
-            || $request->exists('bmi_measured_at');
+            || $request->exists('weight_kg');
 
         if ($user->normalizedRole() !== User::ROLE_RUNNER) {
             $validated['medical_conditions'] = null;
@@ -318,14 +317,18 @@ class AuthController extends Controller
 
         $validated = $request->validate([
             'client_update_id' => ['required', 'uuid'],
-            'client_updated_at' => ['required', 'date'],
+            'client_updated_at' => ['required', 'date', 'before_or_equal:now'],
             'base_version' => ['nullable', 'date'],
             'height_cm' => ['present', 'nullable', 'required_with:weight_kg', 'numeric', 'between:50,250'],
             'weight_kg' => ['present', 'nullable', 'required_with:height_cm', 'numeric', 'between:10,500'],
-            'bmi_measured_at' => ['nullable', 'date', 'before_or_equal:today'],
         ]);
 
-        $result = DB::transaction(function () use ($user, $validated): array {
+        // Old apps exposed bmi_measured_at as an editable field. Ignore it;
+        // the automatically captured timestamp supplies the measurement day.
+        // Keep its original offset so a delayed sync does not move the date.
+        $capturedOn = Carbon::parse($validated['client_updated_at'])->toDateString();
+
+        $result = DB::transaction(function () use ($user, $validated, $capturedOn): array {
             $lockedUser = User::query()->lockForUpdate()->findOrFail($user->id);
 
             $duplicate = DB::table('participant_health_updates')
@@ -354,8 +357,7 @@ class AuthController extends Controller
             $measurements = ParticipantHealthProfile::normalize([
                 'height_cm' => $validated['height_cm'],
                 'weight_kg' => $validated['weight_kg'],
-                'bmi_measured_at' => $validated['bmi_measured_at'] ?? null,
-            ], $lockedUser);
+            ], $lockedUser, $capturedOn);
 
             $measurements['health_profile_updated_at'] = now();
             $lockedUser->update($measurements);

@@ -290,21 +290,9 @@
                                 @enderror
                             </div>
 
-                            <div class="md:col-span-2">
-                                <label for="bmi_measured_at" class="block mb-1.5 text-sm font-medium text-slate-600">Measurement Date</label>
-                                <input
-                                    type="date"
-                                    name="bmi_measured_at"
-                                    id="bmi_measured_at"
-                                    value="{{ old('bmi_measured_at') }}"
-                                    max="{{ now()->toDateString() }}"
-                                    class="block w-full rounded-2xl border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                                >
-                                <p class="mt-2 text-xs leading-5 text-slate-400">Optional. BMI is calculated after saving and is not used to approve or reject participation.</p>
-                                @error('bmi_measured_at')
-                                    <p class="mt-2 text-sm text-rose-400">{{ $message }}</p>
-                                @enderror
-                            </div>
+                            <p class="md:col-span-2 text-xs leading-5 text-slate-400">
+                                The measurement date is recorded automatically when height and weight are saved. BMI is calculated after saving and is not used to approve or reject participation.
+                            </p>
 
                             <div class="md:col-span-2">
                                 <label for="emergency_contact_name" class="block mb-1.5 text-sm font-medium text-slate-600">Emergency Contact Name</label>

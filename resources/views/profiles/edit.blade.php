@@ -336,20 +336,12 @@
                                 @enderror
                             </div>
 
-                            <div>
-                                <label for="bmi_measured_at" class="{{ $labelClasses }}">Measurement Date</label>
-                                <input
-                                    id="bmi_measured_at"
-                                    type="date"
-                                    name="bmi_measured_at"
-                                    value="{{ old('bmi_measured_at', $user->bmi_measured_at?->format('Y-m-d')) }}"
-                                    max="{{ now()->toDateString() }}"
-                                    class="{{ $inputClasses }}"
-                                >
-                                @error('bmi_measured_at')
-                                    <p class="{{ $errorClasses }}">{{ $message }}</p>
-                                @enderror
-                            </div>
+                            <p class="text-sm text-[#6d7685]">
+                                @if ($user->bmi_measured_at)
+                                    Measurements updated {{ $user->bmi_measured_at->format('F d, Y') }}.
+                                @endif
+                                The date updates automatically when height or weight changes.
+                            </p>
 
                             <div class="rounded-xl border border-[#d9dee7] bg-[#f8f9fb] p-4">
                                 <p class="text-sm font-medium text-[#111827]">Current BMI</p>

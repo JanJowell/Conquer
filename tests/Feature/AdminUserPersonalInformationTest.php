@@ -28,7 +28,8 @@ test('personal information section is shown only for participant account creatio
         ->and($form->query('//*[@id="participant-personal-information"]//*[@id="medical_conditions"]')->length)->toBe(1)
         ->and($form->query('//*[@id="participant-personal-information"]//*[@id="height_cm"]')->length)->toBe(1)
         ->and($form->query('//*[@id="participant-personal-information"]//*[@id="weight_kg"]')->length)->toBe(1)
-        ->and($form->query('//*[@id="participant-personal-information"]//*[@id="bmi_measured_at"]')->length)->toBe(1)
+        ->and($form->query('//*[@id="participant-personal-information"]//*[@id="bmi_measured_at"]')->length)->toBe(0)
+        ->and($response->getContent())->toContain('The measurement date is recorded automatically')
         ->and($form->query('//*[@id="participant-personal-information"]//*[@id="emergency_contact_name"]')->length)->toBe(1)
         ->and($form->query('//*[@id="participant-personal-information"]//*[@id="emergency_contact_number"]')->length)->toBe(1);
 });
@@ -105,5 +106,6 @@ test('participant creation keeps supplied personal information', function () {
         ->and($participant->weight_kg)->toBe('65.00')
         ->and($participant->bmi)->toBe(22.5)
         ->and($participant->bmi_category)->toBe('Healthy weight')
+        ->and($participant->bmi_measured_at?->toDateString())->toBe(now()->toDateString())
         ->and($participant->health_profile_updated_at)->not->toBeNull();
 });

@@ -239,7 +239,9 @@ Use `/api/config.training_focus_types` for training focus filters.
 }
 ```
 
-Update the measurements with `PATCH /api/me`. Send `height_cm` and `weight_kg` together. `bmi_measured_at` is optional and defaults to the current server date when measurements change. Send both measurements as `null` to clear them.
+Update the measurements with `PATCH /api/me`. Send `height_cm` and `weight_kg` together. The measurement date is read-only: Laravel records the server date when measurements change, preserves it when measurements are unchanged, and ignores legacy date-only edits. Send both measurements as `null` to clear them and their date.
+
+For offline-safe updates, use `PUT /api/me/health-profile` with `client_update_id` (UUID), `client_updated_at` (the automatic ISO-8601 capture timestamp, not in the future), `base_version` (the last `health_profile_updated_at`, or `null`), and both measurements. Preserve the device UTC offset in `client_updated_at`, for example `2026-10-17T00:30:00+08:00`. Laravel derives the measurement date from this timestamp in its original offset and ignores the old editable `bmi_measured_at` request field. Legacy `Z` timestamps remain accepted and use their UTC capture date. Retries must reuse the same timestamp and UUID. Clearing both measurements clears the date; resubmitting unchanged measurements preserves the existing date. The response contains the authoritative `user` data. A stale `base_version` returns HTTP 409 for review instead of overwriting newer measurements.
 
 BMI is always calculated by Laravel; clients must not submit a BMI value. `bmi_category` is returned only when the participant is at least 20 years old on the measurement date. For younger participants, `bmi_interpretation` is `age_specific_required`; when birthdate is unavailable it is `age_unknown`. BMI is informational and must not control registration eligibility, approval, rankings, or public profiles.
 

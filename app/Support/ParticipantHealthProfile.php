@@ -18,12 +18,20 @@ final class ParticipantHealthProfile
         ];
     }
 
-    public static function normalize(array $validated, ?User $existingUser = null): array
+    public static function normalize(
+        array $validated,
+        ?User $existingUser = null,
+        ?string $capturedOn = null
+    ): array
     {
         $measurementsWereSubmitted = array_key_exists('height_cm', $validated)
             || array_key_exists('weight_kg', $validated);
 
         if (! $measurementsWereSubmitted) {
+            // The date is system managed. Ignore date-only submissions from
+            // older clients instead of allowing them to rewrite it.
+            unset($validated['bmi_measured_at']);
+
             return $validated;
         }
 
@@ -35,15 +43,13 @@ final class ParticipantHealthProfile
             return $validated;
         }
 
-        if (blank($validated['bmi_measured_at'] ?? null)) {
-            $measurementsAreUnchanged = $existingUser
-                && (float) $existingUser->height_cm === (float) $validated['height_cm']
-                && (float) $existingUser->weight_kg === (float) $validated['weight_kg'];
+        $measurementsAreUnchanged = $existingUser
+            && (float) $existingUser->height_cm === (float) $validated['height_cm']
+            && (float) $existingUser->weight_kg === (float) $validated['weight_kg'];
 
-            $validated['bmi_measured_at'] = $measurementsAreUnchanged && $existingUser->bmi_measured_at
-                ? $existingUser->bmi_measured_at->toDateString()
-                : now()->toDateString();
-        }
+        $validated['bmi_measured_at'] = $measurementsAreUnchanged && $existingUser->bmi_measured_at
+            ? $existingUser->bmi_measured_at->toDateString()
+            : ($capturedOn ?: now()->toDateString());
 
         return $validated;
     }
