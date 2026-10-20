@@ -71,8 +71,8 @@ test('mobile authentication endpoints send the dedicated branded mailables', fun
         'username' => 'email_design_runner',
         'email' => 'email.design.runner@example.com',
         'birthdate' => '1995-05-15',
-        'password' => 'password123',
-        'password_confirmation' => 'password123',
+        'password' => 'SecureParticipant!2026',
+        'password_confirmation' => 'SecureParticipant!2026',
     ])->assertCreated();
 
     Mail::assertSent(EmailVerificationCodeMail::class, function (EmailVerificationCodeMail $mail): bool {

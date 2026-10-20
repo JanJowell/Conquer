@@ -55,7 +55,7 @@
                         <div class="rounded-2xl border border-[#d9dee7] bg-white p-5 shadow-sm">
                             <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[#7a8392]">Account Safety</p>
                             <p class="mt-2 text-lg font-semibold text-[#111827]">Use a Strong Password</p>
-                            <p class="mt-2 text-sm leading-6 text-[#5a6473]">Choose a password with at least 8 characters and confirm it before saving.</p>
+                            <p class="mt-2 text-sm leading-6 text-[#5a6473]">{{ \App\Support\PasswordPolicy::DESCRIPTION }}</p>
                         </div>
                     </div>
                 </section>
@@ -100,7 +100,7 @@
                         <div>
                             <div class="mb-2 flex items-center justify-between gap-3">
                                 <label for="password" class="block text-sm font-medium text-[#111827]">New Password</label>
-                                <span class="text-xs text-[#7a8392]">Minimum 8 characters</span>
+                                <span class="text-xs text-[#7a8392]">Minimum {{ \App\Support\PasswordPolicy::MIN_LENGTH }} characters</span>
                             </div>
 
                             <div class="relative">
@@ -111,6 +111,8 @@
                                     class="w-full rounded-xl border border-[#d9dee7] bg-white px-4 py-3 pr-12 text-[#111827] outline-none transition placeholder:text-[#9aa3af] focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]"
                                     placeholder="Enter your new password"
                                     required
+                                    minlength="{{ \App\Support\PasswordPolicy::MIN_LENGTH }}"
+                                    aria-describedby="password-requirements"
                                     autocomplete="new-password"
                                 >
                                 <button
@@ -122,6 +124,8 @@
                                 </button>
                             </div>
                         </div>
+
+                        <p id="password-requirements" class="text-xs text-[#7a8392]">{{ \App\Support\PasswordPolicy::DESCRIPTION }}</p>
 
                         <div>
                             <label for="password_confirmation" class="mb-2 block text-sm font-medium text-[#111827]">Confirm New Password</label>

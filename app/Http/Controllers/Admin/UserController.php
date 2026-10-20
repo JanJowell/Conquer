@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 use Throwable;
 
 class UserController extends Controller
@@ -82,8 +83,7 @@ class UserController extends Controller
         Request $request,
         AdminInvitationService $invitations,
         AdministrativeAccountPolicy $accountPolicy
-    )
-    {
+    ) {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -91,7 +91,7 @@ class UserController extends Controller
                 Rule::requiredIf(fn () => $request->input('role') === User::ROLE_RUNNER),
                 'nullable',
                 'string',
-                'min:8',
+                Password::defaults(),
                 'confirmed',
             ],
             'role' => ['required', Rule::in(User::manageableRoles())],
@@ -185,8 +185,7 @@ class UserController extends Controller
         User $user,
         AdminInvitationService $invitations,
         AdministrativeAccountPolicy $accountPolicy
-    )
-    {
+    ) {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],

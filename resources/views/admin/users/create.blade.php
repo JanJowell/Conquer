@@ -116,6 +116,8 @@
                                         name="password"
                                         id="password"
                                         required
+                                        minlength="{{ \App\Support\PasswordPolicy::MIN_LENGTH }}"
+                                        aria-describedby="password-requirements"
                                         autocomplete="new-password"
                                         class="block w-full rounded-2xl border-0 bg-slate-50 py-2.5 pl-4 pr-12 text-sm text-slate-600 outline-none transition focus:outline-none focus:ring-2 focus:ring-indigo-200 placeholder:text-slate-300"
                                     >
@@ -132,6 +134,7 @@
                                         <span class="sr-only" data-password-toggle-label>Show password</span>
                                     </button>
                                 </div>
+                                <p id="password-requirements" class="mt-2 text-xs text-slate-500">{{ \App\Support\PasswordPolicy::DESCRIPTION }}</p>
                                 @error('password')
                                     <p class="mt-2 text-sm text-rose-400">{{ $message }}</p>
                                 @enderror

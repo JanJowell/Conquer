@@ -10,8 +10,8 @@ test('mobile registration requires email verification before login', function ()
         'username' => 'mobile_runner',
         'email' => 'mobile.runner@example.com',
         'birthdate' => '1995-05-15',
-        'password' => 'password123',
-        'password_confirmation' => 'password123',
+        'password' => 'SecureParticipant!2026',
+        'password_confirmation' => 'SecureParticipant!2026',
     ]);
 
     $response
@@ -31,7 +31,7 @@ test('mobile registration requires email verification before login', function ()
 
     $this->postJson('/api/login', [
         'email' => 'mobile.runner@example.com',
-        'password' => 'password123',
+        'password' => 'SecureParticipant!2026',
     ])
         ->assertForbidden()
         ->assertJson([

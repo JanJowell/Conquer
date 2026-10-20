@@ -14,8 +14,8 @@ test('new mobile participants must provide a plausible past birthdate', function
         'username' => (string) str($email)->before('@')->replace('.', '_'),
         'email' => $email,
         'birthdate' => $birthdate,
-        'password' => 'password123',
-        'password_confirmation' => 'password123',
+        'password' => 'SecureParticipant!2026',
+        'password_confirmation' => 'SecureParticipant!2026',
     ], fn ($value) => $value !== null);
 
     $this->postJson('/api/register', $payload('missing.birthdate@example.test'))
@@ -49,8 +49,8 @@ test('admin creation requires birthdate for participants but not administrators'
         ->post(route('admin.users.store'), [
             'name' => 'Participant Without Birthdate',
             'email' => 'participant.without.birthdate@example.test',
-            'password' => 'participant-password',
-            'password_confirmation' => 'participant-password',
+            'password' => 'SecureParticipant!2026',
+            'password_confirmation' => 'SecureParticipant!2026',
             'role' => User::ROLE_RUNNER,
         ])
         ->assertSessionHasErrors('birthdate');

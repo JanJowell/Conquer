@@ -17,6 +17,9 @@
     $inputClasses = $isAdminView
         ? 'w-full rounded-xl border border-[#d9dee7] bg-white px-4 py-3 text-[#111827] placeholder:text-[#9aa3af] focus:border-[#aeb7c3] focus:outline-none focus:ring-2 focus:ring-[#eef1f5]'
         : 'w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-3 text-white placeholder:text-zinc-500 focus:border-white/20 focus:outline-none';
+    $passwordToggleClasses = $isAdminView
+        ? 'absolute inset-y-0 right-0 inline-flex w-12 items-center justify-center rounded-r-xl text-[#6d7685] transition hover:bg-[#eef1f5] hover:text-[#111827] focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-300'
+        : 'absolute inset-y-0 right-0 inline-flex w-12 items-center justify-center rounded-r-xl text-zinc-400 transition hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/40';
     $primaryButtonClasses = $isAdminView
         ? 'rounded-xl bg-[#111827] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#1f2937]'
         : 'rounded-xl bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-zinc-200';
@@ -385,12 +388,34 @@
 
                     <div>
                         <label for="current_password" class="{{ $labelClasses }}">Current Password</label>
-                        <input
-                            id="current_password"
-                            type="password"
-                            name="current_password"
-                            class="{{ $inputClasses }}"
-                        >
+                        <div class="relative">
+                            <input
+                                id="current_password"
+                                type="password"
+                                name="current_password"
+                                autocomplete="current-password"
+                                class="{{ $inputClasses }} pr-12"
+                            >
+                            <button
+                                type="button"
+                                data-profile-password-toggle="current_password"
+                                data-password-field-label="current password"
+                                aria-controls="current_password"
+                                aria-label="Show current password"
+                                aria-pressed="false"
+                                title="Show current password"
+                                class="{{ $passwordToggleClasses }}"
+                            >
+                                <svg data-password-visible-icon class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12s3.5-6 9.75-6 9.75 6 9.75 6-3.5 6-9.75 6S2.25 12 2.25 12Z" />
+                                    <circle cx="12" cy="12" r="2.75" />
+                                </svg>
+                                <svg data-password-hidden-icon class="hidden h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m3 3 18 18M10.6 6.15A10.7 10.7 0 0 1 12 6c6.25 0 9.75 6 9.75 6a16.8 16.8 0 0 1-2.15 2.85M6.1 6.1C3.55 8 2.25 12 2.25 12s3.5 6 9.75 6a10.7 10.7 0 0 0 3.25-.5M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+                                </svg>
+                                <span class="sr-only" data-password-toggle-label>Show current password</span>
+                            </button>
+                        </div>
                         @error('current_password')
                             <p class="{{ $errorClasses }}">{{ $message }}</p>
                         @enderror
@@ -398,12 +423,37 @@
 
                     <div>
                         <label for="password" class="{{ $labelClasses }}">New Password</label>
-                        <input
-                            id="password"
-                            type="password"
-                            name="password"
-                            class="{{ $inputClasses }}"
-                        >
+                        <div class="relative">
+                            <input
+                                id="password"
+                                type="password"
+                                name="password"
+                                autocomplete="new-password"
+                                minlength="{{ \App\Support\PasswordPolicy::MIN_LENGTH }}"
+                                aria-describedby="password-requirements"
+                                class="{{ $inputClasses }} pr-12"
+                            >
+                            <button
+                                type="button"
+                                data-profile-password-toggle="password"
+                                data-password-field-label="new password"
+                                aria-controls="password"
+                                aria-label="Show new password"
+                                aria-pressed="false"
+                                title="Show new password"
+                                class="{{ $passwordToggleClasses }}"
+                            >
+                                <svg data-password-visible-icon class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12s3.5-6 9.75-6 9.75 6 9.75 6-3.5 6-9.75 6S2.25 12 2.25 12Z" />
+                                    <circle cx="12" cy="12" r="2.75" />
+                                </svg>
+                                <svg data-password-hidden-icon class="hidden h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m3 3 18 18M10.6 6.15A10.7 10.7 0 0 1 12 6c6.25 0 9.75 6 9.75 6a16.8 16.8 0 0 1-2.15 2.85M6.1 6.1C3.55 8 2.25 12 2.25 12s3.5 6 9.75 6a10.7 10.7 0 0 0 3.25-.5M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+                                </svg>
+                                <span class="sr-only" data-password-toggle-label>Show new password</span>
+                            </button>
+                        </div>
+                        <p id="password-requirements" class="{{ $mutedTextClasses }}">{{ \App\Support\PasswordPolicy::DESCRIPTION }}</p>
                         @error('password')
                             <p class="{{ $errorClasses }}">{{ $message }}</p>
                         @enderror
@@ -411,12 +461,34 @@
 
                     <div>
                         <label for="password_confirmation" class="{{ $labelClasses }}">Confirm New Password</label>
-                        <input
-                            id="password_confirmation"
-                            type="password"
-                            name="password_confirmation"
-                            class="{{ $inputClasses }}"
-                        >
+                        <div class="relative">
+                            <input
+                                id="password_confirmation"
+                                type="password"
+                                name="password_confirmation"
+                                autocomplete="new-password"
+                                class="{{ $inputClasses }} pr-12"
+                            >
+                            <button
+                                type="button"
+                                data-profile-password-toggle="password_confirmation"
+                                data-password-field-label="password confirmation"
+                                aria-controls="password_confirmation"
+                                aria-label="Show password confirmation"
+                                aria-pressed="false"
+                                title="Show password confirmation"
+                                class="{{ $passwordToggleClasses }}"
+                            >
+                                <svg data-password-visible-icon class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12s3.5-6 9.75-6 9.75 6 9.75 6-3.5 6-9.75 6S2.25 12 2.25 12Z" />
+                                    <circle cx="12" cy="12" r="2.75" />
+                                </svg>
+                                <svg data-password-hidden-icon class="hidden h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m3 3 18 18M10.6 6.15A10.7 10.7 0 0 1 12 6c6.25 0 9.75 6 9.75 6-3.5 6-9.75 6a10.7 10.7 0 0 1-3.25-.5M6.1 6.1C3.55 8 2.25 12 2.25 12s1.3 4 3.85 5.9M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+                                </svg>
+                                <span class="sr-only" data-password-toggle-label>Show password confirmation</span>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="pt-2">
@@ -582,4 +654,45 @@
         </div>
     </dialog>
 @endif
+
+<script>
+    (function () {
+        if (window.__profilePasswordToggleBound) {
+            return;
+        }
+
+        window.__profilePasswordToggleBound = true;
+
+        document.addEventListener('click', (event) => {
+            const button = event.target.closest('[data-profile-password-toggle]');
+
+            if (!button) {
+                return;
+            }
+
+            const input = document.getElementById(button.dataset.profilePasswordToggle);
+
+            if (!input) {
+                return;
+            }
+
+            const visible = input.type === 'password';
+            const fieldLabel = button.dataset.passwordFieldLabel || 'password';
+            const actionLabel = `${visible ? 'Hide' : 'Show'} ${fieldLabel}`;
+
+            input.type = visible ? 'text' : 'password';
+            button.setAttribute('aria-pressed', visible ? 'true' : 'false');
+            button.setAttribute('aria-label', actionLabel);
+            button.setAttribute('title', actionLabel);
+            button.querySelector('[data-password-visible-icon]')?.classList.toggle('hidden', visible);
+            button.querySelector('[data-password-hidden-icon]')?.classList.toggle('hidden', !visible);
+
+            const accessibleLabel = button.querySelector('[data-password-toggle-label]');
+
+            if (accessibleLabel) {
+                accessibleLabel.textContent = actionLabel;
+            }
+        });
+    })();
+</script>
 @endsection

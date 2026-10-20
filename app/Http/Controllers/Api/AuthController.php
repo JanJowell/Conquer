@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
@@ -43,7 +44,7 @@ class AuthController extends Controller
             'last_name' => ['nullable', 'string', 'max:120'],
             'username' => ['nullable', 'string', 'max:120', Rule::unique(User::class)],
             'email' => ['required', 'email', 'max:255', Rule::unique(User::class)],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => ['required', 'string', Password::defaults(), 'confirmed'],
             'phone' => ['nullable', 'digits:11'],
             'gender' => ['nullable', 'string', 'max:50'],
             'birthdate' => ParticipantBirthdate::rules(required: true),
@@ -419,7 +420,7 @@ class AuthController extends Controller
 
         $validated = $request->validate([
             'current_password' => ['required', 'string'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => ['required', 'string', Password::defaults(), 'confirmed'],
         ]);
 
         if (! Hash::check($validated['current_password'], $request->user()->password)) {
@@ -486,7 +487,7 @@ class AuthController extends Controller
         $validated = $request->validate([
             'email' => ['required', 'email', Rule::exists(User::class, 'email')],
             'code' => ['required', 'digits:6'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => ['required', 'string', Password::defaults(), 'confirmed'],
         ]);
 
         if (! $this->resetCodeIsValid($validated['email'], $validated['code'])) {

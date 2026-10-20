@@ -135,13 +135,35 @@ The mobile app can send either `name` or `first_name` plus `last_name`. A real `
   "email": "keithgarcia@gmail.com",
   "gender": "Male",
   "birthdate": "2000-01-01",
-  "password": "password123",
-  "password_confirmation": "password123",
+  "password": "TrailRunner!2026",
+  "password_confirmation": "TrailRunner!2026",
   "interests": ["Cycling", "Marathon"]
 }
 ```
 
 The API also accepts `confirm_password` or `re_enter_password` as the confirmation field.
+
+### Shared password requirements
+
+All new passwords must contain at least **12 characters**, an uppercase letter, a lowercase letter, a number, and a symbol. Laravel enforces this for `POST /api/register`, `PATCH /api/me/password`, and `POST /api/reset-password`, as well as administrator account activation, web password changes/resets, and participant accounts created by an administrator. Production also keeps the existing compromised-password check. These rules apply in local and test environments too (without the external compromised-password lookup).
+
+Flutter should display: **Use at least 12 characters with uppercase and lowercase letters, a number, and a symbol.** Validate locally for immediate feedback, then display Laravel's `errors.password` messages when the API returns HTTP `422`. Confirmation must match exactly. Password toggles must preserve the entered value. Existing passwords remain accepted at login; only creation, change, and reset apply the new requirements. Login must not apply new-password strength validation.
+
+Example rejected password response (a password without mixed case or a symbol):
+
+```json
+{
+  "message": "The password field must contain at least one uppercase and one lowercase letter. (and 1 more error)",
+  "errors": {
+    "password": [
+      "The password field must contain at least one uppercase and one lowercase letter.",
+      "The password field must contain at least one symbol."
+    ]
+  }
+}
+```
+
+Keep the `errors.password` list authoritative; the summary `message` can vary with the number of errors. Password reset still requires a valid six-digit `code` and `email`. Invalid new passwords do not consume a reset code or administrator invitation.
 
 Successful registration sends a 6-digit email verification code and returns:
 
@@ -446,8 +468,8 @@ PATCH /api/me/password
 ```json
 {
   "current_password": "old-password",
-  "new_password": "new-password123",
-  "confirm_password": "new-password123"
+  "new_password": "NewTrailRunner!2026",
+  "confirm_password": "NewTrailRunner!2026"
 }
 ```
 

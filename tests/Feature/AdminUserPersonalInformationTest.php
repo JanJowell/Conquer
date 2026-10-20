@@ -81,8 +81,8 @@ test('participant creation keeps supplied personal information', function () {
         ->post(route('admin.users.store'), [
             'name' => 'New Participant',
             'email' => 'new.participant@example.test',
-            'password' => 'participant-password',
-            'password_confirmation' => 'participant-password',
+            'password' => 'SecureParticipant!2026',
+            'password_confirmation' => 'SecureParticipant!2026',
             'role' => User::ROLE_RUNNER,
             'address' => 'Participant address',
             'medical_conditions' => 'No known conditions',

@@ -104,6 +104,7 @@
                                 <label for="password" class="mb-2 block text-sm font-medium text-[#111827]">Create password</label>
                                 <div class="relative">
                                     <input id="password" name="password" type="password" required autofocus autocomplete="new-password"
+                                        minlength="{{ \App\Support\PasswordPolicy::MIN_LENGTH }}" aria-describedby="password-requirements"
                                         class="w-full rounded-xl border {{ $errors->has('password') ? 'border-rose-300' : 'border-[#d9dee7]' }} bg-white px-4 py-3 pr-12 text-[#111827] outline-none transition placeholder:text-[#9aa3af] focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]"
                                         placeholder="Enter a secure password">
                                     <button type="button" onclick="togglePassword('password')"
@@ -131,9 +132,9 @@
                                 </div>
                             </div>
 
-                            <div class="rounded-2xl border border-[#d9dee7] bg-[#f8f9fb] px-4 py-4 text-sm leading-6 text-[#5a6473]">
+                            <div id="password-requirements" class="rounded-2xl border border-[#d9dee7] bg-[#f8f9fb] px-4 py-4 text-sm leading-6 text-[#5a6473]">
                                 <i class="fas fa-lock mr-2 text-[#7d8694]"></i>
-                                Use at least 12 characters with uppercase and lowercase letters, a number, and a symbol.
+                                {{ \App\Support\PasswordPolicy::DESCRIPTION }}
                             </div>
 
                             <button type="submit"

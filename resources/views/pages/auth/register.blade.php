@@ -155,6 +155,8 @@
                         required
                         autocomplete="new-password"
                         onkeyup="checkPasswordStrength(this.value)"
+                        minlength="{{ \App\Support\PasswordPolicy::MIN_LENGTH }}"
+                        aria-describedby="password-requirements"
                     >
                     <label for="password">Password</label>
                     <button 
@@ -166,7 +168,7 @@
                     </button>
                 </div>
                 <div class="password-strength" id="password-strength"></div>
-                <p class="text-xs text-gray-500 mt-1">Password must be at least 8 characters</p>
+                <p id="password-requirements" class="text-xs text-gray-500 mt-1">{{ \App\Support\PasswordPolicy::DESCRIPTION }}</p>
 
                 <!-- Confirm Password -->
                 <div class="input-group">
@@ -249,10 +251,10 @@
             const strengthBar = document.getElementById('password-strength');
             let strength = 0;
             
-            if (password.length >= 8) strength++;
-            if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++;
-            if (password.match(/[0-9]/)) strength++;
-            if (password.match(/[^a-zA-Z0-9]/)) strength++;
+            if (password.length >= {{ \App\Support\PasswordPolicy::MIN_LENGTH }}) strength++;
+            if (/\p{Ll}/u.test(password) && /\p{Lu}/u.test(password)) strength++;
+            if (/\p{N}/u.test(password)) strength++;
+            if (/[\p{Z}\p{S}\p{P}]/u.test(password)) strength++;
             
             strengthBar.className = 'password-strength';
             
@@ -262,7 +264,7 @@
                 strengthBar.style.display = 'block';
                 if (strength <= 1) {
                     strengthBar.classList.add('strength-weak');
-                } else if (strength === 2) {
+                } else if (strength < 4) {
                     strengthBar.classList.add('strength-medium');
                 } else {
                     strengthBar.classList.add('strength-strong');
@@ -309,7 +311,9 @@
                 hasError = true;
             }
             
-            if (!password.value || password.value.length < 8) {
+            if (!password.value || password.value.length < {{ \App\Support\PasswordPolicy::MIN_LENGTH }} ||
+                !/\p{Ll}/u.test(password.value) || !/\p{Lu}/u.test(password.value) ||
+                !/\p{N}/u.test(password.value) || !/[\p{Z}\p{S}\p{P}]/u.test(password.value)) {
                 password.classList.add('border-red-500');
                 hasError = true;
             }
