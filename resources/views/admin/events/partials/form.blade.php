@@ -513,6 +513,12 @@
                             @endif
                         </div>
 
+                        @include('admin.categories.partials.course-map-editor', [
+                            'name' => 'categories['.$index.'][course_map]',
+                            'errorKey' => 'categories.'.$index.'.course_map',
+                            'value' => $categoryRow['course_map'] ?? null,
+                        ])
+
                         <div>
                             <label class="mb-2 block text-sm font-medium text-[#3d4757]">Registration Fee</label>
                             <div class="grid grid-cols-[1fr_88px] gap-2">
@@ -679,6 +685,11 @@
                             class="mt-3 block w-full rounded-xl border border-[#d9dee7] bg-white px-3 py-2 text-sm text-[#3d4757] file:mr-3 file:rounded-lg file:border-0 file:bg-[#eef1f4] file:px-3 file:py-2 file:font-semibold file:text-[#151b26]">
                         <p class="mt-2 text-xs leading-5 text-[#6d7685]">JPG, PNG, or WebP up to 5 MB. This map belongs only to this category.</p>
                     </div>
+                    @include('admin.categories.partials.course-map-editor', [
+                        'name' => 'categories[__INDEX__][course_map]',
+                        'errorKey' => 'categories.__INDEX__.course_map',
+                        'value' => null,
+                    ])
                     <div>
                         <label class="mb-2 block text-sm font-medium text-[#3d4757]">Registration Fee</label>
                         <div class="grid grid-cols-[1fr_88px] gap-2">

@@ -50,6 +50,7 @@ class Category extends Model
         'group_max_members',
         'requires_medical_certificate',
         'checkpoint_map_image',
+        'course_map',
         'slot_limit',
         'price_cents',
         'price_currency',
@@ -71,6 +72,7 @@ class Category extends Model
         return [
             'distance_km' => 'decimal:2',
             'type_details' => 'array',
+            'course_map' => 'array',
             'requires_medical_certificate' => 'boolean',
             'group_min_members' => 'integer',
             'group_max_members' => 'integer',

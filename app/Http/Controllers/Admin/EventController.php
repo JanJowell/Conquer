@@ -9,6 +9,7 @@ use App\Models\CommunityPost;
 use App\Models\Event;
 use App\Models\EventPaymentMethod;
 use App\Models\User;
+use App\Rules\CategoryCourseMap;
 use App\Services\EventManagerAvailability;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -169,6 +170,7 @@ class EventController extends Controller
             'categories.*.group_max_members' => ['nullable', 'required_if:categories.*.participation_mode,group', 'integer', 'min:2', 'max:100'],
             'categories.*.requires_medical_certificate' => ['sometimes', 'boolean'],
             'categories.*.checkpoint_map_image_upload' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'categories.*.course_map' => ['nullable', new CategoryCourseMap],
             'categories.*.slot_limit' => ['nullable', 'integer', 'min:1'],
             'categories.*.price_amount' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
             'categories.*.price_currency' => ['required', 'string', 'size:3'],
@@ -323,6 +325,7 @@ class EventController extends Controller
             'categories.*.group_max_members' => ['nullable', 'required_if:categories.*.participation_mode,group', 'integer', 'min:2', 'max:100'],
             'categories.*.requires_medical_certificate' => ['sometimes', 'boolean'],
             'categories.*.checkpoint_map_image_upload' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'categories.*.course_map' => ['nullable', new CategoryCourseMap],
             'categories.*.slot_limit' => ['nullable', 'integer', 'min:1'],
             'categories.*.price_amount' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
             'categories.*.price_currency' => ['required', 'string', 'size:3'],
@@ -631,7 +634,7 @@ class EventController extends Controller
             return true;
         }
 
-        foreach (['category_type', 'custom_category_name', 'distance_option', 'custom_distance_km', 'description', 'qualification_notes', 'group_min_members', 'group_max_members', 'slot_limit', 'payment_provider', 'payment_account_name', 'payment_account_number', 'payment_instructions'] as $field) {
+        foreach (['category_type', 'custom_category_name', 'distance_option', 'custom_distance_km', 'description', 'qualification_notes', 'course_map', 'group_min_members', 'group_max_members', 'slot_limit', 'payment_provider', 'payment_account_name', 'payment_account_number', 'payment_instructions'] as $field) {
             if (filled($row[$field] ?? null)) {
                 return true;
             }
@@ -691,6 +694,7 @@ class EventController extends Controller
                         FILTER_VALIDATE_BOOLEAN
                     ),
                     'checkpoint_map_image' => $checkpointMapPath,
+                    'course_map' => CategoryCourseMap::normalize($row['course_map'] ?? null),
                     'slot_limit' => $row['slot_limit'] ?? null,
                     'price_cents' => (int) round((float) ($row['price_amount'] ?? 0) * 100),
                     'price_currency' => strtoupper($row['price_currency'] ?? 'PHP'),
@@ -733,6 +737,9 @@ class EventController extends Controller
                 ?? $this->distanceValue($row);
 
             $attributes = [
+                ...(array_key_exists('course_map', $row) ? [
+                    'course_map' => CategoryCourseMap::normalize($row['course_map']),
+                ] : []),
                 'name' => $this->nameWithDistance($this->categoryTypeName($row), $distanceKm, $distanceUnit),
                 'distance_km' => $distanceKm,
                 'distance_unit' => $distanceUnit,
@@ -822,6 +829,7 @@ class EventController extends Controller
             'group_max_members' => $category->group_max_members,
             'requires_medical_certificate' => $category->requiresMedicalCertificate(),
             'checkpoint_map_image' => $category->checkpoint_map_image,
+            'course_map' => $category->course_map,
         ];
     }
 

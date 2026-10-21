@@ -208,6 +208,8 @@
                     <p class="mt-2 text-xs leading-5 text-[#6d7685]">Upload a JPG, PNG, or WebP route image up to 5 MB. It will be shown only for this category.</p>
                 </div>
 
+                @include('admin.categories.partials.course-map-editor', ['value' => old('course_map')])
+
                 <div>
                     <label for="price_amount" class="mb-2 block text-sm font-medium text-[#3d4757]">Registration Fee</label>
                     <div class="grid grid-cols-[1fr_88px] gap-2">

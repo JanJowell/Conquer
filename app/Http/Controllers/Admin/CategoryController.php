@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Event;
+use App\Rules\CategoryCourseMap;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -103,6 +104,7 @@ class CategoryController extends Controller
             'group_max_members' => ['nullable', 'required_if:participation_mode,group', 'integer', 'min:2', 'max:100'],
             'requires_medical_certificate' => ['sometimes', 'boolean'],
             'checkpoint_map_image_upload' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'course_map' => ['nullable', new CategoryCourseMap],
             'slot_limit' => ['nullable', 'integer', 'min:1'],
             'price_amount' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
             'price_currency' => ['required', 'string', 'size:3'],
@@ -146,6 +148,10 @@ class CategoryController extends Controller
         unset($validated['category_type'], $validated['custom_category_name'], $validated['distance_option'], $validated['custom_distance_km']);
 
         $checkpointMapPath = null;
+
+        if (array_key_exists('course_map', $validated)) {
+            $validated['course_map'] = CategoryCourseMap::normalize($validated['course_map']);
+        }
 
         try {
             if ($request->hasFile('checkpoint_map_image_upload')) {
@@ -234,6 +240,7 @@ class CategoryController extends Controller
             'requires_medical_certificate' => ['sometimes', 'boolean'],
             'checkpoint_map_image_upload' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'remove_checkpoint_map_image' => ['sometimes', 'boolean'],
+            'course_map' => ['nullable', new CategoryCourseMap],
             'slot_limit' => ['nullable', 'integer', 'min:1'],
             'price_amount' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
             'price_currency' => ['required', 'string', 'size:3'],
@@ -265,6 +272,10 @@ class CategoryController extends Controller
         }
 
         $validated = $request->validate($rules);
+
+        if (array_key_exists('course_map', $validated)) {
+            $validated['course_map'] = CategoryCourseMap::normalize($validated['course_map']);
+        }
 
         if (! $categoryInUse && ($errors = $this->groupSetupErrors($validated))) {
             return back()->withErrors($errors)->withInput();

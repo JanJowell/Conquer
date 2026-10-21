@@ -1241,6 +1241,7 @@
             });
         </script>
     @endif
+    @stack('scripts')
     @livewireScripts
 </body>
 </html>

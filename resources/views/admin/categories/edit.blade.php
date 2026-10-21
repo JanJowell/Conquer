@@ -288,6 +288,8 @@
                     @endif
                 </div>
 
+                @include('admin.categories.partials.course-map-editor', ['value' => old('course_map', $category->course_map)])
+
                 <div>
                     <label for="price_amount" class="mb-2 block text-sm font-medium text-[#3d4757]">Registration Fee</label>
                     <div class="grid grid-cols-[1fr_88px] gap-2">
