@@ -1,0 +1,6 @@
+# Minimal configuration for ephemeral test-only RSA keys on Windows and Linux.
+[req]
+distinguished_name = test_dn
+
+[test_dn]
+commonName = Test only

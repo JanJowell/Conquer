@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\PushNotification;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -35,13 +36,13 @@ class NotificationController extends Controller
                 'title' => $notification->title,
                 'message' => $notification->message,
                 'type' => $notification->type,
-                'data' => $notification->data,
+                'data' => $notification->data === null ? null : $notification->publicData(),
                 'target_user_id' => $notification->target_user_id,
                 'created_at' => optional($notification->created_at)?->toISOString(),
                 'sent_at' => optional($notification->sent_at)?->toISOString(),
                 'is_read' => $readAtByNotificationId->has($notification->id),
                 'read_at' => $readAtByNotificationId->get($notification->id)
-                    ? \Carbon\Carbon::parse($readAtByNotificationId->get($notification->id))->toISOString()
+                    ? Carbon::parse($readAtByNotificationId->get($notification->id))->toISOString()
                     : null,
             ]),
         ]);

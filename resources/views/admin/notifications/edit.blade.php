@@ -17,6 +17,7 @@
             @method('PUT')
 
             <div class="space-y-5 p-6">
+                @include('admin.notifications._delivery-error')
                 <div>
                     <label for="title" class="block text-sm font-medium text-slate-600">Title</label>
                     <input type="text" name="title" id="title" required value="{{ old('title', $notification->title) }}"

@@ -12,6 +12,10 @@
                 ? ['label' => 'Ready', 'classes' => 'bg-indigo-50 text-indigo-400']
                 : ['label' => 'Inactive', 'classes' => 'bg-slate-100 text-slate-500']));
 
+    if (!$notification->sent_at && $notification->deliveryError()) {
+        $status = ['label' => $notification->is_active ? 'Retry pending' : 'Paused', 'classes' => 'bg-rose-50 text-rose-600'];
+    }
+
     $typeClasses = [
         'payment' => 'bg-indigo-50 text-indigo-400',
         'reminder' => 'bg-amber-50 text-amber-500',
@@ -54,6 +58,7 @@
         </div>
 
         <section class="rounded-[1.75rem] bg-white p-6 shadow-[0_8px_24px_rgba(148,163,184,0.12)]">
+            @include('admin.notifications._delivery-error')
             <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Message</p>
