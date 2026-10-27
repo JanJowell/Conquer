@@ -2,6 +2,8 @@
 
 namespace App\Http\Resources\Api;
 
+use App\Services\GoogleStaticCourseMap;
+use App\Support\ParticipantCourseMap;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -10,6 +12,7 @@ class CategoryResource extends JsonResource
     public function toArray(Request $request): array
     {
         $registeredCount = $this->whenCounted('registrations');
+        $courseMap = ParticipantCourseMap::make($this->course_map);
         $allEventPaymentMethods = $this->event
             ? ($this->event->relationLoaded('paymentMethods')
                 ? $this->event->paymentMethods
@@ -41,6 +44,8 @@ class CategoryResource extends JsonResource
             'type_details' => $this->resolvedTypeDetails(),
             'type_detail_items' => $this->formattedTypeDetails(),
             'requires_medical_certificate' => $this->requiresMedicalCertificate(),
+            'course_map' => $courseMap,
+            'course_map_image' => app(GoogleStaticCourseMap::class)->descriptor($this->id, $courseMap),
             'checkpoint_map_image_url' => $this->checkpoint_map_image
                 ? asset('storage/'.$this->checkpoint_map_image)
                 : null,

@@ -9,7 +9,9 @@ closes a loop exactly. Undo affects the current draft.
 This phase saves an administrator-drawn route. It does not infer a safe race course,
 snap to roads, calculate category distances, generate a downloadable map image, or
 replace the participant application's uploaded checkpoint-map image. Review the
-actual course before applying it. Participant map delivery is a separate phase.
+actual course before applying it. The participant API delivers saved route data
+and now has an optional, disabled-by-default image endpoint. See
+[image delivery](course-map-image-delivery.md). Flutter display remains separate.
 
 ## Configuration and release
 
@@ -36,7 +38,7 @@ with this release, even when the editor is not configured.
 Only opening an editor loads Google Maps. The loader is shared across categories
 in the current document; reopening the same editor reuses its map. Opening another
 category creates another map instance and may count as another billable map load.
-No Places, Routes, or Maps Static API is used by this prototype. Budget alerts are
+The editor itself uses no Places, Routes, or Maps Static API. Budget alerts are
 notifications, not a spending cap. Monitor actual Google Cloud billing and usage.
 
 ## Save and recovery behavior
@@ -81,13 +83,17 @@ An omitted field preserves an existing route. An explicit empty or null field
 clears it. Start/Finish are derived from `path`; checkpoint numbering follows array
 order. Labels are treated as text, never rendered as HTML.
 
-The mobile `checkpoint_map_image_url` contract is unchanged. No new public course
-map API or Google key has been added to the participant app in this phase.
+The mobile `checkpoint_map_image_url` contract is unchanged. The shared category
+response additionally exposes nullable `course_map`, with derived Start/Finish,
+loop state, and checkpoint numbers. See [Participant course maps](participant-course-map.md).
+No Google key is sent through that API, and the Flutter app is not changed by this
+backend addition.
 
 ## Automated checks
 
 ```sh
 php artisan test --compact tests/Feature/AdminCategoryCourseMapTest.php tests/Feature/AdminCategoryCheckpointMapTest.php
+php artisan test --compact tests/Feature/Api/ParticipantCourseMapTest.php
 node --test tests/Js/course-map-data.test.js tests/Js/course-map-browser.test.js
 ```
 

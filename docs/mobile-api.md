@@ -230,6 +230,27 @@ Each event response includes `participants_count`, `interest_type`, `banner_url`
 
 Use `/api/config.event_interest_types` for event filter options.
 
+## Category Course Maps
+
+Loaded category objects now include nullable `course_map` alongside the unchanged
+`checkpoint_map_image_url`. This applies to event list/detail categories and loaded
+categories in registration responses. A version-1 map contains the saved `path`,
+derived `start` and `finish`, `is_loop`, and ordered `checkpoints` with one-based
+`number` values and plain-text labels. Missing or invalid saved routes return null.
+
+This is route data, not a generated image URL. Existing apps can continue using
+`checkpoint_map_image_url`. See [Participant course maps](participant-course-map.md)
+for the exact payload, Flutter rendering/fallback contract, and image-generation
+follow-up. No Google key or signing secret is returned by this field.
+
+An additional nullable `course_map_image` provides an authenticated Laravel image
+URL, `requires_authentication: true`, and a marker `legend` when static images are
+configured and the saved route fits the provider request limit. Fetch that URL
+with the participant bearer token; it returns PNG bytes, not a Google redirect.
+On failure use `checkpoint_map_image_url`. `course_map_image` is null by default because image
+generation is opt-in. See [Image delivery](course-map-image-delivery.md) for setup,
+limits, error responses, and Flutter behavior. Event metadata never fetches Google.
+
 ## Training Modules
 
 ```text

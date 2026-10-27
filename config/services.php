@@ -4,6 +4,10 @@ return [
 
     'google_maps' => [
         'browser_key' => env('GOOGLE_MAPS_BROWSER_KEY'),
+        'static_enabled' => env('GOOGLE_MAPS_STATIC_ENABLED', false),
+        'static_key' => env('GOOGLE_MAPS_STATIC_KEY'),
+        'signing_secret' => env('GOOGLE_MAPS_SIGNING_SECRET'),
+        'static_daily_limit' => env('GOOGLE_MAPS_STATIC_DAILY_LIMIT', 100),
     ],
 
     /*

@@ -6,11 +6,14 @@ use App\Http\Responses\RegisterResponse;
 use App\Support\PasswordPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
@@ -33,6 +36,13 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Paginator::defaultView('pagination.compact');
+
+        RateLimiter::for('course-map-images', fn (Request $request) => [
+            // Laravel can prioritize throttle middleware before custom mobile auth.
+            // Hash the token; never store a raw bearer credential in cache keys.
+            Limit::perMinute(6)->by('token:'.hash('sha256', $request->bearerToken() ?? 'guest')),
+            Limit::perMinute(30)->by('ip:'.$request->ip()),
+        ]);
 
         ResetPassword::toMailUsing(function (object $notifiable, string $token): MailMessage {
             $email = $notifiable->getEmailForPasswordReset();

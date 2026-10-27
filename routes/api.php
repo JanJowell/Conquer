@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AchievementController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CertificateController;
 use App\Http\Controllers\Api\ContentController;
+use App\Http\Controllers\Api\CourseMapImageController;
 use App\Http\Controllers\Api\DeviceTokenController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\FinishScanController;
@@ -43,6 +44,9 @@ Route::post('/paymongo/webhook', [PaymentController::class, 'payMongoWebhook'])
     ->middleware('throttle:payment-webhook');
 
 Route::middleware(['mobile.auth', 'throttle:mobile-api'])->group(function () {
+    Route::get('/categories/{category}/course-map-image', CourseMapImageController::class)
+        ->middleware('throttle:course-map-images')
+        ->name('api.categories.course-map-image');
     Route::get('/me', [AuthController::class, 'me']);
     Route::patch('/me', [AuthController::class, 'updateProfile']);
     Route::put('/me/health-profile', [AuthController::class, 'updateHealthProfile']);
