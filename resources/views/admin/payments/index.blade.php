@@ -4,6 +4,7 @@
 
 @section('content')
     <div class="space-y-6">
+        @include('admin.payments.partials.tabs')
         <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
                 <p class="text-sm font-medium uppercase tracking-[0.24em] text-[#7a8495]">Finance</p>

@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\EventReviewController;
 use App\Http\Controllers\Admin\FinishScanController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\PaymentController;
+use App\Http\Controllers\Admin\PaymentOptionController;
 use App\Http\Controllers\Admin\SearchController;
 use App\Http\Controllers\Admin\SecurityController;
 use App\Http\Controllers\Admin\UserController;
@@ -109,6 +110,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/payments', [PaymentController::class, 'index'])
         ->middleware('role:super_admin,event_manager')
         ->name('payments.index');
+    Route::resource('payment-options', PaymentOptionController::class)
+        ->parameters(['payment-options' => 'paymentOption'])
+        ->only(['index', 'create', 'store', 'edit', 'update'])
+        ->middleware('role:super_admin,event_manager');
+    Route::patch('/payment-options/{paymentOption}/availability', [PaymentOptionController::class, 'availability'])
+        ->middleware('role:super_admin,event_manager')
+        ->name('payment-options.availability');
     Route::get('/payments/export', [PaymentController::class, 'export'])
         ->middleware('role:super_admin,event_manager')
         ->name('payments.export');

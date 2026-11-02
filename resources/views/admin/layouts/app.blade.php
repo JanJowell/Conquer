@@ -681,7 +681,7 @@
                     'items' => [
                         ['route' => route('admin.events.index'), 'match' => 'admin.events.*', 'icon' => 'fa-calendar-days', 'label' => 'Events'],
                         ['route' => route('admin.check-in.index'), 'match' => 'admin.check-in.*', 'icon' => 'fa-clipboard-check', 'label' => 'Check-in'],
-                        ['route' => route('admin.payments.index'), 'match' => 'admin.payments.*', 'icon' => 'fa-credit-card', 'label' => 'Payments'],
+                        ['route' => route('admin.payments.index'), 'match' => ['admin.payments.*', 'admin.payment-options.*'], 'icon' => 'fa-credit-card', 'label' => 'Payments'],
                         ['route' => route('admin.results.index'), 'match' => 'admin.results.*', 'icon' => 'fa-trophy', 'label' => 'Results'],
                         ['route' => route('admin.finish-scans.index'), 'match' => 'admin.finish-scans.*', 'icon' => 'fa-qrcode', 'label' => 'Finish Scans'],
                         ['route' => route('admin.certificates.index'), 'match' => 'admin.certificates.*', 'icon' => 'fa-certificate', 'label' => 'E-Certificates'],
@@ -700,7 +700,7 @@
                 ['route' => route('admin.dashboard'), 'match' => 'admin.dashboard', 'icon' => 'fa-house', 'label' => 'Dashboard'],
                 ['route' => route('admin.events.index'), 'match' => 'admin.events.*', 'icon' => 'fa-calendar-days', 'label' => 'My Events'],
                 ['route' => route('admin.participants.index'), 'match' => 'admin.participants.*', 'icon' => 'fa-id-card', 'label' => 'Participants'],
-                ['route' => route('admin.payments.index'), 'match' => 'admin.payments.*', 'icon' => 'fa-credit-card', 'label' => 'Payments'],
+                ['route' => route('admin.payments.index'), 'match' => ['admin.payments.*', 'admin.payment-options.*'], 'icon' => 'fa-credit-card', 'label' => 'Payments'],
                 ['route' => route('admin.check-in.index'), 'match' => 'admin.check-in.*', 'icon' => 'fa-clipboard-check', 'label' => 'Check-in'],
                 ['route' => route('admin.results.index'), 'match' => 'admin.results.*', 'icon' => 'fa-trophy', 'label' => 'Results'],
                 ['route' => route('admin.finish-scans.index'), 'match' => 'admin.finish-scans.*', 'icon' => 'fa-qrcode', 'label' => 'Finish Scans'],

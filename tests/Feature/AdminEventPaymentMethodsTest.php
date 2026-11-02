@@ -3,7 +3,6 @@
 use App\Http\Resources\Api\CategoryResource;
 use App\Models\Category;
 use App\Models\Event;
-use App\Models\EventPaymentMethod;
 use App\Models\Payment;
 use App\Models\Registration;
 use App\Models\User;
@@ -241,8 +240,10 @@ test('event manager forms keep fees on categories and payment accounts on events
         ->get(route('admin.events.edit', $event))
         ->assertOk()
         ->assertSee('Event Payment Options')
-        ->assertSee('These options apply to every paid category')
-        ->assertSee('payment_methods[0][provider]', false)
+        ->assertSee('Required for paid events. Select one account per provider.')
+        ->assertSee('name="payment_selection_submitted"', false)
+        ->assertSee('Manage payment options')
+        ->assertDontSee('payment_methods[0][provider]', false)
         ->assertDontSee('categories[0][payment_provider]', false);
 
     $this

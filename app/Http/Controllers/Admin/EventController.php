@@ -8,9 +8,11 @@ use App\Models\Checkpoint;
 use App\Models\CommunityPost;
 use App\Models\Event;
 use App\Models\EventPaymentMethod;
+use App\Models\SavedPaymentOption;
 use App\Models\User;
 use App\Rules\CategoryCourseMap;
 use App\Services\EventManagerAvailability;
+use App\Services\EventPaymentSelection;
 use App\Services\EventReviewWorkflow;
 use App\Services\EventRevisionComparison;
 use App\Services\EventVenueSelection;
@@ -31,7 +33,8 @@ class EventController extends Controller
     public function __construct(
         private readonly EventManagerAvailability $managerAvailability,
         private readonly EventVenueSelection $venueSelection,
-        private readonly PhilippineLocations $venueLocations
+        private readonly PhilippineLocations $venueLocations,
+        private readonly EventPaymentSelection $paymentSelection
     ) {}
 
     public function index(Request $request): View
@@ -99,8 +102,9 @@ class EventController extends Controller
             ->get(['id', 'name', 'email']);
         $managerSchedules = $this->managerSchedules($managers->pluck('id')->all());
         $venueLocationsAvailable = $this->venueLocations->available();
+        $savedPaymentOptions = SavedPaymentOption::availableTo(auth()->user())->where('is_enabled', true)->orderBy('label')->orderBy('id')->get();
 
-        return view('admin.events.create', compact('interestTypes', 'managers', 'managerSchedules', 'categoryTypes', 'distanceOptions', 'paymentMethods', 'venueLocationsAvailable'));
+        return view('admin.events.create', compact('interestTypes', 'managers', 'managerSchedules', 'categoryTypes', 'distanceOptions', 'paymentMethods', 'venueLocationsAvailable', 'savedPaymentOptions'));
     }
 
     public function show(Event $event): View
@@ -144,6 +148,10 @@ class EventController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $user = $request->user();
+        $paymentSelection = $this->paymentSelection->prepare($request);
+        if ($paymentSelection !== null) {
+            $request->merge(['payment_methods' => [], 'payment_methods_submitted' => false]);
+        }
         $venueSelection = $this->venueSelection->prepare($request);
         $request->merge(['venue' => $venueSelection['label']]);
         $usesSegmentedDistances = $this->usesSegmentedCategoryDistances($request->input('interest_type'));
@@ -245,18 +253,21 @@ class EventController extends Controller
 
         unset($validated['banner_image_upload']);
 
-        $event = DB::transaction(function () use ($validated, $categoryRows, $paymentMethodRows, $paymentMethodsSubmitted, $venueSelection, $user) {
+        $event = DB::transaction(function () use ($validated, $categoryRows, $paymentMethodRows, $paymentMethodsSubmitted, $paymentSelection, $venueSelection, $user) {
             $event = Event::create([
                 ...$validated,
                 ...$this->venueSelection->persist($venueSelection, $user),
                 'slug' => Str::slug($validated['title'].'-'.time()),
             ]);
 
-            if ($paymentMethodsSubmitted) {
+            if ($paymentSelection === null && $paymentMethodsSubmitted) {
                 $this->syncPaymentMethods($event, $paymentMethodRows);
             }
 
             $this->createCategoriesForEvent($event, $categoryRows);
+            if ($paymentSelection !== null) {
+                $this->paymentSelection->sync($event, $paymentSelection, $user);
+            }
             $event->refreshAutomaticStatus();
 
             return $event;
@@ -293,7 +304,9 @@ class EventController extends Controller
         $managerSchedules = $this->managerSchedules($managers->pluck('id')->all(), $event->revision_of_id ?: $event->id);
         $venueLocationsAvailable = $this->venueLocations->available();
 
-        return view('admin.events.edit', compact('event', 'interestTypes', 'managers', 'managerSchedules', 'categoryTypes', 'distanceOptions', 'paymentMethods', 'categoryRows', 'venueLocationsAvailable'));
+        $savedPaymentOptions = SavedPaymentOption::availableTo(auth()->user())->where('is_enabled', true)->orderBy('label')->orderBy('id')->get();
+
+        return view('admin.events.edit', compact('event', 'interestTypes', 'managers', 'managerSchedules', 'categoryTypes', 'distanceOptions', 'paymentMethods', 'categoryRows', 'venueLocationsAvailable', 'savedPaymentOptions'));
     }
 
     public function update(Request $request, Event $event): RedirectResponse
@@ -301,6 +314,10 @@ class EventController extends Controller
         abort_unless($this->canAccessEvent($event), 403);
 
         $user = $request->user();
+        $paymentSelection = $this->paymentSelection->prepare($request, $event);
+        if ($paymentSelection !== null) {
+            $request->merge(['payment_methods' => [], 'payment_methods_submitted' => false]);
+        }
         $venueSelection = $this->venueSelection->prepare($request, $event);
         $request->merge(['venue' => $venueSelection['label']]);
         $usesSegmentedDistances = $this->usesSegmentedCategoryDistances($request->input('interest_type'));
@@ -407,18 +424,21 @@ class EventController extends Controller
 
         unset($validated['banner_image_upload']);
 
-        DB::transaction(function () use ($event, $validated, $categoryRows, $paymentMethodRows, $paymentMethodsSubmitted, $venueSelection, $user) {
+        DB::transaction(function () use ($event, $validated, $categoryRows, $paymentMethodRows, $paymentMethodsSubmitted, $paymentSelection, $venueSelection, $user) {
             $event->update([
                 ...$validated,
                 ...$this->venueSelection->persist($venueSelection, $user),
                 'slug' => Str::slug($validated['title'].'-'.$event->id),
             ]);
 
-            if ($paymentMethodsSubmitted) {
+            if ($paymentSelection === null && $paymentMethodsSubmitted) {
                 $this->syncPaymentMethods($event, $paymentMethodRows);
             }
 
             $this->updateOrCreateCategoriesForEvent($event, $categoryRows);
+            if ($paymentSelection !== null) {
+                $this->paymentSelection->sync($event, $paymentSelection, $user);
+            }
             $event->refreshAutomaticStatus();
         });
 
