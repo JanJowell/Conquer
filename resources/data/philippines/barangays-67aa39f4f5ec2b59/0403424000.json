@@ -1,0 +1,402 @@
+{
+    "0403424001": {
+        "code": "0403424001",
+        "name": "Bagong Bayan II-A",
+        "city_code": "0403424000"
+    },
+    "0403424002": {
+        "code": "0403424002",
+        "name": "Bagong Pook VI-C",
+        "city_code": "0403424000"
+    },
+    "0403424003": {
+        "code": "0403424003",
+        "name": "Barangay I-A",
+        "city_code": "0403424000"
+    },
+    "0403424004": {
+        "code": "0403424004",
+        "name": "Barangay I-B",
+        "city_code": "0403424000"
+    },
+    "0403424005": {
+        "code": "0403424005",
+        "name": "Barangay II-A",
+        "city_code": "0403424000"
+    },
+    "0403424006": {
+        "code": "0403424006",
+        "name": "Barangay II-B",
+        "city_code": "0403424000"
+    },
+    "0403424007": {
+        "code": "0403424007",
+        "name": "Barangay II-C",
+        "city_code": "0403424000"
+    },
+    "0403424008": {
+        "code": "0403424008",
+        "name": "Barangay II-D",
+        "city_code": "0403424000"
+    },
+    "0403424009": {
+        "code": "0403424009",
+        "name": "Barangay II-E",
+        "city_code": "0403424000"
+    },
+    "0403424010": {
+        "code": "0403424010",
+        "name": "Barangay II-F",
+        "city_code": "0403424000"
+    },
+    "0403424011": {
+        "code": "0403424011",
+        "name": "Barangay III-A",
+        "city_code": "0403424000"
+    },
+    "0403424012": {
+        "code": "0403424012",
+        "name": "Barangay III-B",
+        "city_code": "0403424000"
+    },
+    "0403424013": {
+        "code": "0403424013",
+        "name": "Barangay III-C",
+        "city_code": "0403424000"
+    },
+    "0403424014": {
+        "code": "0403424014",
+        "name": "Barangay III-D",
+        "city_code": "0403424000"
+    },
+    "0403424015": {
+        "code": "0403424015",
+        "name": "Barangay III-E",
+        "city_code": "0403424000"
+    },
+    "0403424016": {
+        "code": "0403424016",
+        "name": "Barangay III-F",
+        "city_code": "0403424000"
+    },
+    "0403424017": {
+        "code": "0403424017",
+        "name": "Barangay IV-A",
+        "city_code": "0403424000"
+    },
+    "0403424018": {
+        "code": "0403424018",
+        "name": "Barangay IV-B",
+        "city_code": "0403424000"
+    },
+    "0403424019": {
+        "code": "0403424019",
+        "name": "Barangay IV-C",
+        "city_code": "0403424000"
+    },
+    "0403424020": {
+        "code": "0403424020",
+        "name": "Barangay V-A",
+        "city_code": "0403424000"
+    },
+    "0403424021": {
+        "code": "0403424021",
+        "name": "Barangay V-B",
+        "city_code": "0403424000"
+    },
+    "0403424022": {
+        "code": "0403424022",
+        "name": "Barangay V-C",
+        "city_code": "0403424000"
+    },
+    "0403424023": {
+        "code": "0403424023",
+        "name": "Barangay V-D",
+        "city_code": "0403424000"
+    },
+    "0403424024": {
+        "code": "0403424024",
+        "name": "Barangay VI-A",
+        "city_code": "0403424000"
+    },
+    "0403424025": {
+        "code": "0403424025",
+        "name": "Barangay VI-B",
+        "city_code": "0403424000"
+    },
+    "0403424027": {
+        "code": "0403424027",
+        "name": "Barangay VI-D",
+        "city_code": "0403424000"
+    },
+    "0403424028": {
+        "code": "0403424028",
+        "name": "Barangay VI-E",
+        "city_code": "0403424000"
+    },
+    "0403424029": {
+        "code": "0403424029",
+        "name": "Barangay VII-A",
+        "city_code": "0403424000"
+    },
+    "0403424030": {
+        "code": "0403424030",
+        "name": "Barangay VII-B",
+        "city_code": "0403424000"
+    },
+    "0403424031": {
+        "code": "0403424031",
+        "name": "Barangay VII-C",
+        "city_code": "0403424000"
+    },
+    "0403424032": {
+        "code": "0403424032",
+        "name": "Barangay VII-D",
+        "city_code": "0403424000"
+    },
+    "0403424033": {
+        "code": "0403424033",
+        "name": "Barangay VII-E",
+        "city_code": "0403424000"
+    },
+    "0403424034": {
+        "code": "0403424034",
+        "name": "Bautista",
+        "city_code": "0403424000"
+    },
+    "0403424035": {
+        "code": "0403424035",
+        "name": "Concepcion",
+        "city_code": "0403424000"
+    },
+    "0403424036": {
+        "code": "0403424036",
+        "name": "Del Remedio",
+        "city_code": "0403424000"
+    },
+    "0403424037": {
+        "code": "0403424037",
+        "name": "Dolores",
+        "city_code": "0403424000"
+    },
+    "0403424040": {
+        "code": "0403424040",
+        "name": "San Antonio 1",
+        "city_code": "0403424000"
+    },
+    "0403424041": {
+        "code": "0403424041",
+        "name": "San Antonio 2",
+        "city_code": "0403424000"
+    },
+    "0403424042": {
+        "code": "0403424042",
+        "name": "San Bartolome",
+        "city_code": "0403424000"
+    },
+    "0403424043": {
+        "code": "0403424043",
+        "name": "San Buenaventura",
+        "city_code": "0403424000"
+    },
+    "0403424044": {
+        "code": "0403424044",
+        "name": "San Crispin",
+        "city_code": "0403424000"
+    },
+    "0403424045": {
+        "code": "0403424045",
+        "name": "San Cristobal",
+        "city_code": "0403424000"
+    },
+    "0403424046": {
+        "code": "0403424046",
+        "name": "San Diego",
+        "city_code": "0403424000"
+    },
+    "0403424047": {
+        "code": "0403424047",
+        "name": "San Francisco",
+        "city_code": "0403424000"
+    },
+    "0403424048": {
+        "code": "0403424048",
+        "name": "San Gabriel",
+        "city_code": "0403424000"
+    },
+    "0403424049": {
+        "code": "0403424049",
+        "name": "San Gregorio",
+        "city_code": "0403424000"
+    },
+    "0403424050": {
+        "code": "0403424050",
+        "name": "San Ignacio",
+        "city_code": "0403424000"
+    },
+    "0403424051": {
+        "code": "0403424051",
+        "name": "San Isidro",
+        "city_code": "0403424000"
+    },
+    "0403424052": {
+        "code": "0403424052",
+        "name": "San Joaquin",
+        "city_code": "0403424000"
+    },
+    "0403424053": {
+        "code": "0403424053",
+        "name": "San Jose",
+        "city_code": "0403424000"
+    },
+    "0403424054": {
+        "code": "0403424054",
+        "name": "San Juan",
+        "city_code": "0403424000"
+    },
+    "0403424055": {
+        "code": "0403424055",
+        "name": "San Lorenzo",
+        "city_code": "0403424000"
+    },
+    "0403424056": {
+        "code": "0403424056",
+        "name": "San Lucas 1",
+        "city_code": "0403424000"
+    },
+    "0403424057": {
+        "code": "0403424057",
+        "name": "San Lucas 2",
+        "city_code": "0403424000"
+    },
+    "0403424058": {
+        "code": "0403424058",
+        "name": "San Marcos",
+        "city_code": "0403424000"
+    },
+    "0403424059": {
+        "code": "0403424059",
+        "name": "San Mateo",
+        "city_code": "0403424000"
+    },
+    "0403424060": {
+        "code": "0403424060",
+        "name": "San Miguel",
+        "city_code": "0403424000"
+    },
+    "0403424061": {
+        "code": "0403424061",
+        "name": "San Nicolas",
+        "city_code": "0403424000"
+    },
+    "0403424062": {
+        "code": "0403424062",
+        "name": "San Pedro",
+        "city_code": "0403424000"
+    },
+    "0403424063": {
+        "code": "0403424063",
+        "name": "San Rafael",
+        "city_code": "0403424000"
+    },
+    "0403424064": {
+        "code": "0403424064",
+        "name": "San Roque",
+        "city_code": "0403424000"
+    },
+    "0403424065": {
+        "code": "0403424065",
+        "name": "San Vicente",
+        "city_code": "0403424000"
+    },
+    "0403424066": {
+        "code": "0403424066",
+        "name": "Santa Ana",
+        "city_code": "0403424000"
+    },
+    "0403424067": {
+        "code": "0403424067",
+        "name": "Santa Catalina",
+        "city_code": "0403424000"
+    },
+    "0403424068": {
+        "code": "0403424068",
+        "name": "Santa Cruz",
+        "city_code": "0403424000"
+    },
+    "0403424069": {
+        "code": "0403424069",
+        "name": "Santa Felomina",
+        "city_code": "0403424000"
+    },
+    "0403424070": {
+        "code": "0403424070",
+        "name": "Santa Isabel",
+        "city_code": "0403424000"
+    },
+    "0403424071": {
+        "code": "0403424071",
+        "name": "Santa Maria Magdalena",
+        "city_code": "0403424000"
+    },
+    "0403424072": {
+        "code": "0403424072",
+        "name": "Santa Veronica",
+        "city_code": "0403424000"
+    },
+    "0403424073": {
+        "code": "0403424073",
+        "name": "Santiago I",
+        "city_code": "0403424000"
+    },
+    "0403424074": {
+        "code": "0403424074",
+        "name": "Santiago II",
+        "city_code": "0403424000"
+    },
+    "0403424075": {
+        "code": "0403424075",
+        "name": "Santisimo Rosario",
+        "city_code": "0403424000"
+    },
+    "0403424076": {
+        "code": "0403424076",
+        "name": "Santo Angel",
+        "city_code": "0403424000"
+    },
+    "0403424077": {
+        "code": "0403424077",
+        "name": "Santo Cristo",
+        "city_code": "0403424000"
+    },
+    "0403424078": {
+        "code": "0403424078",
+        "name": "Santo Niño",
+        "city_code": "0403424000"
+    },
+    "0403424079": {
+        "code": "0403424079",
+        "name": "Soledad",
+        "city_code": "0403424000"
+    },
+    "0403424080": {
+        "code": "0403424080",
+        "name": "Atisan",
+        "city_code": "0403424000"
+    },
+    "0403424081": {
+        "code": "0403424081",
+        "name": "Santa Elena",
+        "city_code": "0403424000"
+    },
+    "0403424082": {
+        "code": "0403424082",
+        "name": "Santa Maria",
+        "city_code": "0403424000"
+    },
+    "0403424083": {
+        "code": "0403424083",
+        "name": "Santa Monica",
+        "city_code": "0403424000"
+    }
+}

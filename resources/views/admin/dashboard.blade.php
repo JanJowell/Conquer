@@ -11,55 +11,7 @@
 
     $breakdownPalette = ['#818cf8', '#7dd3fc', '#86efac', '#fcd34d', '#fca5a5'];
 
-    if ($dashboardRole === \App\Models\User::ROLE_EXECUTIVE) {
-        $metricCards = [
-            ['label' => 'Events in Range', 'value' => number_format($stats['events']), 'icon' => 'fa-calendar-days', 'delta' => number_format($stats['upcoming_events']) . ' upcoming'],
-            ['label' => 'Participants in Range', 'value' => number_format($stats['registrations']), 'icon' => 'fa-users', 'delta' => number_format($stats['pending_registrations']) . ' awaiting approval'],
-            ['label' => 'Ready for Check-in', 'value' => number_format($stats['ready_for_check_in']), 'icon' => 'fa-clipboard-check', 'delta' => number_format($stats['checked_in_registrations']) . ' already checked in'],
-            ['label' => 'Avg Completion', 'value' => number_format($completionAverage, 1) . '%', 'icon' => 'fa-chart-line', 'delta' => 'Results versus registrations'],
-        ];
-
-        $chartTitle = 'Registration Trends';
-        $chartSeries = $registrationSeries;
-        $chartMetricLabel = 'Registrations';
-
-        $breakdownTitle = 'Event Status in Range';
-        $breakdownItems = collect([
-            ['label' => 'Draft', 'count' => $eventStatusCounts['draft']],
-            ['label' => 'Upcoming', 'count' => $eventStatusCounts['upcoming']],
-            ['label' => 'Ongoing', 'count' => $eventStatusCounts['ongoing']],
-            ['label' => 'Completed', 'count' => $eventStatusCounts['completed']],
-        ]);
-
-        $primaryTitle = 'Event Health Summary';
-        $primaryType = 'event-performance';
-        $secondaryTitle = 'Feedback Snapshot';
-        $secondaryType = 'feedback-summary';
-    } elseif ($dashboardRole === \App\Models\User::ROLE_CONTENT_MODERATOR) {
-        $metricCards = [
-            ['label' => 'Flagged Posts', 'value' => number_format($feedbackInsights['flagged_feedback']), 'icon' => 'fa-flag', 'delta' => 'Needs moderation review', 'url' => route('admin.content.community-posts', ['status' => 'flagged'])],
-            ['label' => 'Flagged Comments', 'value' => number_format($feedbackInsights['flagged_comments']), 'icon' => 'fa-comment-dots', 'delta' => 'Comment-level review items'],
-            ['label' => 'Training Drafts', 'value' => number_format($stats['training_drafts']), 'icon' => 'fa-book-open', 'delta' => number_format($stats['training_modules']) . ' modules changed in range', 'url' => route('admin.content.training-modules', ['status' => 'draft'])],
-            ['label' => 'Deleted Items', 'value' => number_format($feedbackInsights['deleted_feedback'] + $feedbackInsights['deleted_comments']), 'icon' => 'fa-trash', 'delta' => 'Posts and comments removed'],
-        ];
-
-        $chartTitle = 'Community Feedback Activity';
-        $chartSeries = $contentActivitySeries;
-        $chartMetricLabel = 'Posts';
-
-        $breakdownTitle = 'Content Moderation Summary';
-        $breakdownItems = collect([
-            ['label' => 'Flagged Posts', 'count' => $feedbackInsights['flagged_feedback']],
-            ['label' => 'Flagged Comments', 'count' => $feedbackInsights['flagged_comments']],
-            ['label' => 'Suggestions', 'count' => $feedbackInsights['suggestions']],
-            ['label' => 'Complaints', 'count' => $feedbackInsights['complaints']],
-        ]);
-
-        $primaryTitle = 'Flagged-First Feedback Queue';
-        $primaryType = 'feedback-feed';
-        $secondaryTitle = 'Moderation Activity';
-        $secondaryType = 'moderation-activity';
-    } elseif ($dashboardRole === \App\Models\User::ROLE_EVENT_MANAGER) {
+    if ($dashboardRole === \App\Models\User::ROLE_EVENT_MANAGER) {
         $metricCards = [
             ['label' => 'Upcoming Events', 'value' => number_format($stats['upcoming_events']), 'icon' => 'fa-calendar-days', 'delta' => 'Scheduled events'],
             ['label' => 'Pending Registrations', 'value' => number_format($stats['pending_registrations']), 'icon' => 'fa-id-card', 'delta' => 'Awaiting action'],
@@ -134,7 +86,7 @@
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wide text-indigo-400">{{ $dashboardLabel }}</p>
                 <h1 class="mt-1 text-2xl font-bold text-slate-700">
-                    {{ $dashboardRole === \App\Models\User::ROLE_EXECUTIVE ? 'Executive Dashboard' : 'Dashboard' }}
+                    Dashboard
                 </h1>
                 <p class="mt-1 text-sm text-slate-400">
                     Showing activity from <span class="font-medium text-slate-600">{{ $selectedRangeLabel }}</span>
@@ -262,70 +214,25 @@
                             <thead>
                                 <tr class="text-slate-400">
                                     <th class="px-6 py-3 font-medium">Event</th>
-                                    @if ($dashboardRole === \App\Models\User::ROLE_EXECUTIVE)
-                                        <th class="px-6 py-3 font-medium">Setup</th>
-                                        <th class="px-6 py-3 font-medium">Registrations</th>
-                                        <th class="px-6 py-3 font-medium">Race Day</th>
-                                        <th class="px-6 py-3 font-medium">Status</th>
-                                    @else
-                                        <th class="px-6 py-3 font-medium">Registrations</th>
-                                        <th class="px-6 py-3 font-medium">Results</th>
-                                        <th class="px-6 py-3 font-medium">Completion Rate</th>
-                                    @endif
+                                    <th class="px-6 py-3 font-medium">Registrations</th>
+                                    <th class="px-6 py-3 font-medium">Results</th>
+                                    <th class="px-6 py-3 font-medium">Completion Rate</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @if ($dashboardRole === \App\Models\User::ROLE_EXECUTIVE)
-                                    @forelse ($eventHealth as $event)
-                                        @php
-                                            $missingItems = collect([
-                                                'Categories' => $event->categories_count === 0,
-                                                'Announcements' => $event->published_announcements_count === 0,
-                                                'Results' => $event->checked_in_registrations_count > 0 && $event->race_results_count === 0,
-                                            ])->filter()->keys();
-                                        @endphp
-                                        <tr class="transition hover:bg-[#f7f8fc]">
-                                            <td class="px-6 py-4">
-                                                <p class="font-medium text-slate-700">{{ $event->title }}</p>
-                                                <p class="mt-0.5 text-xs text-slate-300">{{ optional($event->event_date)->format('M d, Y') ?? 'TBD' }}</p>
-                                            </td>
-                                            <td class="px-6 py-4 text-xs text-slate-400">
-                                                {{ number_format($event->categories_count) }} categories<br>
-                                                {{ number_format($event->published_announcements_count) }} announcements
-                                            </td>
-                                            <td class="px-6 py-4 font-medium text-slate-700">{{ number_format($event->registrations_count) }}</td>
-                                            <td class="px-6 py-4 text-xs text-slate-400">
-                                                {{ number_format($event->checked_in_registrations_count) }} checked in<br>
-                                                {{ number_format($event->race_results_count) }} results
-                                            </td>
-                                            <td class="px-6 py-4">
-                                                @if ($missingItems->isEmpty())
-                                                    <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-500">Healthy</span>
-                                                @else
-                                                    <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-500">
-                                                        Needs {{ $missingItems->take(2)->implode(', ') }}
-                                                    </span>
-                                                @endif
-                                            </td>
-                                        </tr>
-                                    @empty
-                                        <tr><td colspan="5" class="px-6 py-10 text-center text-sm text-slate-400">No upcoming events available for health review.</td></tr>
-                                    @endforelse
-                                @else
-                                    @forelse ($eventPerformance as $event)
-                                        @php
-                                            $completionRate = $event->registrations_count > 0 ? round(($event->race_results_count / $event->registrations_count) * 100, 1) : 0;
-                                        @endphp
-                                        <tr class="transition hover:bg-[#f7f8fc]">
-                                            <td class="px-6 py-4 font-medium text-slate-700">{{ $event->title }}</td>
-                                            <td class="px-6 py-4 text-slate-500">{{ $event->registrations_count }}</td>
-                                            <td class="px-6 py-4 text-slate-500">{{ $event->race_results_count }}</td>
-                                            <td class="px-6 py-4 font-medium text-slate-700">{{ $completionRate }}%</td>
-                                        </tr>
-                                    @empty
-                                        <tr><td colspan="4" class="px-6 py-10 text-center text-sm text-slate-400">No event performance data available.</td></tr>
-                                    @endforelse
-                                @endif
+                                @forelse ($eventPerformance as $event)
+                                    @php
+                                        $completionRate = $event->registrations_count > 0 ? round(($event->race_results_count / $event->registrations_count) * 100, 1) : 0;
+                                    @endphp
+                                    <tr class="transition hover:bg-[#f7f8fc]">
+                                        <td class="px-6 py-4 font-medium text-slate-700">{{ $event->title }}</td>
+                                        <td class="px-6 py-4 text-slate-500">{{ $event->registrations_count }}</td>
+                                        <td class="px-6 py-4 text-slate-500">{{ $event->race_results_count }}</td>
+                                        <td class="px-6 py-4 font-medium text-slate-700">{{ $completionRate }}%</td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="4" class="px-6 py-10 text-center text-sm text-slate-400">No event performance data available.</td></tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>

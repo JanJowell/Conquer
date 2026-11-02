@@ -1,0 +1,102 @@
+{
+    "0802615002": {
+        "code": "0802615002",
+        "name": "Camada",
+        "city_code": "0802615000"
+    },
+    "0802615003": {
+        "code": "0802615003",
+        "name": "Campakerit",
+        "city_code": "0802615000"
+    },
+    "0802615004": {
+        "code": "0802615004",
+        "name": "Canloterio",
+        "city_code": "0802615000"
+    },
+    "0802615005": {
+        "code": "0802615005",
+        "name": "Del Pilar",
+        "city_code": "0802615000"
+    },
+    "0802615006": {
+        "code": "0802615006",
+        "name": "Guindalitan",
+        "city_code": "0802615000"
+    },
+    "0802615007": {
+        "code": "0802615007",
+        "name": "Lapgap",
+        "city_code": "0802615000"
+    },
+    "0802615008": {
+        "code": "0802615008",
+        "name": "Malobago",
+        "city_code": "0802615000"
+    },
+    "0802615009": {
+        "code": "0802615009",
+        "name": "Maybocog",
+        "city_code": "0802615000"
+    },
+    "0802615010": {
+        "code": "0802615010",
+        "name": "Maytigbao",
+        "city_code": "0802615000"
+    },
+    "0802615011": {
+        "code": "0802615011",
+        "name": "Omawas",
+        "city_code": "0802615000"
+    },
+    "0802615012": {
+        "code": "0802615012",
+        "name": "Patag",
+        "city_code": "0802615000"
+    },
+    "0802615013": {
+        "code": "0802615013",
+        "name": "Barangay Poblacion 1",
+        "city_code": "0802615000"
+    },
+    "0802615014": {
+        "code": "0802615014",
+        "name": "Barangay Poblacion 2",
+        "city_code": "0802615000"
+    },
+    "0802615015": {
+        "code": "0802615015",
+        "name": "Barangay Poblacion 3",
+        "city_code": "0802615000"
+    },
+    "0802615016": {
+        "code": "0802615016",
+        "name": "Barangay Poblacion 4",
+        "city_code": "0802615000"
+    },
+    "0802615017": {
+        "code": "0802615017",
+        "name": "Barangay Poblacion 5",
+        "city_code": "0802615000"
+    },
+    "0802615018": {
+        "code": "0802615018",
+        "name": "Barangay Poblacion 6",
+        "city_code": "0802615000"
+    },
+    "0802615019": {
+        "code": "0802615019",
+        "name": "Barangay Poblacion 7",
+        "city_code": "0802615000"
+    },
+    "0802615020": {
+        "code": "0802615020",
+        "name": "San Gabriel",
+        "city_code": "0802615000"
+    },
+    "0802615021": {
+        "code": "0802615021",
+        "name": "Tagaslian",
+        "city_code": "0802615000"
+    }
+}

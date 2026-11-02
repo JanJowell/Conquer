@@ -1,0 +1,122 @@
+{
+    "0701236001": {
+        "code": "0701236001",
+        "name": "Calangahan",
+        "city_code": "0701236000"
+    },
+    "0701236002": {
+        "code": "0701236002",
+        "name": "Canmano",
+        "city_code": "0701236000"
+    },
+    "0701236003": {
+        "code": "0701236003",
+        "name": "Canmaya Centro",
+        "city_code": "0701236000"
+    },
+    "0701236004": {
+        "code": "0701236004",
+        "name": "Canmaya Diot",
+        "city_code": "0701236000"
+    },
+    "0701236005": {
+        "code": "0701236005",
+        "name": "Dagnawan",
+        "city_code": "0701236000"
+    },
+    "0701236006": {
+        "code": "0701236006",
+        "name": "Kabasacan",
+        "city_code": "0701236000"
+    },
+    "0701236007": {
+        "code": "0701236007",
+        "name": "Kagawasan",
+        "city_code": "0701236000"
+    },
+    "0701236008": {
+        "code": "0701236008",
+        "name": "Katipunan",
+        "city_code": "0701236000"
+    },
+    "0701236009": {
+        "code": "0701236009",
+        "name": "Langtad",
+        "city_code": "0701236000"
+    },
+    "0701236010": {
+        "code": "0701236010",
+        "name": "Libertad Norte",
+        "city_code": "0701236000"
+    },
+    "0701236011": {
+        "code": "0701236011",
+        "name": "Libertad Sur",
+        "city_code": "0701236000"
+    },
+    "0701236012": {
+        "code": "0701236012",
+        "name": "Mantalongon",
+        "city_code": "0701236000"
+    },
+    "0701236013": {
+        "code": "0701236013",
+        "name": "Poblacion",
+        "city_code": "0701236000"
+    },
+    "0701236014": {
+        "code": "0701236014",
+        "name": "Sagbayan Sur",
+        "city_code": "0701236000"
+    },
+    "0701236015": {
+        "code": "0701236015",
+        "name": "San Agustin",
+        "city_code": "0701236000"
+    },
+    "0701236016": {
+        "code": "0701236016",
+        "name": "San Antonio",
+        "city_code": "0701236000"
+    },
+    "0701236017": {
+        "code": "0701236017",
+        "name": "San Isidro",
+        "city_code": "0701236000"
+    },
+    "0701236018": {
+        "code": "0701236018",
+        "name": "San Ramon",
+        "city_code": "0701236000"
+    },
+    "0701236019": {
+        "code": "0701236019",
+        "name": "San Roque",
+        "city_code": "0701236000"
+    },
+    "0701236020": {
+        "code": "0701236020",
+        "name": "San Vicente Norte",
+        "city_code": "0701236000"
+    },
+    "0701236021": {
+        "code": "0701236021",
+        "name": "San Vicente Sur",
+        "city_code": "0701236000"
+    },
+    "0701236022": {
+        "code": "0701236022",
+        "name": "Santa Catalina",
+        "city_code": "0701236000"
+    },
+    "0701236023": {
+        "code": "0701236023",
+        "name": "Santa Cruz",
+        "city_code": "0701236000"
+    },
+    "0701236024": {
+        "code": "0701236024",
+        "name": "Ubojan",
+        "city_code": "0701236000"
+    }
+}

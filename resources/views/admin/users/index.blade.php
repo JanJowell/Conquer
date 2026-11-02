@@ -252,10 +252,8 @@
                                     <span @class([
                                         'inline-flex rounded-full rounded-full px-3 py-1 text-xs font-semibold',
                                         'bg-indigo-50 text-indigo-400' => $user->role === 'super_admin',
-                                        'bg-indigo-50 text-indigo-400' => $user->role === 'executive',
-                                        'bg-amber-50 text-amber-500' => $user->role === 'content_moderator',
                                         'bg-sky-50 text-sky-500' => in_array($user->role, ['event_manager', 'admin'], true),
-                                        'bg-slate-100 text-slate-600' => ! in_array($user->role, ['super_admin', 'executive', 'content_moderator', 'event_manager', 'admin'], true),
+                                        'bg-slate-100 text-slate-600' => ! in_array($user->role, ['super_admin', 'event_manager', 'admin'], true),
                                     ])>
                                         {{ $user->roleLabel() }}
                                     </span>

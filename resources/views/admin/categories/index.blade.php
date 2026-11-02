@@ -16,8 +16,8 @@
             </div>
 
             @if (request('event_id'))
-                <a href="{{ route('admin.events.edit', request('event_id')) }}" class="inline-flex items-center justify-center rounded-full bg-indigo-400 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-500">
-                    Back to Event Setup
+                <a href="{{ route('admin.events.show', request('event_id')) }}" class="inline-flex items-center justify-center rounded-full bg-indigo-400 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-500">
+                    Back to Event Details
                 </a>
             @endif
         </div>
@@ -129,7 +129,7 @@
                                         <span class="inline-flex rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-500">Scheduled</span>
                                         <p class="mt-2 text-xs text-slate-400">Gun start {{ $scheduledStartAt->format('M j, Y g:i A') }}</p>
                                         <p class="mt-1 text-xs text-slate-400">Cutoff/end {{ $category->scheduledEndAt()?->format('M j, Y g:i A') ?: 'time not set' }}</p>
-                                    @else
+                                    @elseif ($category->event->isReviewPublished())
                                         <form method="POST" action="{{ route('admin.categories.start', $category) }}" onsubmit="return confirm('Start this category now? The server time will become the official start for every participant in this category and cannot be restarted.');">
                                             @csrf
                                             <button type="submit" class="inline-flex h-10 items-center justify-center rounded-full bg-emerald-50 px-4 text-xs font-semibold text-emerald-500 transition hover:bg-emerald-100">
@@ -142,6 +142,7 @@
                                 </td>
                                 <td class="px-6 py-5 text-right">
                                     <div class="flex justify-end gap-2">
+                                        @if ($category->event->canEditSetup(auth()->user()))
                                         <x-admin.icon-action :href="route('admin.categories.edit', $category)" label="Edit category" icon="fa-pen" />
                                         <form method="POST" action="{{ route('admin.categories.destroy', $category) }}"
                                             @if ($category->registrations_count || $category->race_results_count)
@@ -157,6 +158,9 @@
                                             @endif
                                             <x-admin.icon-action type="submit" label="Delete category" icon="fa-trash" tone="danger" />
                                         </form>
+                                        @else
+                                            <span class="text-xs text-slate-400">Reviewed setup — edits require a draft</span>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>

@@ -26,6 +26,7 @@ class EBadgeController extends Controller
         $autoIssueRules = EBadgeAutoIssuer::rules();
 
         $badges = EBadge::query()
+            ->where(fn ($query) => $query->whereNull('event_id')->orWhereHas('event', fn ($event) => $event->visibleToStaff($user)))
             ->with(['event', 'category'])
             ->withCount('issuedBadges')
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($user) {
@@ -39,6 +40,7 @@ class EBadgeController extends Controller
             ->withQueryString();
 
         $issuedBadges = IssuedEBadge::query()
+            ->whereHas('event', fn ($event) => $event->visibleToStaff($user))
             ->with(['badge', 'user', 'event', 'registration.category', 'issuer'])
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($user) {
                 $query->whereIn('event_id', $user->managedEventIds());
@@ -51,15 +53,18 @@ class EBadgeController extends Controller
             ->withQueryString();
 
         $summaryBase = IssuedEBadge::query()
+            ->whereHas('event', fn ($event) => $event->visibleToStaff($user))
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($user) {
                 $query->whereIn('event_id', $user->managedEventIds());
             });
 
         $summary = [
             'templates' => EBadge::query()
+                ->where(fn ($query) => $query->whereNull('event_id')->orWhereHas('event', fn ($event) => $event->visibleToStaff($user)))
                 ->when($user->managesAssignedEventsOnly(), fn ($query) => $query->whereIn('event_id', $user->managedEventIds()))
                 ->count(),
             'active_templates' => EBadge::query()
+                ->where(fn ($query) => $query->whereNull('event_id')->orWhereHas('event', fn ($event) => $event->visibleToStaff($user)))
                 ->when($user->managesAssignedEventsOnly(), fn ($query) => $query->whereIn('event_id', $user->managedEventIds()))
                 ->where('is_active', true)
                 ->count(),
@@ -260,7 +265,7 @@ class EBadgeController extends Controller
     private function accessibleEventIds($user): array
     {
         if (! $user->managesAssignedEventsOnly()) {
-            return Event::pluck('id')->all();
+            return Event::visibleToStaff($user)->pluck('id')->all();
         }
 
         return $user->managedEventIds();
@@ -269,6 +274,7 @@ class EBadgeController extends Controller
     private function eventOptions($user)
     {
         return Event::query()
+            ->visibleToStaff($user)
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($user) {
                 $query->where('manager_id', $user->id);
             })
@@ -279,6 +285,7 @@ class EBadgeController extends Controller
     private function categoryOptions($user)
     {
         return Category::query()
+            ->whereHas('event', fn ($query) => $query->visibleToStaff($user))
             ->with('event:id,title')
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($user) {
                 $query->whereIn('event_id', $user->managedEventIds());

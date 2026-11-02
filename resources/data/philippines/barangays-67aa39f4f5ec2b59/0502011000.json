@@ -1,0 +1,317 @@
+{
+    "0502011001": {
+        "code": "0502011001",
+        "name": "Antipolo Del Norte",
+        "city_code": "0502011000"
+    },
+    "0502011002": {
+        "code": "0502011002",
+        "name": "Antipolo Del Sur",
+        "city_code": "0502011000"
+    },
+    "0502011003": {
+        "code": "0502011003",
+        "name": "Balite",
+        "city_code": "0502011000"
+    },
+    "0502011004": {
+        "code": "0502011004",
+        "name": "Batag",
+        "city_code": "0502011000"
+    },
+    "0502011005": {
+        "code": "0502011005",
+        "name": "Bigaa",
+        "city_code": "0502011000"
+    },
+    "0502011006": {
+        "code": "0502011006",
+        "name": "Buenavista",
+        "city_code": "0502011000"
+    },
+    "0502011007": {
+        "code": "0502011007",
+        "name": "Buyo",
+        "city_code": "0502011000"
+    },
+    "0502011008": {
+        "code": "0502011008",
+        "name": "Cabihian",
+        "city_code": "0502011000"
+    },
+    "0502011009": {
+        "code": "0502011009",
+        "name": "Calabnigan",
+        "city_code": "0502011000"
+    },
+    "0502011010": {
+        "code": "0502011010",
+        "name": "Calampong",
+        "city_code": "0502011000"
+    },
+    "0502011011": {
+        "code": "0502011011",
+        "name": "Calatagan Proper",
+        "city_code": "0502011000"
+    },
+    "0502011012": {
+        "code": "0502011012",
+        "name": "Calatagan Tibang",
+        "city_code": "0502011000"
+    },
+    "0502011013": {
+        "code": "0502011013",
+        "name": "Capilihan",
+        "city_code": "0502011000"
+    },
+    "0502011014": {
+        "code": "0502011014",
+        "name": "Casoocan",
+        "city_code": "0502011000"
+    },
+    "0502011015": {
+        "code": "0502011015",
+        "name": "Cavinitan",
+        "city_code": "0502011000"
+    },
+    "0502011016": {
+        "code": "0502011016",
+        "name": "Gogon Sirangan",
+        "city_code": "0502011000"
+    },
+    "0502011017": {
+        "code": "0502011017",
+        "name": "Concepcion",
+        "city_code": "0502011000"
+    },
+    "0502011018": {
+        "code": "0502011018",
+        "name": "Constantino",
+        "city_code": "0502011000"
+    },
+    "0502011019": {
+        "code": "0502011019",
+        "name": "Danicop",
+        "city_code": "0502011000"
+    },
+    "0502011020": {
+        "code": "0502011020",
+        "name": "Dugui San Vicente",
+        "city_code": "0502011000"
+    },
+    "0502011021": {
+        "code": "0502011021",
+        "name": "Dugui San Isidro",
+        "city_code": "0502011000"
+    },
+    "0502011023": {
+        "code": "0502011023",
+        "name": "Dugui Too",
+        "city_code": "0502011000"
+    },
+    "0502011024": {
+        "code": "0502011024",
+        "name": "F. Tacorda Village",
+        "city_code": "0502011000"
+    },
+    "0502011025": {
+        "code": "0502011025",
+        "name": "Francia",
+        "city_code": "0502011000"
+    },
+    "0502011026": {
+        "code": "0502011026",
+        "name": "Gogon Centro",
+        "city_code": "0502011000"
+    },
+    "0502011027": {
+        "code": "0502011027",
+        "name": "Hawan Grande",
+        "city_code": "0502011000"
+    },
+    "0502011028": {
+        "code": "0502011028",
+        "name": "Hawan Ilaya",
+        "city_code": "0502011000"
+    },
+    "0502011029": {
+        "code": "0502011029",
+        "name": "Hicming",
+        "city_code": "0502011000"
+    },
+    "0502011030": {
+        "code": "0502011030",
+        "name": "Igang",
+        "city_code": "0502011000"
+    },
+    "0502011031": {
+        "code": "0502011031",
+        "name": "Juan M. Alberto",
+        "city_code": "0502011000"
+    },
+    "0502011032": {
+        "code": "0502011032",
+        "name": "Lanao",
+        "city_code": "0502011000"
+    },
+    "0502011033": {
+        "code": "0502011033",
+        "name": "Magnesia Del Norte",
+        "city_code": "0502011000"
+    },
+    "0502011034": {
+        "code": "0502011034",
+        "name": "Magnesia Del Sur",
+        "city_code": "0502011000"
+    },
+    "0502011035": {
+        "code": "0502011035",
+        "name": "Marcelo Alberto",
+        "city_code": "0502011000"
+    },
+    "0502011036": {
+        "code": "0502011036",
+        "name": "Marilima",
+        "city_code": "0502011000"
+    },
+    "0502011037": {
+        "code": "0502011037",
+        "name": "Pajo Baguio",
+        "city_code": "0502011000"
+    },
+    "0502011038": {
+        "code": "0502011038",
+        "name": "Pajo San Isidro",
+        "city_code": "0502011000"
+    },
+    "0502011039": {
+        "code": "0502011039",
+        "name": "Palnab Del Norte",
+        "city_code": "0502011000"
+    },
+    "0502011040": {
+        "code": "0502011040",
+        "name": "Palnab Del Sur",
+        "city_code": "0502011000"
+    },
+    "0502011041": {
+        "code": "0502011041",
+        "name": "Palta Big",
+        "city_code": "0502011000"
+    },
+    "0502011042": {
+        "code": "0502011042",
+        "name": "Palta Salvacion",
+        "city_code": "0502011000"
+    },
+    "0502011043": {
+        "code": "0502011043",
+        "name": "Palta Small",
+        "city_code": "0502011000"
+    },
+    "0502011044": {
+        "code": "0502011044",
+        "name": "Rawis",
+        "city_code": "0502011000"
+    },
+    "0502011045": {
+        "code": "0502011045",
+        "name": "Salvacion",
+        "city_code": "0502011000"
+    },
+    "0502011046": {
+        "code": "0502011046",
+        "name": "San Isidro Village",
+        "city_code": "0502011000"
+    },
+    "0502011047": {
+        "code": "0502011047",
+        "name": "San Jose",
+        "city_code": "0502011000"
+    },
+    "0502011048": {
+        "code": "0502011048",
+        "name": "San Juan",
+        "city_code": "0502011000"
+    },
+    "0502011049": {
+        "code": "0502011049",
+        "name": "San Pablo",
+        "city_code": "0502011000"
+    },
+    "0502011050": {
+        "code": "0502011050",
+        "name": "San Pedro",
+        "city_code": "0502011000"
+    },
+    "0502011051": {
+        "code": "0502011051",
+        "name": "San Roque",
+        "city_code": "0502011000"
+    },
+    "0502011052": {
+        "code": "0502011052",
+        "name": "San Vicente",
+        "city_code": "0502011000"
+    },
+    "0502011053": {
+        "code": "0502011053",
+        "name": "Ibong Sapa",
+        "city_code": "0502011000"
+    },
+    "0502011054": {
+        "code": "0502011054",
+        "name": "Santa Cruz",
+        "city_code": "0502011000"
+    },
+    "0502011055": {
+        "code": "0502011055",
+        "name": "Santa Elena",
+        "city_code": "0502011000"
+    },
+    "0502011056": {
+        "code": "0502011056",
+        "name": "Santo Cristo",
+        "city_code": "0502011000"
+    },
+    "0502011057": {
+        "code": "0502011057",
+        "name": "Santo Domingo",
+        "city_code": "0502011000"
+    },
+    "0502011058": {
+        "code": "0502011058",
+        "name": "Santo Niño",
+        "city_code": "0502011000"
+    },
+    "0502011059": {
+        "code": "0502011059",
+        "name": "Simamla",
+        "city_code": "0502011000"
+    },
+    "0502011061": {
+        "code": "0502011061",
+        "name": "Sogod-Simamla",
+        "city_code": "0502011000"
+    },
+    "0502011062": {
+        "code": "0502011062",
+        "name": "Talisoy",
+        "city_code": "0502011000"
+    },
+    "0502011063": {
+        "code": "0502011063",
+        "name": "Sogod-Tibgao",
+        "city_code": "0502011000"
+    },
+    "0502011064": {
+        "code": "0502011064",
+        "name": "Tubaon",
+        "city_code": "0502011000"
+    },
+    "0502011065": {
+        "code": "0502011065",
+        "name": "Valencia",
+        "city_code": "0502011000"
+    }
+}

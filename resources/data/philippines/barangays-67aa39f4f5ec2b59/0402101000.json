@@ -1,0 +1,162 @@
+{
+    "0402101001": {
+        "code": "0402101001",
+        "name": "Amuyong",
+        "city_code": "0402101000"
+    },
+    "0402101002": {
+        "code": "0402101002",
+        "name": "Barangay I",
+        "city_code": "0402101000"
+    },
+    "0402101003": {
+        "code": "0402101003",
+        "name": "Barangay II",
+        "city_code": "0402101000"
+    },
+    "0402101004": {
+        "code": "0402101004",
+        "name": "Barangay III",
+        "city_code": "0402101000"
+    },
+    "0402101005": {
+        "code": "0402101005",
+        "name": "Barangay IV",
+        "city_code": "0402101000"
+    },
+    "0402101006": {
+        "code": "0402101006",
+        "name": "Barangay V",
+        "city_code": "0402101000"
+    },
+    "0402101007": {
+        "code": "0402101007",
+        "name": "Buck Estate",
+        "city_code": "0402101000"
+    },
+    "0402101008": {
+        "code": "0402101008",
+        "name": "Esperanza Ibaba",
+        "city_code": "0402101000"
+    },
+    "0402101009": {
+        "code": "0402101009",
+        "name": "Kaytitinga I",
+        "city_code": "0402101000"
+    },
+    "0402101010": {
+        "code": "0402101010",
+        "name": "Luksuhin",
+        "city_code": "0402101000"
+    },
+    "0402101011": {
+        "code": "0402101011",
+        "name": "Mangas I",
+        "city_code": "0402101000"
+    },
+    "0402101012": {
+        "code": "0402101012",
+        "name": "Marahan I",
+        "city_code": "0402101000"
+    },
+    "0402101013": {
+        "code": "0402101013",
+        "name": "Matagbak I",
+        "city_code": "0402101000"
+    },
+    "0402101014": {
+        "code": "0402101014",
+        "name": "Pajo",
+        "city_code": "0402101000"
+    },
+    "0402101016": {
+        "code": "0402101016",
+        "name": "Sikat",
+        "city_code": "0402101000"
+    },
+    "0402101017": {
+        "code": "0402101017",
+        "name": "Sinaliw Malaki",
+        "city_code": "0402101000"
+    },
+    "0402101018": {
+        "code": "0402101018",
+        "name": "Sinaliw na Munti",
+        "city_code": "0402101000"
+    },
+    "0402101019": {
+        "code": "0402101019",
+        "name": "Sulsugin",
+        "city_code": "0402101000"
+    },
+    "0402101020": {
+        "code": "0402101020",
+        "name": "Taywanak Ibaba",
+        "city_code": "0402101000"
+    },
+    "0402101021": {
+        "code": "0402101021",
+        "name": "Taywanak Ilaya",
+        "city_code": "0402101000"
+    },
+    "0402101022": {
+        "code": "0402101022",
+        "name": "Upli",
+        "city_code": "0402101000"
+    },
+    "0402101023": {
+        "code": "0402101023",
+        "name": "Kaysuyo",
+        "city_code": "0402101000"
+    },
+    "0402101024": {
+        "code": "0402101024",
+        "name": "Luksuhin Ilaya",
+        "city_code": "0402101000"
+    },
+    "0402101025": {
+        "code": "0402101025",
+        "name": "Palumlum",
+        "city_code": "0402101000"
+    },
+    "0402101026": {
+        "code": "0402101026",
+        "name": "Bilog",
+        "city_code": "0402101000"
+    },
+    "0402101027": {
+        "code": "0402101027",
+        "name": "Esperanza Ilaya",
+        "city_code": "0402101000"
+    },
+    "0402101028": {
+        "code": "0402101028",
+        "name": "Kaytitinga II",
+        "city_code": "0402101000"
+    },
+    "0402101029": {
+        "code": "0402101029",
+        "name": "Kaytitinga III",
+        "city_code": "0402101000"
+    },
+    "0402101030": {
+        "code": "0402101030",
+        "name": "Mangas II",
+        "city_code": "0402101000"
+    },
+    "0402101031": {
+        "code": "0402101031",
+        "name": "Marahan II",
+        "city_code": "0402101000"
+    },
+    "0402101032": {
+        "code": "0402101032",
+        "name": "Matagbak II",
+        "city_code": "0402101000"
+    },
+    "0402101033": {
+        "code": "0402101033",
+        "name": "Santa Teresa",
+        "city_code": "0402101000"
+    }
+}

@@ -11,7 +11,9 @@ use Illuminate\Validation\Rule;
 
 class NotificationController extends Controller
 {
-    public function __construct(private readonly FirebaseCloudMessaging $messaging) {}
+    public function __construct(private readonly FirebaseCloudMessaging $messaging)
+    {
+    }
 
     public function index()
     {
@@ -43,10 +45,10 @@ class NotificationController extends Controller
         $notification = PushNotification::create($validated);
 
         // If not scheduled, send immediately when the notification is active.
-        if ($validated['is_active'] && ! ($validated['scheduled_at'] ?? null)) {
+        if ($validated['is_active'] && !($validated['scheduled_at'] ?? null)) {
             $result = $this->deliver($notification);
 
-            if (! $result['sent'] || ($result['paused'] ?? false) || ($result['retry'] ?? false)) {
+            if (! $result['sent']) {
                 return redirect()->route('admin.notifications.index')
                     ->with('error', $result['message']);
             }
@@ -129,7 +131,7 @@ class NotificationController extends Controller
         $result = $this->deliver($notification);
 
         return redirect()->back()
-            ->with($result['sent'] && ! ($result['paused'] ?? false) && ! ($result['retry'] ?? false) ? 'success' : 'error', $result['message']);
+            ->with($result['sent'] ? 'success' : 'error', $result['message']);
     }
 
     public function deliver(PushNotification $notification): array
@@ -138,22 +140,10 @@ class NotificationController extends Controller
 
         $result = $this->messaging->sendNotification($notification, $targetUsers);
 
-        $updates = [];
-        if (isset($result['delivery_state'])) {
-            $updates['data'] = array_replace($notification->data ?? [], ['_firebase_delivery' => $result['delivery_state']]);
-        }
-        if ($result['paused'] ?? false) {
-            $updates['is_active'] = false;
-        } elseif ($result['processed'] ?? false) {
-            $updates['sent_at'] = now();
-            if (! isset($result['delivery_state']) && isset($notification->data['_firebase_delivery'])) {
-                $updates['data'] = $notification->publicData();
-            }
+        if ($result['sent'] > 0 || ($result['processed'] ?? false)) {
+            $notification->update(['sent_at' => now()]);
         } elseif (! ($result['retry'] ?? false)) {
-            $updates['is_active'] = false;
-        }
-        if ($updates !== []) {
-            $notification->update($updates);
+            $notification->update(['is_active' => false]);
         }
 
         return $result;

@@ -10,7 +10,8 @@ use App\Models\User;
 
 function eventPaymentTestEvent(array $overrides = []): Event
 {
-    return Event::create(array_merge([
+    return Event::forceCreate(array_merge([
+        'manager_id' => User::where('role', User::ROLE_EVENT_MANAGER)->value('id'),
         'title' => 'Multiple Payment Run',
         'slug' => 'multiple-payment-run-'.uniqid(),
         'description' => 'A complete event with multiple payment choices.',
@@ -72,8 +73,8 @@ function eventPaymentUpdatePayload(Event $event, array $overrides = []): array
     ], $overrides);
 }
 
-test('admin can configure multiple event payment options shared by every paid category', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+test('event manager can configure multiple event payment options shared by every paid category', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = eventPaymentTestEvent();
     $category = eventPaymentTestCategory($event);
 
@@ -100,6 +101,8 @@ test('admin can configure multiple event payment options shared by every paid ca
         ->assertRedirect(route('admin.events.show', $event))
         ->assertSessionHasNoErrors();
 
+    expect($event->fresh()->status)->toBe('draft');
+    approveEventSetupForTest($event);
     expect($event->fresh()->status)->toBe('upcoming')
         ->and($event->paymentMethods()->pluck('provider')->all())->toBe(['GCash', 'Maya'])
         ->and($category->fresh()->payment_provider)->toBeNull();
@@ -115,7 +118,7 @@ test('admin can configure multiple event payment options shared by every paid ca
 });
 
 test('event payment options reject duplicate providers and incomplete manual accounts', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = eventPaymentTestEvent();
 
     $this
@@ -228,8 +231,8 @@ test('manual payment proof must use an enabled event payment option', function (
     expect(data_get($payment->payload, 'event_payment_method_id'))->toBe($gcash->id);
 });
 
-test('admin forms keep fees on categories and payment accounts on events', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+test('event manager forms keep fees on categories and payment accounts on events', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = eventPaymentTestEvent();
     $category = eventPaymentTestCategory($event);
 

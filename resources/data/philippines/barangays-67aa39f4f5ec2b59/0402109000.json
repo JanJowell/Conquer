@@ -1,0 +1,487 @@
+{
+    "0402109001": {
+        "code": "0402109001",
+        "name": "Alapan I-A",
+        "city_code": "0402109000"
+    },
+    "0402109002": {
+        "code": "0402109002",
+        "name": "Alapan II-A",
+        "city_code": "0402109000"
+    },
+    "0402109003": {
+        "code": "0402109003",
+        "name": "Anabu I-A",
+        "city_code": "0402109000"
+    },
+    "0402109004": {
+        "code": "0402109004",
+        "name": "Anabu II-A",
+        "city_code": "0402109000"
+    },
+    "0402109006": {
+        "code": "0402109006",
+        "name": "Poblacion I-A",
+        "city_code": "0402109000"
+    },
+    "0402109007": {
+        "code": "0402109007",
+        "name": "Poblacion II-A",
+        "city_code": "0402109000"
+    },
+    "0402109008": {
+        "code": "0402109008",
+        "name": "Poblacion III-A",
+        "city_code": "0402109000"
+    },
+    "0402109009": {
+        "code": "0402109009",
+        "name": "Poblacion IV-A",
+        "city_code": "0402109000"
+    },
+    "0402109010": {
+        "code": "0402109010",
+        "name": "Bayan Luma I",
+        "city_code": "0402109000"
+    },
+    "0402109011": {
+        "code": "0402109011",
+        "name": "Bucandala I",
+        "city_code": "0402109000"
+    },
+    "0402109012": {
+        "code": "0402109012",
+        "name": "Carsadang Bago I",
+        "city_code": "0402109000"
+    },
+    "0402109014": {
+        "code": "0402109014",
+        "name": "Malagasang I-A",
+        "city_code": "0402109000"
+    },
+    "0402109015": {
+        "code": "0402109015",
+        "name": "Malagasang II-A",
+        "city_code": "0402109000"
+    },
+    "0402109016": {
+        "code": "0402109016",
+        "name": "Medicion I-A",
+        "city_code": "0402109000"
+    },
+    "0402109017": {
+        "code": "0402109017",
+        "name": "Medicion II-A",
+        "city_code": "0402109000"
+    },
+    "0402109018": {
+        "code": "0402109018",
+        "name": "Pag-Asa I",
+        "city_code": "0402109000"
+    },
+    "0402109019": {
+        "code": "0402109019",
+        "name": "Palico I",
+        "city_code": "0402109000"
+    },
+    "0402109020": {
+        "code": "0402109020",
+        "name": "Pasong Buaya I",
+        "city_code": "0402109000"
+    },
+    "0402109022": {
+        "code": "0402109022",
+        "name": "Tanzang Luma I",
+        "city_code": "0402109000"
+    },
+    "0402109024": {
+        "code": "0402109024",
+        "name": "Toclong I-A",
+        "city_code": "0402109000"
+    },
+    "0402109025": {
+        "code": "0402109025",
+        "name": "Toclong II-A",
+        "city_code": "0402109000"
+    },
+    "0402109026": {
+        "code": "0402109026",
+        "name": "Alapan I-B",
+        "city_code": "0402109000"
+    },
+    "0402109027": {
+        "code": "0402109027",
+        "name": "Alapan I-C",
+        "city_code": "0402109000"
+    },
+    "0402109028": {
+        "code": "0402109028",
+        "name": "Alapan II-B",
+        "city_code": "0402109000"
+    },
+    "0402109029": {
+        "code": "0402109029",
+        "name": "Anabu I-B",
+        "city_code": "0402109000"
+    },
+    "0402109030": {
+        "code": "0402109030",
+        "name": "Anabu I-C",
+        "city_code": "0402109000"
+    },
+    "0402109031": {
+        "code": "0402109031",
+        "name": "Anabu I-D",
+        "city_code": "0402109000"
+    },
+    "0402109032": {
+        "code": "0402109032",
+        "name": "Anabu I-E",
+        "city_code": "0402109000"
+    },
+    "0402109033": {
+        "code": "0402109033",
+        "name": "Anabu I-F",
+        "city_code": "0402109000"
+    },
+    "0402109034": {
+        "code": "0402109034",
+        "name": "Anabu I-G",
+        "city_code": "0402109000"
+    },
+    "0402109035": {
+        "code": "0402109035",
+        "name": "Anabu II-B",
+        "city_code": "0402109000"
+    },
+    "0402109036": {
+        "code": "0402109036",
+        "name": "Anabu II-C",
+        "city_code": "0402109000"
+    },
+    "0402109037": {
+        "code": "0402109037",
+        "name": "Anabu II-D",
+        "city_code": "0402109000"
+    },
+    "0402109038": {
+        "code": "0402109038",
+        "name": "Anabu II-E",
+        "city_code": "0402109000"
+    },
+    "0402109039": {
+        "code": "0402109039",
+        "name": "Anabu II-F",
+        "city_code": "0402109000"
+    },
+    "0402109040": {
+        "code": "0402109040",
+        "name": "Bagong Silang",
+        "city_code": "0402109000"
+    },
+    "0402109041": {
+        "code": "0402109041",
+        "name": "Bayan Luma II",
+        "city_code": "0402109000"
+    },
+    "0402109042": {
+        "code": "0402109042",
+        "name": "Bayan Luma III",
+        "city_code": "0402109000"
+    },
+    "0402109043": {
+        "code": "0402109043",
+        "name": "Bayan Luma IV",
+        "city_code": "0402109000"
+    },
+    "0402109044": {
+        "code": "0402109044",
+        "name": "Bayan Luma V",
+        "city_code": "0402109000"
+    },
+    "0402109045": {
+        "code": "0402109045",
+        "name": "Bayan Luma VI",
+        "city_code": "0402109000"
+    },
+    "0402109046": {
+        "code": "0402109046",
+        "name": "Bayan Luma VII",
+        "city_code": "0402109000"
+    },
+    "0402109047": {
+        "code": "0402109047",
+        "name": "Bayan Luma VIII",
+        "city_code": "0402109000"
+    },
+    "0402109048": {
+        "code": "0402109048",
+        "name": "Bayan Luma IX",
+        "city_code": "0402109000"
+    },
+    "0402109049": {
+        "code": "0402109049",
+        "name": "Bucandala II",
+        "city_code": "0402109000"
+    },
+    "0402109050": {
+        "code": "0402109050",
+        "name": "Bucandala III",
+        "city_code": "0402109000"
+    },
+    "0402109051": {
+        "code": "0402109051",
+        "name": "Bucandala IV",
+        "city_code": "0402109000"
+    },
+    "0402109052": {
+        "code": "0402109052",
+        "name": "Bucandala V",
+        "city_code": "0402109000"
+    },
+    "0402109053": {
+        "code": "0402109053",
+        "name": "Buhay na Tubig",
+        "city_code": "0402109000"
+    },
+    "0402109054": {
+        "code": "0402109054",
+        "name": "Carsadang Bago II",
+        "city_code": "0402109000"
+    },
+    "0402109055": {
+        "code": "0402109055",
+        "name": "Magdalo",
+        "city_code": "0402109000"
+    },
+    "0402109056": {
+        "code": "0402109056",
+        "name": "Maharlika",
+        "city_code": "0402109000"
+    },
+    "0402109057": {
+        "code": "0402109057",
+        "name": "Malagasang I-B",
+        "city_code": "0402109000"
+    },
+    "0402109058": {
+        "code": "0402109058",
+        "name": "Malagasang I-C",
+        "city_code": "0402109000"
+    },
+    "0402109059": {
+        "code": "0402109059",
+        "name": "Malagasang I-D",
+        "city_code": "0402109000"
+    },
+    "0402109060": {
+        "code": "0402109060",
+        "name": "Malagasang I-E",
+        "city_code": "0402109000"
+    },
+    "0402109061": {
+        "code": "0402109061",
+        "name": "Malagasang I-F",
+        "city_code": "0402109000"
+    },
+    "0402109062": {
+        "code": "0402109062",
+        "name": "Malagasang I-G",
+        "city_code": "0402109000"
+    },
+    "0402109063": {
+        "code": "0402109063",
+        "name": "Malagasang II-B",
+        "city_code": "0402109000"
+    },
+    "0402109064": {
+        "code": "0402109064",
+        "name": "Malagasang II-C",
+        "city_code": "0402109000"
+    },
+    "0402109065": {
+        "code": "0402109065",
+        "name": "Malagasang II-D",
+        "city_code": "0402109000"
+    },
+    "0402109066": {
+        "code": "0402109066",
+        "name": "Malagasang II-E",
+        "city_code": "0402109000"
+    },
+    "0402109067": {
+        "code": "0402109067",
+        "name": "Malagasang II-F",
+        "city_code": "0402109000"
+    },
+    "0402109068": {
+        "code": "0402109068",
+        "name": "Malagasang II-G",
+        "city_code": "0402109000"
+    },
+    "0402109069": {
+        "code": "0402109069",
+        "name": "Mariano Espeleta I",
+        "city_code": "0402109000"
+    },
+    "0402109070": {
+        "code": "0402109070",
+        "name": "Mariano Espeleta II",
+        "city_code": "0402109000"
+    },
+    "0402109071": {
+        "code": "0402109071",
+        "name": "Mariano Espeleta III",
+        "city_code": "0402109000"
+    },
+    "0402109072": {
+        "code": "0402109072",
+        "name": "Medicion I-B",
+        "city_code": "0402109000"
+    },
+    "0402109073": {
+        "code": "0402109073",
+        "name": "Medicion I-C",
+        "city_code": "0402109000"
+    },
+    "0402109074": {
+        "code": "0402109074",
+        "name": "Medicion I-D",
+        "city_code": "0402109000"
+    },
+    "0402109075": {
+        "code": "0402109075",
+        "name": "Medicion II-B",
+        "city_code": "0402109000"
+    },
+    "0402109076": {
+        "code": "0402109076",
+        "name": "Medicion II-C",
+        "city_code": "0402109000"
+    },
+    "0402109077": {
+        "code": "0402109077",
+        "name": "Medicion II-D",
+        "city_code": "0402109000"
+    },
+    "0402109078": {
+        "code": "0402109078",
+        "name": "Medicion II-E",
+        "city_code": "0402109000"
+    },
+    "0402109079": {
+        "code": "0402109079",
+        "name": "Medicion II-F",
+        "city_code": "0402109000"
+    },
+    "0402109080": {
+        "code": "0402109080",
+        "name": "Pag-Asa II",
+        "city_code": "0402109000"
+    },
+    "0402109081": {
+        "code": "0402109081",
+        "name": "Pag-Asa III",
+        "city_code": "0402109000"
+    },
+    "0402109082": {
+        "code": "0402109082",
+        "name": "Palico II",
+        "city_code": "0402109000"
+    },
+    "0402109083": {
+        "code": "0402109083",
+        "name": "Palico III",
+        "city_code": "0402109000"
+    },
+    "0402109084": {
+        "code": "0402109084",
+        "name": "Palico IV",
+        "city_code": "0402109000"
+    },
+    "0402109085": {
+        "code": "0402109085",
+        "name": "Pasong Buaya II",
+        "city_code": "0402109000"
+    },
+    "0402109086": {
+        "code": "0402109086",
+        "name": "Pinagbuklod",
+        "city_code": "0402109000"
+    },
+    "0402109087": {
+        "code": "0402109087",
+        "name": "Poblacion I-B",
+        "city_code": "0402109000"
+    },
+    "0402109088": {
+        "code": "0402109088",
+        "name": "Poblacion I-C",
+        "city_code": "0402109000"
+    },
+    "0402109089": {
+        "code": "0402109089",
+        "name": "Poblacion II-B",
+        "city_code": "0402109000"
+    },
+    "0402109090": {
+        "code": "0402109090",
+        "name": "Poblacion III-B",
+        "city_code": "0402109000"
+    },
+    "0402109091": {
+        "code": "0402109091",
+        "name": "Poblacion IV-B",
+        "city_code": "0402109000"
+    },
+    "0402109092": {
+        "code": "0402109092",
+        "name": "Poblacion IV-C",
+        "city_code": "0402109000"
+    },
+    "0402109093": {
+        "code": "0402109093",
+        "name": "Poblacion IV-D",
+        "city_code": "0402109000"
+    },
+    "0402109094": {
+        "code": "0402109094",
+        "name": "Tanzang Luma II",
+        "city_code": "0402109000"
+    },
+    "0402109095": {
+        "code": "0402109095",
+        "name": "Tanzang Luma III",
+        "city_code": "0402109000"
+    },
+    "0402109096": {
+        "code": "0402109096",
+        "name": "Tanzang Luma IV",
+        "city_code": "0402109000"
+    },
+    "0402109097": {
+        "code": "0402109097",
+        "name": "Tanzang Luma V",
+        "city_code": "0402109000"
+    },
+    "0402109098": {
+        "code": "0402109098",
+        "name": "Tanzang Luma VI",
+        "city_code": "0402109000"
+    },
+    "0402109099": {
+        "code": "0402109099",
+        "name": "Toclong I-B",
+        "city_code": "0402109000"
+    },
+    "0402109100": {
+        "code": "0402109100",
+        "name": "Toclong I-C",
+        "city_code": "0402109000"
+    },
+    "0402109101": {
+        "code": "0402109101",
+        "name": "Toclong II-B",
+        "city_code": "0402109000"
+    }
+}

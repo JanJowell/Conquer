@@ -42,8 +42,8 @@ function categoryGearPayload(Event $event, string $gearKey, ?string $gear): arra
     ];
 }
 
-test('admin stores required hiking gear on the category and exposes it to mobile', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+test('event manager stores required hiking gear on the category and exposes it to mobile', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = categoryGearEvent($admin, 'Hiking');
     $payload = categoryGearPayload($event, 'required_gear', 'Trail shoes, water, and rain jacket');
 
@@ -67,7 +67,7 @@ test('admin stores required hiking gear on the category and exposes it to mobile
 });
 
 test('a new trail run category requires mandatory gear', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = categoryGearEvent($admin, 'Trail Run');
 
     $this
@@ -80,7 +80,7 @@ test('a new trail run category requires mandatory gear', function () {
 });
 
 test('legacy event gear remains a fallback while category gear takes precedence', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = categoryGearEvent($admin, 'Trail Run', [
         'trail_difficulty' => 'Moderate',
         'mandatory_gear' => 'Legacy hydration vest and whistle',
@@ -114,7 +114,7 @@ test('legacy event gear remains a fallback while category gear takes precedence'
 });
 
 test('trail difficulty is optional but rejects unsupported values', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = categoryGearEvent($admin, 'Trail Run');
     $payload = categoryGearPayload($event, 'mandatory_gear', 'Hydration vest and whistle');
     $payload['type_details']['trail_difficulty'] = 'Impossible';
@@ -132,8 +132,8 @@ test('trail difficulty is optional but rejects unsupported values', function () 
         ->assertSessionHasNoErrors();
 });
 
-test('admin can update trail difficulty and gear after a participant has registered', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+test('event manager can update trail difficulty and gear after a participant has registered', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $runner = User::factory()->create(['role' => User::ROLE_RUNNER]);
     $event = categoryGearEvent($admin, 'Trail Run');
     $category = Category::create([

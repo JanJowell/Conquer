@@ -14,10 +14,6 @@ class User extends Authenticatable
 
     public const ROLE_SUPER_ADMIN = 'super_admin';
 
-    public const ROLE_EXECUTIVE = 'executive';
-
-    public const ROLE_CONTENT_MODERATOR = 'content_moderator';
-
     public const ROLE_EVENT_MANAGER = 'event_manager';
 
     public const ROLE_RUNNER = 'runner';
@@ -213,8 +209,6 @@ class User extends Authenticatable
     {
         return [
             static::ROLE_SUPER_ADMIN,
-            static::ROLE_EXECUTIVE,
-            static::ROLE_CONTENT_MODERATOR,
             static::ROLE_EVENT_MANAGER,
         ];
     }
@@ -232,8 +226,6 @@ class User extends Authenticatable
         return [
             static::ROLE_RUNNER,
             static::ROLE_SUPER_ADMIN,
-            static::ROLE_EXECUTIVE,
-            static::ROLE_CONTENT_MODERATOR,
             static::ROLE_EVENT_MANAGER,
         ];
     }
@@ -243,8 +235,6 @@ class User extends Authenticatable
         return [
             static::ROLE_RUNNER => 'Participant',
             static::ROLE_SUPER_ADMIN => 'Admin',
-            static::ROLE_EXECUTIVE => 'Executive (CEO/COO)',
-            static::ROLE_CONTENT_MODERATOR => 'Content Moderator',
             static::ROLE_EVENT_MANAGER => 'Event Manager',
             static::ROLE_LEGACY_ADMIN => 'Event Manager',
             'user' => 'Participant',
@@ -269,14 +259,14 @@ class User extends Authenticatable
 
         $matrix = [
             'dashboard' => static::adminWebRoles(),
-            'analytics' => [static::ROLE_SUPER_ADMIN, static::ROLE_EXECUTIVE],
-            'reports' => [static::ROLE_SUPER_ADMIN, static::ROLE_EXECUTIVE, static::ROLE_EVENT_MANAGER],
-            'users' => [static::ROLE_SUPER_ADMIN, static::ROLE_EXECUTIVE],
-            'events' => [static::ROLE_SUPER_ADMIN, static::ROLE_EXECUTIVE, static::ROLE_EVENT_MANAGER],
-            'feedback' => [static::ROLE_SUPER_ADMIN, static::ROLE_EXECUTIVE, static::ROLE_CONTENT_MODERATOR, static::ROLE_EVENT_MANAGER],
-            'notifications' => [static::ROLE_SUPER_ADMIN, static::ROLE_CONTENT_MODERATOR, static::ROLE_EVENT_MANAGER],
-            'community' => [static::ROLE_SUPER_ADMIN, static::ROLE_CONTENT_MODERATOR],
-            'training' => [static::ROLE_SUPER_ADMIN, static::ROLE_CONTENT_MODERATOR],
+            'analytics' => [static::ROLE_SUPER_ADMIN],
+            'reports' => [static::ROLE_SUPER_ADMIN, static::ROLE_EVENT_MANAGER],
+            'users' => [static::ROLE_SUPER_ADMIN],
+            'events' => [static::ROLE_SUPER_ADMIN, static::ROLE_EVENT_MANAGER],
+            'feedback' => [static::ROLE_SUPER_ADMIN, static::ROLE_EVENT_MANAGER],
+            'notifications' => [static::ROLE_SUPER_ADMIN, static::ROLE_EVENT_MANAGER],
+            'community' => [static::ROLE_SUPER_ADMIN],
+            'training' => [static::ROLE_SUPER_ADMIN],
             'checkpoints' => [static::ROLE_SUPER_ADMIN, static::ROLE_EVENT_MANAGER],
             'security' => [static::ROLE_SUPER_ADMIN],
         ];
@@ -301,7 +291,8 @@ class User extends Authenticatable
     public function canManageEvent(Event $event): bool
     {
         if (! $this->managesAssignedEventsOnly()) {
-            return $this->isAdmin();
+            return $this->isAdmin() && (! $event->revision_of_id
+                || in_array($event->review_status, ['pending_review', 'approved'], true));
         }
 
         return (int) $event->manager_id === (int) $this->id;

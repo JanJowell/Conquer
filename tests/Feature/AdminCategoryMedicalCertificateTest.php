@@ -44,8 +44,8 @@ function medicalRequirementCategoryPayload(Event $event, bool $required): array
     ];
 }
 
-test('admin explicitly controls the medical certificate requirement regardless of distance', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+test('event manager explicitly controls the medical certificate requirement regardless of distance', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $requiredEvent = medicalRequirementEvent($admin);
     $optionalEvent = medicalRequirementEvent($admin);
 
@@ -75,7 +75,7 @@ test('admin explicitly controls the medical certificate requirement regardless o
 });
 
 test('embedded event creation stores its category medical certificate requirement', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $eventDate = now()->addMonth()->toDateString();
 
     $this
@@ -114,7 +114,7 @@ test('embedded event creation stores its category medical certificate requiremen
 });
 
 test('medical certificate requirement is locked once the category has registrations', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $runner = User::factory()->create(['role' => User::ROLE_RUNNER]);
     $event = medicalRequirementEvent($admin);
     $category = Category::create([
@@ -146,7 +146,7 @@ test('medical certificate requirement is locked once the category has registrati
 });
 
 test('category forms show the medical certificate checkbox', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = medicalRequirementEvent($admin);
     $category = Category::create([
         'event_id' => $event->id,

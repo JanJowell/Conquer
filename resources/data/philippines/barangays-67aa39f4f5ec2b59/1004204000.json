@@ -1,0 +1,97 @@
+{
+    "1004204001": {
+        "code": "1004204001",
+        "name": "Bonifacio",
+        "city_code": "1004204000"
+    },
+    "1004204002": {
+        "code": "1004204002",
+        "name": "Bunawan",
+        "city_code": "1004204000"
+    },
+    "1004204003": {
+        "code": "1004204003",
+        "name": "Calaran",
+        "city_code": "1004204000"
+    },
+    "1004204004": {
+        "code": "1004204004",
+        "name": "Dapacan Alto",
+        "city_code": "1004204000"
+    },
+    "1004204005": {
+        "code": "1004204005",
+        "name": "Dapacan Bajo",
+        "city_code": "1004204000"
+    },
+    "1004204006": {
+        "code": "1004204006",
+        "name": "Langub",
+        "city_code": "1004204000"
+    },
+    "1004204007": {
+        "code": "1004204007",
+        "name": "Libertad",
+        "city_code": "1004204000"
+    },
+    "1004204008": {
+        "code": "1004204008",
+        "name": "Magcamiguing",
+        "city_code": "1004204000"
+    },
+    "1004204009": {
+        "code": "1004204009",
+        "name": "Mamalad",
+        "city_code": "1004204000"
+    },
+    "1004204010": {
+        "code": "1004204010",
+        "name": "Mauswagon",
+        "city_code": "1004204000"
+    },
+    "1004204011": {
+        "code": "1004204011",
+        "name": "Northern Poblacion",
+        "city_code": "1004204000"
+    },
+    "1004204012": {
+        "code": "1004204012",
+        "name": "Salvador",
+        "city_code": "1004204000"
+    },
+    "1004204013": {
+        "code": "1004204013",
+        "name": "San Isidro",
+        "city_code": "1004204000"
+    },
+    "1004204014": {
+        "code": "1004204014",
+        "name": "Siloy",
+        "city_code": "1004204000"
+    },
+    "1004204015": {
+        "code": "1004204015",
+        "name": "Singalat",
+        "city_code": "1004204000"
+    },
+    "1004204016": {
+        "code": "1004204016",
+        "name": "Solinog",
+        "city_code": "1004204000"
+    },
+    "1004204017": {
+        "code": "1004204017",
+        "name": "Southwestern Poblacion",
+        "city_code": "1004204000"
+    },
+    "1004204018": {
+        "code": "1004204018",
+        "name": "Sulipat",
+        "city_code": "1004204000"
+    },
+    "1004204019": {
+        "code": "1004204019",
+        "name": "Don Bernardo Nery Pob.",
+        "city_code": "1004204000"
+    }
+}

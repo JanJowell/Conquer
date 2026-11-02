@@ -23,7 +23,7 @@ function mobileAchievementRunner(): array
 
 function mobileAchievementEvent(): Event
 {
-    return Event::create([
+    return Event::forceCreate(['review_status' => null,
         'title' => 'Mobile Achievement Race',
         'slug' => 'mobile-achievement-race-'.uniqid(),
         'venue' => 'Bacoor City',

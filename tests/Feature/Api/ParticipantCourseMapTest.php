@@ -18,7 +18,7 @@ function participantMapRoute(): array
 
 function participantMapCategory(): Category
 {
-    $event = Event::create([
+    $event = Event::forceCreate(['review_status' => null,
         'title' => 'Course map run',
         'slug' => 'course-map-run',
         'description' => 'A complete public event description.',

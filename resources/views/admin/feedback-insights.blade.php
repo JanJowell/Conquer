@@ -7,7 +7,6 @@
     @php
         $canModerateCommunity = auth()->user()->hasAdminRole([
             \App\Models\User::ROLE_SUPER_ADMIN,
-            \App\Models\User::ROLE_CONTENT_MODERATOR,
         ]);
         $rating = fn ($value) => $value === null ? 'N/A' : number_format((float) $value, 2).' / 5';
     @endphp

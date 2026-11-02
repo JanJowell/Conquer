@@ -1,0 +1,47 @@
+{
+    "1907005001": {
+        "code": "1907005001",
+        "name": "South Larap",
+        "city_code": "1907005000"
+    },
+    "1907005004": {
+        "code": "1907005004",
+        "name": "Sitangkai Poblacion",
+        "city_code": "1907005000"
+    },
+    "1907005010": {
+        "code": "1907005010",
+        "name": "Tongmageng",
+        "city_code": "1907005000"
+    },
+    "1907005012": {
+        "code": "1907005012",
+        "name": "Tongusong",
+        "city_code": "1907005000"
+    },
+    "1907005016": {
+        "code": "1907005016",
+        "name": "Datu Baguinda Putih",
+        "city_code": "1907005000"
+    },
+    "1907005021": {
+        "code": "1907005021",
+        "name": "Imam Sapie",
+        "city_code": "1907005000"
+    },
+    "1907005022": {
+        "code": "1907005022",
+        "name": "North Larap",
+        "city_code": "1907005000"
+    },
+    "1907005023": {
+        "code": "1907005023",
+        "name": "Panglima Alari",
+        "city_code": "1907005000"
+    },
+    "1907005025": {
+        "code": "1907005025",
+        "name": "Sipangkot",
+        "city_code": "1907005000"
+    }
+}

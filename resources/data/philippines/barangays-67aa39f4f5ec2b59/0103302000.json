@@ -1,0 +1,122 @@
+{
+    "0103302001": {
+        "code": "0103302001",
+        "name": "Alaska",
+        "city_code": "0103302000"
+    },
+    "0103302002": {
+        "code": "0103302002",
+        "name": "Basca",
+        "city_code": "0103302000"
+    },
+    "0103302003": {
+        "code": "0103302003",
+        "name": "Dulao",
+        "city_code": "0103302000"
+    },
+    "0103302004": {
+        "code": "0103302004",
+        "name": "Gallano",
+        "city_code": "0103302000"
+    },
+    "0103302005": {
+        "code": "0103302005",
+        "name": "Macabato",
+        "city_code": "0103302000"
+    },
+    "0103302006": {
+        "code": "0103302006",
+        "name": "Manga",
+        "city_code": "0103302000"
+    },
+    "0103302007": {
+        "code": "0103302007",
+        "name": "Pangao-aoan East",
+        "city_code": "0103302000"
+    },
+    "0103302009": {
+        "code": "0103302009",
+        "name": "Pangao-aoan West",
+        "city_code": "0103302000"
+    },
+    "0103302010": {
+        "code": "0103302010",
+        "name": "Poblacion",
+        "city_code": "0103302000"
+    },
+    "0103302011": {
+        "code": "0103302011",
+        "name": "Samara",
+        "city_code": "0103302000"
+    },
+    "0103302012": {
+        "code": "0103302012",
+        "name": "San Antonio",
+        "city_code": "0103302000"
+    },
+    "0103302014": {
+        "code": "0103302014",
+        "name": "San Benito Norte",
+        "city_code": "0103302000"
+    },
+    "0103302015": {
+        "code": "0103302015",
+        "name": "San Benito Sur",
+        "city_code": "0103302000"
+    },
+    "0103302016": {
+        "code": "0103302016",
+        "name": "San Eugenio",
+        "city_code": "0103302000"
+    },
+    "0103302018": {
+        "code": "0103302018",
+        "name": "San Juan East",
+        "city_code": "0103302000"
+    },
+    "0103302019": {
+        "code": "0103302019",
+        "name": "San Juan West",
+        "city_code": "0103302000"
+    },
+    "0103302020": {
+        "code": "0103302020",
+        "name": "San Simon East",
+        "city_code": "0103302000"
+    },
+    "0103302021": {
+        "code": "0103302021",
+        "name": "San Simon West",
+        "city_code": "0103302000"
+    },
+    "0103302022": {
+        "code": "0103302022",
+        "name": "Santa Cecilia",
+        "city_code": "0103302000"
+    },
+    "0103302023": {
+        "code": "0103302023",
+        "name": "Santa Lucia",
+        "city_code": "0103302000"
+    },
+    "0103302024": {
+        "code": "0103302024",
+        "name": "Santa Rita East",
+        "city_code": "0103302000"
+    },
+    "0103302025": {
+        "code": "0103302025",
+        "name": "Santa Rita West",
+        "city_code": "0103302000"
+    },
+    "0103302027": {
+        "code": "0103302027",
+        "name": "Santo Rosario East",
+        "city_code": "0103302000"
+    },
+    "0103302028": {
+        "code": "0103302028",
+        "name": "Santo Rosario West",
+        "city_code": "0103302000"
+    }
+}

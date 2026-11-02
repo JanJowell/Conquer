@@ -1,0 +1,242 @@
+{
+    "0501708001": {
+        "code": "0501708001",
+        "name": "Balatasan",
+        "city_code": "0501708000"
+    },
+    "0501708002": {
+        "code": "0501708002",
+        "name": "Balombon",
+        "city_code": "0501708000"
+    },
+    "0501708003": {
+        "code": "0501708003",
+        "name": "Balongay",
+        "city_code": "0501708000"
+    },
+    "0501708004": {
+        "code": "0501708004",
+        "name": "Belen",
+        "city_code": "0501708000"
+    },
+    "0501708005": {
+        "code": "0501708005",
+        "name": "Bigaas",
+        "city_code": "0501708000"
+    },
+    "0501708006": {
+        "code": "0501708006",
+        "name": "Binanuaanan Grande",
+        "city_code": "0501708000"
+    },
+    "0501708007": {
+        "code": "0501708007",
+        "name": "Binanuaanan Pequeño",
+        "city_code": "0501708000"
+    },
+    "0501708008": {
+        "code": "0501708008",
+        "name": "Binaliw",
+        "city_code": "0501708000"
+    },
+    "0501708009": {
+        "code": "0501708009",
+        "name": "Bonot-Santa Rosa",
+        "city_code": "0501708000"
+    },
+    "0501708010": {
+        "code": "0501708010",
+        "name": "Burabod",
+        "city_code": "0501708000"
+    },
+    "0501708011": {
+        "code": "0501708011",
+        "name": "Cabanbanan",
+        "city_code": "0501708000"
+    },
+    "0501708012": {
+        "code": "0501708012",
+        "name": "Cagsao",
+        "city_code": "0501708000"
+    },
+    "0501708013": {
+        "code": "0501708013",
+        "name": "Camuning",
+        "city_code": "0501708000"
+    },
+    "0501708014": {
+        "code": "0501708014",
+        "name": "Comaguingking",
+        "city_code": "0501708000"
+    },
+    "0501708015": {
+        "code": "0501708015",
+        "name": "Del Carmen",
+        "city_code": "0501708000"
+    },
+    "0501708016": {
+        "code": "0501708016",
+        "name": "Dominorog",
+        "city_code": "0501708000"
+    },
+    "0501708017": {
+        "code": "0501708017",
+        "name": "Fabrica",
+        "city_code": "0501708000"
+    },
+    "0501708018": {
+        "code": "0501708018",
+        "name": "Harobay",
+        "city_code": "0501708000"
+    },
+    "0501708019": {
+        "code": "0501708019",
+        "name": "La Purisima",
+        "city_code": "0501708000"
+    },
+    "0501708021": {
+        "code": "0501708021",
+        "name": "Lugsad",
+        "city_code": "0501708000"
+    },
+    "0501708022": {
+        "code": "0501708022",
+        "name": "Manguiring",
+        "city_code": "0501708000"
+    },
+    "0501708023": {
+        "code": "0501708023",
+        "name": "Pagatpat",
+        "city_code": "0501708000"
+    },
+    "0501708024": {
+        "code": "0501708024",
+        "name": "Paolbo",
+        "city_code": "0501708000"
+    },
+    "0501708025": {
+        "code": "0501708025",
+        "name": "Pinada",
+        "city_code": "0501708000"
+    },
+    "0501708026": {
+        "code": "0501708026",
+        "name": "Punta Tarawal",
+        "city_code": "0501708000"
+    },
+    "0501708027": {
+        "code": "0501708027",
+        "name": "Quinale",
+        "city_code": "0501708000"
+    },
+    "0501708028": {
+        "code": "0501708028",
+        "name": "Sabang",
+        "city_code": "0501708000"
+    },
+    "0501708029": {
+        "code": "0501708029",
+        "name": "Salvacion-Baybay",
+        "city_code": "0501708000"
+    },
+    "0501708030": {
+        "code": "0501708030",
+        "name": "San Antonio Poblacion",
+        "city_code": "0501708000"
+    },
+    "0501708031": {
+        "code": "0501708031",
+        "name": "San Antonio",
+        "city_code": "0501708000"
+    },
+    "0501708032": {
+        "code": "0501708032",
+        "name": "San Bernardino",
+        "city_code": "0501708000"
+    },
+    "0501708033": {
+        "code": "0501708033",
+        "name": "San Francisco",
+        "city_code": "0501708000"
+    },
+    "0501708034": {
+        "code": "0501708034",
+        "name": "San Isidro",
+        "city_code": "0501708000"
+    },
+    "0501708036": {
+        "code": "0501708036",
+        "name": "San Lucas",
+        "city_code": "0501708000"
+    },
+    "0501708037": {
+        "code": "0501708037",
+        "name": "San Miguel",
+        "city_code": "0501708000"
+    },
+    "0501708038": {
+        "code": "0501708038",
+        "name": "San Pablo",
+        "city_code": "0501708000"
+    },
+    "0501708039": {
+        "code": "0501708039",
+        "name": "San Roque",
+        "city_code": "0501708000"
+    },
+    "0501708040": {
+        "code": "0501708040",
+        "name": "San Vicente",
+        "city_code": "0501708000"
+    },
+    "0501708041": {
+        "code": "0501708041",
+        "name": "Santa Cruz Ratay",
+        "city_code": "0501708000"
+    },
+    "0501708042": {
+        "code": "0501708042",
+        "name": "Santa Cruz Poblacion",
+        "city_code": "0501708000"
+    },
+    "0501708043": {
+        "code": "0501708043",
+        "name": "Santa Isabel",
+        "city_code": "0501708000"
+    },
+    "0501708044": {
+        "code": "0501708044",
+        "name": "Santa Salud",
+        "city_code": "0501708000"
+    },
+    "0501708045": {
+        "code": "0501708045",
+        "name": "Santo Domingo",
+        "city_code": "0501708000"
+    },
+    "0501708046": {
+        "code": "0501708046",
+        "name": "Santo Niño",
+        "city_code": "0501708000"
+    },
+    "0501708047": {
+        "code": "0501708047",
+        "name": "Siba-o",
+        "city_code": "0501708000"
+    },
+    "0501708048": {
+        "code": "0501708048",
+        "name": "Sibobo",
+        "city_code": "0501708000"
+    },
+    "0501708049": {
+        "code": "0501708049",
+        "name": "Sogod",
+        "city_code": "0501708000"
+    },
+    "0501708050": {
+        "code": "0501708050",
+        "name": "Tomagodtod",
+        "city_code": "0501708000"
+    }
+}

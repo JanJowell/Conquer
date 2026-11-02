@@ -45,9 +45,9 @@ function checkpointMapCategoryPayload(Event $event, array $overrides = []): arra
     ], $overrides);
 }
 
-test('admin uploads a category checkpoint map and the mobile API exposes its URL', function () {
+test('event manager uploads a category checkpoint map and the mobile API exposes its URL', function () {
     Storage::fake('public');
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = checkpointMapEvent($admin);
 
     $this
@@ -67,7 +67,7 @@ test('admin uploads a category checkpoint map and the mobile API exposes its URL
 
 test('embedded event creation stores each category checkpoint map', function () {
     Storage::fake('public');
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $eventDate = now()->addMonth()->toDateString();
 
     $this
@@ -107,9 +107,9 @@ test('embedded event creation stores each category checkpoint map', function () 
     Storage::disk('public')->assertExists($category->checkpoint_map_image);
 });
 
-test('admin can replace and remove a category checkpoint map without leaving old files', function () {
+test('event manager can replace and remove a category checkpoint map without leaving old files', function () {
     Storage::fake('public');
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = checkpointMapEvent($admin);
     Storage::disk('public')->put('categories/checkpoint-maps/old-map.png', 'old');
     $category = Category::create([
@@ -149,7 +149,7 @@ test('admin can replace and remove a category checkpoint map without leaving old
 
 test('deleting a category also deletes its checkpoint map image', function () {
     Storage::fake('public');
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = checkpointMapEvent($admin);
     Storage::disk('public')->put('categories/checkpoint-maps/delete-me.png', 'map');
     $category = Category::create([
@@ -169,7 +169,7 @@ test('deleting a category also deletes its checkpoint map image', function () {
 
 test('checkpoint map uploads reject non images and the old page is hidden from navigation', function () {
     Storage::fake('public');
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = checkpointMapEvent($admin);
 
     $this

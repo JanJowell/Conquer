@@ -4,6 +4,7 @@ use App\Models\Category;
 use App\Models\Event;
 use App\Models\RaceResult;
 use App\Models\Registration;
+use App\Models\RegistrationFeedback;
 use App\Models\User;
 use App\Services\CertificateIssuer;
 
@@ -20,9 +21,9 @@ function leaderboardAuthenticatedRunner(): array
     return [$runner, $plainToken];
 }
 
-function addLeaderboardResult(User $runner): RaceResult
+function addLeaderboardResult(User $runner, bool $withFeedback = false): RaceResult
 {
-    $event = Event::create([
+    $event = Event::forceCreate(['review_status' => null,
         'title' => 'Leaderboard Test Race',
         'slug' => 'leaderboard-test-race-'.uniqid(),
         'venue' => 'Bacoor City',
@@ -46,7 +47,7 @@ function addLeaderboardResult(User $runner): RaceResult
         'registered_at' => now()->subDays(2),
     ]);
 
-    return RaceResult::create([
+    $result = RaceResult::create([
         'registration_id' => $registration->id,
         'user_id' => $runner->id,
         'event_id' => $event->id,
@@ -55,6 +56,19 @@ function addLeaderboardResult(User $runner): RaceResult
         'rank_overall' => 1,
         'rank_category' => 1,
     ]);
+
+    if ($withFeedback) {
+        RegistrationFeedback::create([
+            'registration_id' => $registration->id,
+            'user_id' => $runner->id,
+            'event_id' => $event->id,
+            'category_id' => $category->id,
+            'overall_rating' => 1,
+            'submitted_at' => now(),
+        ]);
+    }
+
+    return $result;
 }
 
 test('mobile leaderboard shows only verified runner accounts', function () {
@@ -140,9 +154,10 @@ test('leaderboard counts only valid certificates and keeps the legacy count alia
         'name' => 'Certificate Competitor',
     ]);
     $issuer = app(CertificateIssuer::class);
-    $certificate = $issuer->syncForRegistration(addLeaderboardResult($runner)->registration, notify: false);
-    $secondCertificate = $issuer->syncForRegistration(addLeaderboardResult($runner)->registration, notify: false);
-    $issuer->syncForRegistration(addLeaderboardResult($competitor)->registration, notify: false);
+    $certificate = $issuer->syncForRegistration(addLeaderboardResult($runner, withFeedback: true)->registration, notify: false);
+    $secondCertificate = $issuer->syncForRegistration(addLeaderboardResult($runner, withFeedback: true)->registration, notify: false);
+    $issuer->syncForRegistration(addLeaderboardResult($competitor, withFeedback: true)->registration, notify: false);
+    $issuer->syncForRegistration(addLeaderboardResult($participantWithoutCertificate)->registration, notify: false);
 
     $response = $this->withToken($plainToken)->getJson('/api/leaderboard')->assertOk();
     $initialLeaderboard = collect($response->json('data'));

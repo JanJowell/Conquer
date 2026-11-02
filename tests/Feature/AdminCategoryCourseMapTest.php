@@ -66,7 +66,7 @@ function courseMapTestEventPayload(Event $event, array $rows): array
 
 test('a category course is saved alongside its existing image contract and reloads in the editor', function () {
     Storage::fake('public');
-    $admin = User::factory()->create();
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = courseMapTestEvent($admin);
     $map = courseMapTestData();
     $map['checkpoints'][0]['label'] = '  Water station  ';
@@ -92,7 +92,7 @@ test('a category course is saved alongside its existing image contract and reloa
 
 test('omitting a course preserves it while an explicit clear leaves the uploaded image untouched', function () {
     Storage::fake('public');
-    $admin = User::factory()->create();
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = courseMapTestEvent($admin);
     $category = courseMapTestCategory($event);
     Storage::disk('public')->put('categories/checkpoint-maps/keep.png', 'map');
@@ -129,7 +129,7 @@ dataset('invalid category courses', [
 ]);
 
 test('invalid route submissions cannot overwrite a saved course', function (mixed $map) {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = courseMapTestEvent($admin);
     $category = courseMapTestCategory($event);
 
@@ -191,12 +191,12 @@ test('embedded event creation saves its category route and rejects invalid neste
 test('only managers of the event or administrators can update its category route', function () {
     $owner = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $other = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
-    $executive = User::factory()->create(['role' => User::ROLE_EXECUTIVE]);
+    $retiredUser = User::factory()->create(['role' => 'executive']);
     $event = courseMapTestEvent($owner);
     $category = courseMapTestCategory($event);
     $payload = courseMapTestPayload($event, ['course_map' => '']);
 
-    foreach ([$other, $executive] as $unauthorized) {
+    foreach ([$other, $retiredUser] as $unauthorized) {
         $this->actingAs($unauthorized)->put(route('admin.categories.update', $category), $payload)->assertForbidden();
         $this->put(route('admin.events.update', $event), courseMapTestEventPayload($event, [$payload]))->assertForbidden();
     }
@@ -205,7 +205,7 @@ test('only managers of the event or administrators can update its category route
 
 test('category editors render without a key and never eagerly load Google Maps', function () {
     config(['services.google_maps.browser_key' => null]);
-    $admin = User::factory()->create();
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = courseMapTestEvent($admin);
     $category = courseMapTestCategory($event);
 

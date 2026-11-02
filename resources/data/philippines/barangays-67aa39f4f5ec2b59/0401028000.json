@@ -1,0 +1,152 @@
+{
+    "0401028001": {
+        "code": "0401028001",
+        "name": "Barangay I",
+        "city_code": "0401028000"
+    },
+    "0401028002": {
+        "code": "0401028002",
+        "name": "Barangay II",
+        "city_code": "0401028000"
+    },
+    "0401028003": {
+        "code": "0401028003",
+        "name": "Barangay III",
+        "city_code": "0401028000"
+    },
+    "0401028004": {
+        "code": "0401028004",
+        "name": "Barangay IV",
+        "city_code": "0401028000"
+    },
+    "0401028005": {
+        "code": "0401028005",
+        "name": "San Agustin",
+        "city_code": "0401028000"
+    },
+    "0401028006": {
+        "code": "0401028006",
+        "name": "San Antonio",
+        "city_code": "0401028000"
+    },
+    "0401028007": {
+        "code": "0401028007",
+        "name": "San Bartolome",
+        "city_code": "0401028000"
+    },
+    "0401028008": {
+        "code": "0401028008",
+        "name": "San Felix",
+        "city_code": "0401028000"
+    },
+    "0401028009": {
+        "code": "0401028009",
+        "name": "San Fernando",
+        "city_code": "0401028000"
+    },
+    "0401028010": {
+        "code": "0401028010",
+        "name": "San Francisco",
+        "city_code": "0401028000"
+    },
+    "0401028011": {
+        "code": "0401028011",
+        "name": "San Isidro Norte",
+        "city_code": "0401028000"
+    },
+    "0401028012": {
+        "code": "0401028012",
+        "name": "San Isidro Sur",
+        "city_code": "0401028000"
+    },
+    "0401028013": {
+        "code": "0401028013",
+        "name": "San Joaquin",
+        "city_code": "0401028000"
+    },
+    "0401028014": {
+        "code": "0401028014",
+        "name": "San Jose",
+        "city_code": "0401028000"
+    },
+    "0401028015": {
+        "code": "0401028015",
+        "name": "San Juan",
+        "city_code": "0401028000"
+    },
+    "0401028016": {
+        "code": "0401028016",
+        "name": "San Luis",
+        "city_code": "0401028000"
+    },
+    "0401028017": {
+        "code": "0401028017",
+        "name": "San Miguel",
+        "city_code": "0401028000"
+    },
+    "0401028018": {
+        "code": "0401028018",
+        "name": "San Pablo",
+        "city_code": "0401028000"
+    },
+    "0401028019": {
+        "code": "0401028019",
+        "name": "San Pedro",
+        "city_code": "0401028000"
+    },
+    "0401028020": {
+        "code": "0401028020",
+        "name": "San Rafael",
+        "city_code": "0401028000"
+    },
+    "0401028021": {
+        "code": "0401028021",
+        "name": "San Roque",
+        "city_code": "0401028000"
+    },
+    "0401028022": {
+        "code": "0401028022",
+        "name": "San Vicente",
+        "city_code": "0401028000"
+    },
+    "0401028023": {
+        "code": "0401028023",
+        "name": "Santa Ana",
+        "city_code": "0401028000"
+    },
+    "0401028024": {
+        "code": "0401028024",
+        "name": "Santa Anastacia",
+        "city_code": "0401028000"
+    },
+    "0401028025": {
+        "code": "0401028025",
+        "name": "Santa Clara",
+        "city_code": "0401028000"
+    },
+    "0401028026": {
+        "code": "0401028026",
+        "name": "Santa Cruz",
+        "city_code": "0401028000"
+    },
+    "0401028027": {
+        "code": "0401028027",
+        "name": "Santa Elena",
+        "city_code": "0401028000"
+    },
+    "0401028028": {
+        "code": "0401028028",
+        "name": "Santa Maria",
+        "city_code": "0401028000"
+    },
+    "0401028029": {
+        "code": "0401028029",
+        "name": "Santiago",
+        "city_code": "0401028000"
+    },
+    "0401028030": {
+        "code": "0401028030",
+        "name": "Santa Teresita",
+        "city_code": "0401028000"
+    }
+}

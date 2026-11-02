@@ -1,0 +1,62 @@
+{
+    "0804804001": {
+        "code": "0804804001",
+        "name": "Aguin",
+        "city_code": "0804804000"
+    },
+    "0804804003": {
+        "code": "0804804003",
+        "name": "Jubang",
+        "city_code": "0804804000"
+    },
+    "0804804004": {
+        "code": "0804804004",
+        "name": "Landusan",
+        "city_code": "0804804000"
+    },
+    "0804804005": {
+        "code": "0804804005",
+        "name": "Oson",
+        "city_code": "0804804000"
+    },
+    "0804804006": {
+        "code": "0804804006",
+        "name": "Poblacion Barangay 1",
+        "city_code": "0804804000"
+    },
+    "0804804007": {
+        "code": "0804804007",
+        "name": "Poblacion Barangay 2",
+        "city_code": "0804804000"
+    },
+    "0804804008": {
+        "code": "0804804008",
+        "name": "Poblacion Barangay 3",
+        "city_code": "0804804000"
+    },
+    "0804804009": {
+        "code": "0804804009",
+        "name": "Poblacion Barangay 4",
+        "city_code": "0804804000"
+    },
+    "0804804010": {
+        "code": "0804804010",
+        "name": "Poblacion Barangay 5",
+        "city_code": "0804804000"
+    },
+    "0804804011": {
+        "code": "0804804011",
+        "name": "Sagaosawan",
+        "city_code": "0804804000"
+    },
+    "0804804012": {
+        "code": "0804804012",
+        "name": "San Luis",
+        "city_code": "0804804000"
+    },
+    "0804804013": {
+        "code": "0804804013",
+        "name": "Sawang",
+        "city_code": "0804804000"
+    }
+}

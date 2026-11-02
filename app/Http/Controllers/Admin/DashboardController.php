@@ -41,7 +41,7 @@ class DashboardController extends Controller
         $growthStart = $startDate->copy();
         $managedEventIds = $user->managedEventIds();
 
-        $eventQuery = Event::query()
+        $eventQuery = Event::query()->whereNull('revision_of_id')
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($managedEventIds) {
                 $query->whereIn('id', $managedEventIds);
             })
@@ -60,12 +60,14 @@ class DashboardController extends Controller
             ->whereBetween('created_at', [$startDate, $endDate]);
 
         $announcementQuery = Announcement::query()
+            ->where(fn ($query) => $query->whereNull('event_id')->orWhereHas('event', fn ($event) => $event->whereNull('revision_of_id')))
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($managedEventIds) {
                 $query->whereIn('event_id', $managedEventIds);
             })
             ->whereBetween('created_at', [$startDate, $endDate]);
 
         $checkpointQuery = Checkpoint::query()
+            ->whereHas('event', fn ($query) => $query->whereNull('revision_of_id'))
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($managedEventIds) {
                 $query->whereIn('event_id', $managedEventIds);
             })
@@ -152,7 +154,7 @@ class DashboardController extends Controller
                 ];
             });
 
-        $recentEvents = Event::withCount('registrations')
+        $recentEvents = Event::withCount('registrations')->whereNull('revision_of_id')
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($managedEventIds) {
                 $query->whereIn('id', $managedEventIds);
             })
@@ -161,7 +163,7 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        $eventPerformance = Event::withCount(['registrations', 'raceResults'])
+        $eventPerformance = Event::withCount(['registrations', 'raceResults'])->whereNull('revision_of_id')
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($managedEventIds) {
                 $query->whereIn('id', $managedEventIds);
             })
@@ -179,31 +181,11 @@ class DashboardController extends Controller
             1
         );
 
-        $eventHealth = collect();
-
-        if ($dashboardRole === User::ROLE_EXECUTIVE) {
-            $eventHealth = Event::withCount([
-                'categories',
-                'registrations',
-                'raceResults',
-                'checkpoints',
-                'announcements as published_announcements_count' => fn ($query) => $query->where('is_published', true),
-                'registrations as checked_in_registrations_count' => fn ($query) => $query->whereIn('status', ['checked_in', 'completed']),
-            ])
-                ->whereDate('event_date', '>=', now()->toDateString())
-                ->orderBy('event_date')
-                ->take(8)
-                ->get();
-        }
-
         $recentFeedback = CommunityPost::with(['user', 'event'])
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($managedEventIds) {
                 $query->whereIn('event_id', $managedEventIds);
             })
             ->whereBetween('created_at', [$startDate, $endDate])
-            ->when($dashboardRole === User::ROLE_CONTENT_MODERATOR, function ($query) {
-                $query->orderByDesc('is_flagged');
-            })
             ->latest()
             ->take(6)
             ->get();
@@ -234,7 +216,6 @@ class DashboardController extends Controller
             'roleBreakdown',
             'recentEvents',
             'eventPerformance',
-            'eventHealth',
             'completionAverage',
             'recentFeedback',
             'feedbackInsights',
@@ -245,19 +226,13 @@ class DashboardController extends Controller
 
     public function analytics()
     {
-        $pageTitle = auth()->user()->hasAdminRole(User::ROLE_EXECUTIVE)
-            ? 'Analytics & Reports'
-            : 'Analytics Dashboard';
+        $pageTitle = 'Analytics Dashboard';
 
         return view('admin.analytics', $this->analyticsData($pageTitle));
     }
 
     public function reports()
     {
-        if (auth()->user()->hasAdminRole(User::ROLE_EXECUTIVE)) {
-            return redirect()->route('admin.analytics');
-        }
-
         return view('admin.analytics', $this->analyticsData('Reports'));
     }
 
@@ -266,7 +241,7 @@ class DashboardController extends Controller
         abort_unless(in_array($type, ['users', 'events', 'summary'], true), 404);
 
         $user = auth()->user();
-        abort_if($type === 'users' && ! $user->hasAdminRole([User::ROLE_SUPER_ADMIN, User::ROLE_EXECUTIVE]), 403);
+        abort_if($type === 'users' && ! $user->hasAdminRole([User::ROLE_SUPER_ADMIN]), 403);
         $filename = "racetech-{$type}-report-".now()->format('Ymd-His').'.csv';
 
         return response()->streamDownload(function () use ($type, $user) {
@@ -389,7 +364,7 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
         $managedEventIds = $user->managedEventIds();
-        $canViewUserAnalytics = $user->hasAdminRole([User::ROLE_SUPER_ADMIN, User::ROLE_EXECUTIVE]);
+        $canViewUserAnalytics = $user->hasAdminRole([User::ROLE_SUPER_ADMIN]);
 
         $userGrowth = collect();
         $dailyActiveUsers = collect();
@@ -414,7 +389,7 @@ class DashboardController extends Controller
             $dailyActiveUsers = $this->buildSeries($activeUserStart, 30, $dailyActiveUserSource);
         }
 
-        $eventPerformance = Event::withCount(['registrations', 'raceResults'])
+        $eventPerformance = Event::withCount(['registrations', 'raceResults'])->whereNull('revision_of_id')
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($managedEventIds) {
                 $query->whereIn('id', $managedEventIds);
             })
@@ -452,7 +427,7 @@ class DashboardController extends Controller
     {
         fputcsv($handle, ['Event', 'Date', 'Venue', 'Status', 'Manager', 'Registrations', 'Results']);
 
-        Event::with(['manager'])
+        Event::with(['manager'])->whereNull('revision_of_id')
             ->withCount(['registrations', 'raceResults'])
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($user) {
                 $query->where('manager_id', $user->id);
@@ -476,7 +451,7 @@ class DashboardController extends Controller
     {
         $managedEventIds = $user->managedEventIds();
 
-        $eventQuery = Event::query()
+        $eventQuery = Event::query()->whereNull('revision_of_id')
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($managedEventIds) {
                 $query->whereIn('id', $managedEventIds);
             });

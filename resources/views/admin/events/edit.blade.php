@@ -8,7 +8,7 @@
             <div>
                 <p class="text-sm font-medium uppercase tracking-[0.24em] text-[#7a8495]">Event Operations</p>
                 <h1 class="mt-2 text-3xl font-semibold tracking-tight text-[#151b26]">Edit Event</h1>
-                <p class="mt-2 text-sm text-[#6d7685]">Update event details, timing, and registration window. The system detects the lifecycle status automatically.</p>
+                <p class="mt-2 text-sm text-[#6d7685]">Update this private draft, then submit it for Admin review. A revision never changes the public event until approved.</p>
             </div>
 
             <div class="flex flex-wrap gap-3">

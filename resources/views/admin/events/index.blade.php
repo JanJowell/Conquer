@@ -1,10 +1,11 @@
 @extends('admin.layouts.app')
 
-@section('title', auth()->user()->normalizedRole() === \App\Models\User::ROLE_EXECUTIVE ? 'Events Overview' : 'My Events')
+@section('title', 'My Events')
 
 @section('content')
 @php
     $canManageEvents = auth()->user()->hasAdminRole([\App\Models\User::ROLE_SUPER_ADMIN, \App\Models\User::ROLE_EVENT_MANAGER]);
+    $canCreateEvents = auth()->user()->managesAssignedEventsOnly();
 @endphp
 
 <div class="mx-auto max-w-[1400px] space-y-6">
@@ -13,7 +14,7 @@
             <p class="text-xs font-semibold uppercase tracking-wide text-indigo-400">Event Operations</p>
 
             <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-700">
-                {{ auth()->user()->normalizedRole() === \App\Models\User::ROLE_EXECUTIVE ? 'Events Overview' : 'My Events' }}
+                {{ 'My Events' }}
             </h1>
 
             <p class="mt-2 max-w-2xl text-sm text-slate-500">
@@ -21,7 +22,7 @@
             </p>
         </div>
 
-        @if ($canManageEvents)
+        @if ($canCreateEvents)
             <a
                 href="{{ route('admin.events.create') }}"
                 class="inline-flex items-center justify-center rounded-full bg-indigo-400 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-500"
@@ -35,7 +36,7 @@
     <form method="GET" class="grid gap-3 rounded-[1.75rem] bg-white p-4 shadow-[0_8px_24px_rgba(148,163,184,0.12)] md:grid-cols-[minmax(0,1fr)_180px_180px_auto] md:items-end">
         <div>
             <label for="search" class="mb-1.5 block text-sm font-medium text-slate-600">Search</label>
-            <input id="search" name="search" value="{{ request('search') }}" type="text" placeholder="Event title, type, venue, organizer"
+            <input id="search" name="search" value="{{ request('search') }}" type="text" placeholder="Event title, type, venue"
                 class="h-11 w-full rounded-2xl border-0 bg-slate-50 px-4 text-sm text-slate-700 placeholder:text-slate-300 outline-none focus:outline-none focus:ring-2 focus:ring-indigo-200">
         </div>
         <div>
@@ -55,6 +56,15 @@
                 <option value="">All statuses</option>
                 @foreach (['draft', 'upcoming', 'ongoing', 'completed'] as $status)
                     <option value="{{ $status }}" @selected(request('status') === $status)>{{ str($status)->replace('_', ' ')->title() }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div>
+            <label for="review_status" class="mb-1.5 block text-sm font-medium text-slate-600">Approval</label>
+            <select id="review_status" name="review_status" class="h-11 w-full rounded-2xl border-0 bg-slate-50 px-4 text-sm text-slate-700">
+                <option value="">All review states</option>
+                @foreach (['draft' => 'Draft', 'pending_review' => 'Pending Review', 'changes_requested' => 'Changes Requested', 'approved' => 'Approved'] as $value => $label)
+                    <option value="{{ $value }}" @selected(request('review_status') === $value)>{{ $label }}</option>
                 @endforeach
             </select>
         </div>
@@ -89,11 +99,14 @@
                         <tr class="align-top transition hover:bg-[#f7f8fc]">
                             <td class="px-6 py-4">
                                 <p class="font-semibold text-slate-700">{{ $event->title }}</p>
+                                <p class="mt-1 text-xs text-indigo-600">{{ $event->reviewLabel() }}{{ $event->revision_of_id ? ' · Revision' : '' }}</p>
+                                @if ($event->activeRevision)
+                                    <a href="{{ route('admin.events.show', $event->activeRevision) }}" class="mt-2 block text-xs font-semibold text-indigo-600 underline">{{ $event->activeRevision->review_status === 'pending_review' ? 'Revision awaiting review' : $event->activeRevision->reviewLabel() }} — published event unchanged</a>
+                                @endif
                                 <div class="mt-2 flex flex-wrap items-center gap-2">
                                     <span class="inline-flex rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-500">
                                         {{ $event->interest_type ?: 'Type not set' }}
                                     </span>
-                                    <span class="text-xs text-slate-400">{{ $event->organized_by ?: 'Organizer not set' }}</span>
                                 </div>
                             </td>
                             <td class="px-6 py-4">
@@ -122,7 +135,8 @@
                             <td class="px-6 py-4 text-right">
                                 <div class="flex flex-wrap justify-end gap-2">
                                     <x-admin.icon-action label="View event" icon="fa-eye" data-open-event-modal="view-event-{{ $event->id }}" />
-                                    @if ($canManageEvents)
+                                    <x-admin.icon-action :href="route('admin.events.show', $event)" label="Review and details" icon="fa-clipboard-check" />
+                                    @if ($event->canEditSetup(auth()->user()))
                                         <x-admin.icon-action label="Edit event" icon="fa-pen" data-open-event-modal="edit-event-{{ $event->id }}" />
                                         <x-admin.icon-action label="Delete event" icon="fa-trash" tone="danger" data-open-event-modal="delete-event-{{ $event->id }}" />
                                     @endif
@@ -219,10 +233,6 @@
                             <p class="mt-2 text-sm font-medium text-slate-700">{{ $event->registration_deadline?->format('F d, Y') ?: 'No deadline set' }}</p>
                         </div>
                         <div class="rounded-2xl bg-slate-50 p-4">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Organizer</p>
-                            <p class="mt-2 text-sm font-medium text-slate-700">{{ $event->organized_by ?: 'Not set' }}</p>
-                        </div>
-                        <div class="rounded-2xl bg-slate-50 p-4">
                             <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Manager</p>
                             <p class="mt-2 text-sm font-medium text-slate-700">{{ $event->manager?->name ?: 'Unassigned' }}</p>
                         </div>
@@ -264,7 +274,7 @@
         </div>
     </div>
 
-    @if($canManageEvents)
+    @if($event->canEditSetup(auth()->user()))
         @php
             $editingThisEvent = (string) old('_editing_event') === (string) $event->id;
         @endphp
@@ -350,12 +360,6 @@
                                         <label for="edit-venue-{{ $event->id }}" class="mb-1.5 block text-sm font-medium text-slate-600">Venue</label>
                                         <input id="edit-venue-{{ $event->id }}" name="venue" type="text" value="{{ $editingThisEvent ? old('venue', $event->venue) : $event->venue }}" required class="h-12 w-full rounded-2xl border-0 bg-slate-50 px-4 text-sm text-slate-700 outline-none focus:outline-none focus:ring-2 focus:ring-indigo-200">
                                         @if($editingThisEvent) @error('venue') <p class="mt-2 text-sm text-rose-400">{{ $message }}</p> @enderror @endif
-                                    </div>
-
-                                    <div>
-                                        <label for="edit-organized-by-{{ $event->id }}" class="mb-1.5 block text-sm font-medium text-slate-600">Organized By</label>
-                                        <input id="edit-organized-by-{{ $event->id }}" name="organized_by" type="text" value="{{ $editingThisEvent ? old('organized_by', $event->organized_by) : $event->organized_by }}" class="h-12 w-full rounded-2xl border-0 bg-slate-50 px-4 text-sm text-slate-700 outline-none focus:outline-none focus:ring-2 focus:ring-indigo-200">
-                                        @if($editingThisEvent) @error('organized_by') <p class="mt-2 text-sm text-rose-400">{{ $message }}</p> @enderror @endif
                                     </div>
 
                                     <div>

@@ -1,0 +1,232 @@
+{
+    "0405610001": {
+        "code": "0405610001",
+        "name": "Ajos",
+        "city_code": "0405610000"
+    },
+    "0405610002": {
+        "code": "0405610002",
+        "name": "Anusan",
+        "city_code": "0405610000"
+    },
+    "0405610003": {
+        "code": "0405610003",
+        "name": "Barangay 1",
+        "city_code": "0405610000"
+    },
+    "0405610004": {
+        "code": "0405610004",
+        "name": "Barangay 2",
+        "city_code": "0405610000"
+    },
+    "0405610005": {
+        "code": "0405610005",
+        "name": "Barangay 3",
+        "city_code": "0405610000"
+    },
+    "0405610006": {
+        "code": "0405610006",
+        "name": "Barangay 4",
+        "city_code": "0405610000"
+    },
+    "0405610007": {
+        "code": "0405610007",
+        "name": "Barangay 5",
+        "city_code": "0405610000"
+    },
+    "0405610008": {
+        "code": "0405610008",
+        "name": "Barangay 6",
+        "city_code": "0405610000"
+    },
+    "0405610009": {
+        "code": "0405610009",
+        "name": "Barangay 7",
+        "city_code": "0405610000"
+    },
+    "0405610010": {
+        "code": "0405610010",
+        "name": "Barangay 8",
+        "city_code": "0405610000"
+    },
+    "0405610011": {
+        "code": "0405610011",
+        "name": "Barangay 9",
+        "city_code": "0405610000"
+    },
+    "0405610012": {
+        "code": "0405610012",
+        "name": "Bolo",
+        "city_code": "0405610000"
+    },
+    "0405610013": {
+        "code": "0405610013",
+        "name": "Bulagsong",
+        "city_code": "0405610000"
+    },
+    "0405610014": {
+        "code": "0405610014",
+        "name": "Camandiison",
+        "city_code": "0405610000"
+    },
+    "0405610015": {
+        "code": "0405610015",
+        "name": "Canculajao",
+        "city_code": "0405610000"
+    },
+    "0405610016": {
+        "code": "0405610016",
+        "name": "Catumbo",
+        "city_code": "0405610000"
+    },
+    "0405610017": {
+        "code": "0405610017",
+        "name": "Cawayanin Ibaba",
+        "city_code": "0405610000"
+    },
+    "0405610018": {
+        "code": "0405610018",
+        "name": "Cawayanin Ilaya",
+        "city_code": "0405610000"
+    },
+    "0405610019": {
+        "code": "0405610019",
+        "name": "Cutcutan",
+        "city_code": "0405610000"
+    },
+    "0405610020": {
+        "code": "0405610020",
+        "name": "Dahican",
+        "city_code": "0405610000"
+    },
+    "0405610021": {
+        "code": "0405610021",
+        "name": "Doongan Ibaba",
+        "city_code": "0405610000"
+    },
+    "0405610022": {
+        "code": "0405610022",
+        "name": "Doongan Ilaya",
+        "city_code": "0405610000"
+    },
+    "0405610023": {
+        "code": "0405610023",
+        "name": "Gatasan",
+        "city_code": "0405610000"
+    },
+    "0405610024": {
+        "code": "0405610024",
+        "name": "Macpac",
+        "city_code": "0405610000"
+    },
+    "0405610025": {
+        "code": "0405610025",
+        "name": "Madulao",
+        "city_code": "0405610000"
+    },
+    "0405610026": {
+        "code": "0405610026",
+        "name": "Matandang Sabang Kanluran",
+        "city_code": "0405610000"
+    },
+    "0405610027": {
+        "code": "0405610027",
+        "name": "Matandang Sabang Silangan",
+        "city_code": "0405610000"
+    },
+    "0405610028": {
+        "code": "0405610028",
+        "name": "Milagrosa",
+        "city_code": "0405610000"
+    },
+    "0405610029": {
+        "code": "0405610029",
+        "name": "Navitas",
+        "city_code": "0405610000"
+    },
+    "0405610030": {
+        "code": "0405610030",
+        "name": "Pacabit",
+        "city_code": "0405610000"
+    },
+    "0405610031": {
+        "code": "0405610031",
+        "name": "San Antonio Magkupa",
+        "city_code": "0405610000"
+    },
+    "0405610032": {
+        "code": "0405610032",
+        "name": "San Antonio Pala",
+        "city_code": "0405610000"
+    },
+    "0405610033": {
+        "code": "0405610033",
+        "name": "San Isidro",
+        "city_code": "0405610000"
+    },
+    "0405610034": {
+        "code": "0405610034",
+        "name": "San Jose",
+        "city_code": "0405610000"
+    },
+    "0405610035": {
+        "code": "0405610035",
+        "name": "San Pablo",
+        "city_code": "0405610000"
+    },
+    "0405610036": {
+        "code": "0405610036",
+        "name": "San Roque",
+        "city_code": "0405610000"
+    },
+    "0405610037": {
+        "code": "0405610037",
+        "name": "San Vicente Kanluran",
+        "city_code": "0405610000"
+    },
+    "0405610038": {
+        "code": "0405610038",
+        "name": "San Vicente Silangan",
+        "city_code": "0405610000"
+    },
+    "0405610039": {
+        "code": "0405610039",
+        "name": "Santa Maria",
+        "city_code": "0405610000"
+    },
+    "0405610040": {
+        "code": "0405610040",
+        "name": "Tagabas Ibaba",
+        "city_code": "0405610000"
+    },
+    "0405610041": {
+        "code": "0405610041",
+        "name": "Tagabas Ilaya",
+        "city_code": "0405610000"
+    },
+    "0405610042": {
+        "code": "0405610042",
+        "name": "Tagbacan Ibaba",
+        "city_code": "0405610000"
+    },
+    "0405610043": {
+        "code": "0405610043",
+        "name": "Tagbacan Ilaya",
+        "city_code": "0405610000"
+    },
+    "0405610044": {
+        "code": "0405610044",
+        "name": "Tagbacan Silangan",
+        "city_code": "0405610000"
+    },
+    "0405610045": {
+        "code": "0405610045",
+        "name": "Tuhian",
+        "city_code": "0405610000"
+    },
+    "0405610046": {
+        "code": "0405610046",
+        "name": "Barangay 10",
+        "city_code": "0405610000"
+    }
+}

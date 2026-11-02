@@ -10,7 +10,7 @@ use Illuminate\Support\Carbon;
 
 function categoryRaceEvent(User $manager, Carbon $scheduledStart): Event
 {
-    return Event::create([
+    return Event::forceCreate(['review_status' => null,
         'title' => 'Category Start Test '.uniqid(),
         'slug' => 'category-start-test-'.uniqid(),
         'description' => 'Race-day category timing test.',

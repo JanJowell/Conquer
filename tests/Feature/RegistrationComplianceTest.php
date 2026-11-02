@@ -7,7 +7,7 @@ use App\Models\User;
 
 function complianceEventWithCategory(float $distanceKm = 5): array
 {
-    $event = Event::create([
+    $event = Event::forceCreate(['review_status' => null,
         'title' => 'Compliance Ready Run',
         'slug' => 'compliance-ready-run-'.uniqid(),
         'description' => 'A complete public event description.',

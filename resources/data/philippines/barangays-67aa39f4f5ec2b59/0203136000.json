@@ -1,0 +1,137 @@
+{
+    "0203136001": {
+        "code": "0203136001",
+        "name": "Ammugauan",
+        "city_code": "0203136000"
+    },
+    "0203136002": {
+        "code": "0203136002",
+        "name": "Antagan",
+        "city_code": "0203136000"
+    },
+    "0203136003": {
+        "code": "0203136003",
+        "name": "Bagabag",
+        "city_code": "0203136000"
+    },
+    "0203136004": {
+        "code": "0203136004",
+        "name": "Bagutari",
+        "city_code": "0203136000"
+    },
+    "0203136005": {
+        "code": "0203136005",
+        "name": "Balelleng",
+        "city_code": "0203136000"
+    },
+    "0203136006": {
+        "code": "0203136006",
+        "name": "Barumbong",
+        "city_code": "0203136000"
+    },
+    "0203136008": {
+        "code": "0203136008",
+        "name": "Bubug",
+        "city_code": "0203136000"
+    },
+    "0203136009": {
+        "code": "0203136009",
+        "name": "Bolinao-Culalabo",
+        "city_code": "0203136000"
+    },
+    "0203136010": {
+        "code": "0203136010",
+        "name": "Cañogan Abajo Norte",
+        "city_code": "0203136000"
+    },
+    "0203136013": {
+        "code": "0203136013",
+        "name": "Calinaoan Centro",
+        "city_code": "0203136000"
+    },
+    "0203136015": {
+        "code": "0203136015",
+        "name": "Calinaoan Malasin",
+        "city_code": "0203136000"
+    },
+    "0203136016": {
+        "code": "0203136016",
+        "name": "Calinaoan Norte",
+        "city_code": "0203136000"
+    },
+    "0203136017": {
+        "code": "0203136017",
+        "name": "Cañogan Abajo Sur",
+        "city_code": "0203136000"
+    },
+    "0203136018": {
+        "code": "0203136018",
+        "name": "Cañogan Alto",
+        "city_code": "0203136000"
+    },
+    "0203136019": {
+        "code": "0203136019",
+        "name": "Centro",
+        "city_code": "0203136000"
+    },
+    "0203136020": {
+        "code": "0203136020",
+        "name": "Colunguan",
+        "city_code": "0203136000"
+    },
+    "0203136021": {
+        "code": "0203136021",
+        "name": "Malapagay",
+        "city_code": "0203136000"
+    },
+    "0203136022": {
+        "code": "0203136022",
+        "name": "San Rafael Abajo",
+        "city_code": "0203136000"
+    },
+    "0203136023": {
+        "code": "0203136023",
+        "name": "San Rafael Alto",
+        "city_code": "0203136000"
+    },
+    "0203136024": {
+        "code": "0203136024",
+        "name": "San Roque",
+        "city_code": "0203136000"
+    },
+    "0203136025": {
+        "code": "0203136025",
+        "name": "San Vicente",
+        "city_code": "0203136000"
+    },
+    "0203136026": {
+        "code": "0203136026",
+        "name": "Uauang Tuliao",
+        "city_code": "0203136000"
+    },
+    "0203136027": {
+        "code": "0203136027",
+        "name": "Uauang Galicia",
+        "city_code": "0203136000"
+    },
+    "0203136029": {
+        "code": "0203136029",
+        "name": "Biga Occidental",
+        "city_code": "0203136000"
+    },
+    "0203136030": {
+        "code": "0203136030",
+        "name": "Biga Oriental",
+        "city_code": "0203136000"
+    },
+    "0203136031": {
+        "code": "0203136031",
+        "name": "Calanigan Norte",
+        "city_code": "0203136000"
+    },
+    "0203136032": {
+        "code": "0203136032",
+        "name": "Calanigan Sur",
+        "city_code": "0203136000"
+    }
+}

@@ -1,0 +1,312 @@
+{
+    "0301420001": {
+        "code": "0301420001",
+        "name": "Bagong Buhay I",
+        "city_code": "0301420000"
+    },
+    "0301420002": {
+        "code": "0301420002",
+        "name": "Dulong Bayan",
+        "city_code": "0301420000"
+    },
+    "0301420003": {
+        "code": "0301420003",
+        "name": "Gaya-gaya",
+        "city_code": "0301420000"
+    },
+    "0301420004": {
+        "code": "0301420004",
+        "name": "Kaypian",
+        "city_code": "0301420000"
+    },
+    "0301420005": {
+        "code": "0301420005",
+        "name": "Kaybanban",
+        "city_code": "0301420000"
+    },
+    "0301420006": {
+        "code": "0301420006",
+        "name": "Minuyan I",
+        "city_code": "0301420000"
+    },
+    "0301420007": {
+        "code": "0301420007",
+        "name": "Muzon Proper",
+        "city_code": "0301420000"
+    },
+    "0301420008": {
+        "code": "0301420008",
+        "name": "Poblacion",
+        "city_code": "0301420000"
+    },
+    "0301420009": {
+        "code": "0301420009",
+        "name": "Santo Cristo",
+        "city_code": "0301420000"
+    },
+    "0301420010": {
+        "code": "0301420010",
+        "name": "Sapang Palay",
+        "city_code": "0301420000"
+    },
+    "0301420011": {
+        "code": "0301420011",
+        "name": "Tungkong Mangga",
+        "city_code": "0301420000"
+    },
+    "0301420012": {
+        "code": "0301420012",
+        "name": "Citrus",
+        "city_code": "0301420000"
+    },
+    "0301420013": {
+        "code": "0301420013",
+        "name": "San Martin I",
+        "city_code": "0301420000"
+    },
+    "0301420014": {
+        "code": "0301420014",
+        "name": "Santa Cruz I",
+        "city_code": "0301420000"
+    },
+    "0301420015": {
+        "code": "0301420015",
+        "name": "Fatima I",
+        "city_code": "0301420000"
+    },
+    "0301420016": {
+        "code": "0301420016",
+        "name": "San Pedro",
+        "city_code": "0301420000"
+    },
+    "0301420017": {
+        "code": "0301420017",
+        "name": "San Rafael II",
+        "city_code": "0301420000"
+    },
+    "0301420018": {
+        "code": "0301420018",
+        "name": "Santo Niño I",
+        "city_code": "0301420000"
+    },
+    "0301420019": {
+        "code": "0301420019",
+        "name": "Assumption",
+        "city_code": "0301420000"
+    },
+    "0301420020": {
+        "code": "0301420020",
+        "name": "Bagong Buhay II",
+        "city_code": "0301420000"
+    },
+    "0301420021": {
+        "code": "0301420021",
+        "name": "Bagong Buhay III",
+        "city_code": "0301420000"
+    },
+    "0301420022": {
+        "code": "0301420022",
+        "name": "Ciudad Real",
+        "city_code": "0301420000"
+    },
+    "0301420023": {
+        "code": "0301420023",
+        "name": "Fatima II",
+        "city_code": "0301420000"
+    },
+    "0301420024": {
+        "code": "0301420024",
+        "name": "Fatima III",
+        "city_code": "0301420000"
+    },
+    "0301420025": {
+        "code": "0301420025",
+        "name": "Fatima IV",
+        "city_code": "0301420000"
+    },
+    "0301420026": {
+        "code": "0301420026",
+        "name": "Fatima V",
+        "city_code": "0301420000"
+    },
+    "0301420027": {
+        "code": "0301420027",
+        "name": "Francisco Homes-Guijo",
+        "city_code": "0301420000"
+    },
+    "0301420028": {
+        "code": "0301420028",
+        "name": "Francisco Homes-Mulawin",
+        "city_code": "0301420000"
+    },
+    "0301420029": {
+        "code": "0301420029",
+        "name": "Francisco Homes-Narra",
+        "city_code": "0301420000"
+    },
+    "0301420030": {
+        "code": "0301420030",
+        "name": "Francisco Homes-Yakal",
+        "city_code": "0301420000"
+    },
+    "0301420031": {
+        "code": "0301420031",
+        "name": "Graceville",
+        "city_code": "0301420000"
+    },
+    "0301420032": {
+        "code": "0301420032",
+        "name": "Gumaoc Central",
+        "city_code": "0301420000"
+    },
+    "0301420033": {
+        "code": "0301420033",
+        "name": "Gumaoc East",
+        "city_code": "0301420000"
+    },
+    "0301420034": {
+        "code": "0301420034",
+        "name": "Gumaoc West",
+        "city_code": "0301420000"
+    },
+    "0301420035": {
+        "code": "0301420035",
+        "name": "Lawang Pari",
+        "city_code": "0301420000"
+    },
+    "0301420036": {
+        "code": "0301420036",
+        "name": "Maharlika",
+        "city_code": "0301420000"
+    },
+    "0301420037": {
+        "code": "0301420037",
+        "name": "Minuyan II",
+        "city_code": "0301420000"
+    },
+    "0301420038": {
+        "code": "0301420038",
+        "name": "Minuyan III",
+        "city_code": "0301420000"
+    },
+    "0301420039": {
+        "code": "0301420039",
+        "name": "Minuyan IV",
+        "city_code": "0301420000"
+    },
+    "0301420040": {
+        "code": "0301420040",
+        "name": "Minuyan V",
+        "city_code": "0301420000"
+    },
+    "0301420041": {
+        "code": "0301420041",
+        "name": "Minuyan Proper",
+        "city_code": "0301420000"
+    },
+    "0301420042": {
+        "code": "0301420042",
+        "name": "Paradise III",
+        "city_code": "0301420000"
+    },
+    "0301420043": {
+        "code": "0301420043",
+        "name": "Poblacion I",
+        "city_code": "0301420000"
+    },
+    "0301420044": {
+        "code": "0301420044",
+        "name": "San Isidro",
+        "city_code": "0301420000"
+    },
+    "0301420045": {
+        "code": "0301420045",
+        "name": "San Manuel",
+        "city_code": "0301420000"
+    },
+    "0301420046": {
+        "code": "0301420046",
+        "name": "San Martin II",
+        "city_code": "0301420000"
+    },
+    "0301420047": {
+        "code": "0301420047",
+        "name": "San Martin III",
+        "city_code": "0301420000"
+    },
+    "0301420048": {
+        "code": "0301420048",
+        "name": "San Martin IV",
+        "city_code": "0301420000"
+    },
+    "0301420049": {
+        "code": "0301420049",
+        "name": "San Rafael I",
+        "city_code": "0301420000"
+    },
+    "0301420050": {
+        "code": "0301420050",
+        "name": "San Rafael III",
+        "city_code": "0301420000"
+    },
+    "0301420051": {
+        "code": "0301420051",
+        "name": "San Rafael IV",
+        "city_code": "0301420000"
+    },
+    "0301420052": {
+        "code": "0301420052",
+        "name": "San Rafael V",
+        "city_code": "0301420000"
+    },
+    "0301420053": {
+        "code": "0301420053",
+        "name": "San Roque",
+        "city_code": "0301420000"
+    },
+    "0301420054": {
+        "code": "0301420054",
+        "name": "Santa Cruz II",
+        "city_code": "0301420000"
+    },
+    "0301420055": {
+        "code": "0301420055",
+        "name": "Santa Cruz III",
+        "city_code": "0301420000"
+    },
+    "0301420056": {
+        "code": "0301420056",
+        "name": "Santa Cruz IV",
+        "city_code": "0301420000"
+    },
+    "0301420057": {
+        "code": "0301420057",
+        "name": "Santa Cruz V",
+        "city_code": "0301420000"
+    },
+    "0301420058": {
+        "code": "0301420058",
+        "name": "Santo Niño II",
+        "city_code": "0301420000"
+    },
+    "0301420059": {
+        "code": "0301420059",
+        "name": "San Martin de Porres",
+        "city_code": "0301420000"
+    },
+    "0301420060": {
+        "code": "0301420060",
+        "name": "Muzon East",
+        "city_code": "0301420000"
+    },
+    "0301420061": {
+        "code": "0301420061",
+        "name": "Muzon South",
+        "city_code": "0301420000"
+    },
+    "0301420062": {
+        "code": "0301420062",
+        "name": "Muzon West",
+        "city_code": "0301420000"
+    }
+}

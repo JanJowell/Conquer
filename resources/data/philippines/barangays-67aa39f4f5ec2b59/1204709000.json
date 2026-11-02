@@ -1,0 +1,222 @@
+{
+    "1204709002": {
+        "code": "1204709002",
+        "name": "Agriculture",
+        "city_code": "1204709000"
+    },
+    "1204709003": {
+        "code": "1204709003",
+        "name": "Anonang",
+        "city_code": "1204709000"
+    },
+    "1204709004": {
+        "code": "1204709004",
+        "name": "Arizona",
+        "city_code": "1204709000"
+    },
+    "1204709005": {
+        "code": "1204709005",
+        "name": "Bagumba",
+        "city_code": "1204709000"
+    },
+    "1204709006": {
+        "code": "1204709006",
+        "name": "Baliki",
+        "city_code": "1204709000"
+    },
+    "1204709007": {
+        "code": "1204709007",
+        "name": "Bitoka",
+        "city_code": "1204709000"
+    },
+    "1204709008": {
+        "code": "1204709008",
+        "name": "Bual Norte",
+        "city_code": "1204709000"
+    },
+    "1204709009": {
+        "code": "1204709009",
+        "name": "Bual Sur",
+        "city_code": "1204709000"
+    },
+    "1204709010": {
+        "code": "1204709010",
+        "name": "Central Bulanan",
+        "city_code": "1204709000"
+    },
+    "1204709012": {
+        "code": "1204709012",
+        "name": "Central Glad",
+        "city_code": "1204709000"
+    },
+    "1204709013": {
+        "code": "1204709013",
+        "name": "Ilbocean",
+        "city_code": "1204709000"
+    },
+    "1204709017": {
+        "code": "1204709017",
+        "name": "Central Katingawan",
+        "city_code": "1204709000"
+    },
+    "1204709018": {
+        "code": "1204709018",
+        "name": "Kimagango",
+        "city_code": "1204709000"
+    },
+    "1204709021": {
+        "code": "1204709021",
+        "name": "Lagumbingan",
+        "city_code": "1204709000"
+    },
+    "1204709022": {
+        "code": "1204709022",
+        "name": "Lomopog",
+        "city_code": "1204709000"
+    },
+    "1204709023": {
+        "code": "1204709023",
+        "name": "Lower Glad",
+        "city_code": "1204709000"
+    },
+    "1204709024": {
+        "code": "1204709024",
+        "name": "Lower Katingawan",
+        "city_code": "1204709000"
+    },
+    "1204709025": {
+        "code": "1204709025",
+        "name": "Macasendeg",
+        "city_code": "1204709000"
+    },
+    "1204709026": {
+        "code": "1204709026",
+        "name": "Malamote",
+        "city_code": "1204709000"
+    },
+    "1204709028": {
+        "code": "1204709028",
+        "name": "Milaya",
+        "city_code": "1204709000"
+    },
+    "1204709031": {
+        "code": "1204709031",
+        "name": "Nalin",
+        "city_code": "1204709000"
+    },
+    "1204709032": {
+        "code": "1204709032",
+        "name": "Nes",
+        "city_code": "1204709000"
+    },
+    "1204709034": {
+        "code": "1204709034",
+        "name": "Patindeguen",
+        "city_code": "1204709000"
+    },
+    "1204709035": {
+        "code": "1204709035",
+        "name": "Barangay Poblacion 1",
+        "city_code": "1204709000"
+    },
+    "1204709036": {
+        "code": "1204709036",
+        "name": "Barangay Poblacion 2",
+        "city_code": "1204709000"
+    },
+    "1204709037": {
+        "code": "1204709037",
+        "name": "Barangay Poblacion 3",
+        "city_code": "1204709000"
+    },
+    "1204709038": {
+        "code": "1204709038",
+        "name": "Barangay Poblacion 4",
+        "city_code": "1204709000"
+    },
+    "1204709039": {
+        "code": "1204709039",
+        "name": "Barangay Poblacion 5",
+        "city_code": "1204709000"
+    },
+    "1204709040": {
+        "code": "1204709040",
+        "name": "Barangay Poblacion 6",
+        "city_code": "1204709000"
+    },
+    "1204709041": {
+        "code": "1204709041",
+        "name": "Barangay Poblacion 7",
+        "city_code": "1204709000"
+    },
+    "1204709042": {
+        "code": "1204709042",
+        "name": "Barangay Poblacion 8",
+        "city_code": "1204709000"
+    },
+    "1204709043": {
+        "code": "1204709043",
+        "name": "Palongoguen",
+        "city_code": "1204709000"
+    },
+    "1204709044": {
+        "code": "1204709044",
+        "name": "Rangaban",
+        "city_code": "1204709000"
+    },
+    "1204709045": {
+        "code": "1204709045",
+        "name": "Sadaan",
+        "city_code": "1204709000"
+    },
+    "1204709046": {
+        "code": "1204709046",
+        "name": "Salunayan",
+        "city_code": "1204709000"
+    },
+    "1204709048": {
+        "code": "1204709048",
+        "name": "San Isidro",
+        "city_code": "1204709000"
+    },
+    "1204709049": {
+        "code": "1204709049",
+        "name": "Santa Cruz",
+        "city_code": "1204709000"
+    },
+    "1204709052": {
+        "code": "1204709052",
+        "name": "Bulanan Upper",
+        "city_code": "1204709000"
+    },
+    "1204709053": {
+        "code": "1204709053",
+        "name": "Upper Glad I",
+        "city_code": "1204709000"
+    },
+    "1204709054": {
+        "code": "1204709054",
+        "name": "Upper Glad II",
+        "city_code": "1204709000"
+    },
+    "1204709055": {
+        "code": "1204709055",
+        "name": "Upper Labas",
+        "city_code": "1204709000"
+    },
+    "1204709056": {
+        "code": "1204709056",
+        "name": "Villarica",
+        "city_code": "1204709000"
+    },
+    "1204709057": {
+        "code": "1204709057",
+        "name": "Kiwanan",
+        "city_code": "1204709000"
+    },
+    "1204709058": {
+        "code": "1204709058",
+        "name": "San Pedro",
+        "city_code": "1204709000"
+    }
+}

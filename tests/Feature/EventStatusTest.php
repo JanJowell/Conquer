@@ -9,7 +9,7 @@ test('an upcoming event in the past is saved as completed', function () {
     Carbon::setTestNow('2026-04-29 12:00:00');
 
     try {
-        $event = Event::create([
+        $event = Event::forceCreate(['review_status' => null,
             'title' => 'Past Fun Run',
             'slug' => 'past-fun-run',
             'venue' => 'Bacoor City',
@@ -27,7 +27,7 @@ test('an upcoming event today or later remains upcoming', function () {
     Carbon::setTestNow('2026-04-29 12:00:00');
 
     try {
-        $event = Event::create([
+        $event = Event::forceCreate(['review_status' => null,
             'title' => 'Future Fun Run',
             'slug' => 'future-fun-run',
             'venue' => 'Bacoor City',
@@ -46,6 +46,7 @@ test('past upcoming events already in storage display as completed', function ()
 
     try {
         DB::table('events')->insert([
+            'review_status' => null,
             'title' => 'Stored Past Fun Run',
             'slug' => 'stored-past-fun-run',
             'description' => 'A complete public event description.',

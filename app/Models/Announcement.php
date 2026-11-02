@@ -35,6 +35,11 @@ class Announcement extends Model
     {
         return $query->where('is_published', true)
             ->where(function (Builder $query) {
+                $query->whereNull('event_id')->orWhereHas('event', fn (Builder $event) => $event
+                    ->whereNull('revision_of_id')->where(fn (Builder $review) => $review
+                    ->whereNull('review_status')->orWhere('review_status', 'approved')));
+            })
+            ->where(function (Builder $query) {
                 $query->whereNull('expires_at')
                     ->orWhere('expires_at', '>', now());
             });

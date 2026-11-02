@@ -24,17 +24,7 @@
             class="w-full rounded-2xl border border-[#d9dee7] px-4 py-3 text-sm text-[#151b26] outline-none transition focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]">{{ old('description', $event?->description) }}</textarea>
     </div>
 
-    <div>
-        <label for="venue" class="mb-2 block text-sm font-medium text-[#3d4757]">Venue</label>
-        <input id="venue" name="venue" type="text" value="{{ old('venue', $event?->venue) }}"
-            class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none transition focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]">
-    </div>
-
-    <div>
-        <label for="organized_by" class="mb-2 block text-sm font-medium text-[#3d4757]">Organized By</label>
-        <input id="organized_by" name="organized_by" type="text" value="{{ old('organized_by', $event?->organized_by) }}"
-            class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none transition focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]">
-    </div>
+    @include('admin.events.partials.venue')
 
     <div>
         <label for="event_date" class="mb-2 block text-sm font-medium text-[#3d4757]">Event Start Date</label>
@@ -109,7 +99,19 @@
                             @endif
                         </label>
 
-                        @if (($definition['type'] ?? null) === 'select')
+                        @if (($definition['type'] ?? null) === 'duration')
+                            <x-cutoff-duration :id="$inputId" :name="$inputName" :value="$detailValue"
+                                :hours-name="'type_details['.$eventType.']['.$detailKey.'_hours]'"
+                                :minutes-name="'type_details['.$eventType.']['.$detailKey.'_minutes]'"
+                                :hours="old('type_details.'.$eventType.'.'.$detailKey.'_hours')"
+                                :minutes="old('type_details.'.$eventType.'.'.$detailKey.'_minutes')" />
+                            @error("type_details.{$eventType}.{$detailKey}_hours")
+                                <p class="mt-2 text-xs text-rose-600">{{ $message }}</p>
+                            @enderror
+                            @error("type_details.{$eventType}.{$detailKey}_minutes")
+                                <p class="mt-2 text-xs text-rose-600">{{ $message }}</p>
+                            @enderror
+                        @elseif (($definition['type'] ?? null) === 'select')
                             <select id="{{ $inputId }}" name="{{ $inputName }}" class="h-12 {{ $fieldClasses }}">
                                 <option value="">Select {{ strtolower($definition['label']) }}</option>
                                 @foreach (($definition['options'] ?? []) as $option)
@@ -373,7 +375,7 @@
                                 <select name="categories[{{ $index }}][distance_option]" data-distance-option class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                                     <option value="">Select distance</option>
                                     @foreach (($distanceOptions ?? []) as $value => $label)
-                                        <option value="{{ $value }}" @selected(($categoryRow['distance_option'] ?? '') === $value)>{{ $label }}</option>
+                                        <option value="{{ $value }}" @selected((string) ($categoryRow['distance_option'] ?? '') === (string) $value)>{{ $label }}</option>
                                     @endforeach
                                 </select>
                                 <select name="categories[{{ $index }}][distance_unit]" data-distance-unit aria-label="Distance unit" class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-3 text-sm font-semibold text-[#151b26] outline-none">
@@ -921,8 +923,9 @@
                 const active = panel.dataset.categoryTypeDetails === selectedType;
                 panel.classList.toggle('hidden', ! active);
                 panel.querySelectorAll('input, select, textarea').forEach((field) => {
+                    field.dataset.requiredWhenActive ??= field.required ? 'true' : 'false';
                     field.disabled = ! active;
-                    field.required = active;
+                    field.required = active && field.dataset.requiredWhenActive === 'true';
                 });
             });
         };

@@ -1,0 +1,122 @@
+{
+    "0306915001": {
+        "code": "0306915001",
+        "name": "Baldios",
+        "city_code": "0306915000"
+    },
+    "0306915002": {
+        "code": "0306915002",
+        "name": "Botbotones",
+        "city_code": "0306915000"
+    },
+    "0306915003": {
+        "code": "0306915003",
+        "name": "Caanamongan",
+        "city_code": "0306915000"
+    },
+    "0306915004": {
+        "code": "0306915004",
+        "name": "Cabaruan",
+        "city_code": "0306915000"
+    },
+    "0306915005": {
+        "code": "0306915005",
+        "name": "Cabugbugan",
+        "city_code": "0306915000"
+    },
+    "0306915006": {
+        "code": "0306915006",
+        "name": "Caduldulaoan",
+        "city_code": "0306915000"
+    },
+    "0306915007": {
+        "code": "0306915007",
+        "name": "Calipayan",
+        "city_code": "0306915000"
+    },
+    "0306915008": {
+        "code": "0306915008",
+        "name": "Macaguing",
+        "city_code": "0306915000"
+    },
+    "0306915009": {
+        "code": "0306915009",
+        "name": "Nambalan",
+        "city_code": "0306915000"
+    },
+    "0306915010": {
+        "code": "0306915010",
+        "name": "Padapada",
+        "city_code": "0306915000"
+    },
+    "0306915011": {
+        "code": "0306915011",
+        "name": "Pilpila",
+        "city_code": "0306915000"
+    },
+    "0306915012": {
+        "code": "0306915012",
+        "name": "Pinpinas",
+        "city_code": "0306915000"
+    },
+    "0306915013": {
+        "code": "0306915013",
+        "name": "Poblacion East",
+        "city_code": "0306915000"
+    },
+    "0306915014": {
+        "code": "0306915014",
+        "name": "Poblacion West",
+        "city_code": "0306915000"
+    },
+    "0306915015": {
+        "code": "0306915015",
+        "name": "Pugo-Cecilio",
+        "city_code": "0306915000"
+    },
+    "0306915016": {
+        "code": "0306915016",
+        "name": "San Francisco",
+        "city_code": "0306915000"
+    },
+    "0306915017": {
+        "code": "0306915017",
+        "name": "San Sotero",
+        "city_code": "0306915000"
+    },
+    "0306915018": {
+        "code": "0306915018",
+        "name": "San Vicente",
+        "city_code": "0306915000"
+    },
+    "0306915019": {
+        "code": "0306915019",
+        "name": "Santa Ines Centro",
+        "city_code": "0306915000"
+    },
+    "0306915020": {
+        "code": "0306915020",
+        "name": "Santa Ines East",
+        "city_code": "0306915000"
+    },
+    "0306915021": {
+        "code": "0306915021",
+        "name": "Santa Ines West",
+        "city_code": "0306915000"
+    },
+    "0306915022": {
+        "code": "0306915022",
+        "name": "Taguiporo",
+        "city_code": "0306915000"
+    },
+    "0306915023": {
+        "code": "0306915023",
+        "name": "Timmaguab",
+        "city_code": "0306915000"
+    },
+    "0306915024": {
+        "code": "0306915024",
+        "name": "Vargas",
+        "city_code": "0306915000"
+    }
+}

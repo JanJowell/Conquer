@@ -1,0 +1,97 @@
+{
+    "0105542001": {
+        "code": "0105542001",
+        "name": "Baquioen",
+        "city_code": "0105542000"
+    },
+    "0105542002": {
+        "code": "0105542002",
+        "name": "Baybay Norte",
+        "city_code": "0105542000"
+    },
+    "0105542003": {
+        "code": "0105542003",
+        "name": "Baybay Sur",
+        "city_code": "0105542000"
+    },
+    "0105542004": {
+        "code": "0105542004",
+        "name": "Bolaoen",
+        "city_code": "0105542000"
+    },
+    "0105542005": {
+        "code": "0105542005",
+        "name": "Cabalitian",
+        "city_code": "0105542000"
+    },
+    "0105542006": {
+        "code": "0105542006",
+        "name": "Calumbuyan",
+        "city_code": "0105542000"
+    },
+    "0105542007": {
+        "code": "0105542007",
+        "name": "Camagsingalan",
+        "city_code": "0105542000"
+    },
+    "0105542008": {
+        "code": "0105542008",
+        "name": "Caoayan",
+        "city_code": "0105542000"
+    },
+    "0105542009": {
+        "code": "0105542009",
+        "name": "Capantolan",
+        "city_code": "0105542000"
+    },
+    "0105542010": {
+        "code": "0105542010",
+        "name": "Macaycayawan",
+        "city_code": "0105542000"
+    },
+    "0105542011": {
+        "code": "0105542011",
+        "name": "Paitan East",
+        "city_code": "0105542000"
+    },
+    "0105542012": {
+        "code": "0105542012",
+        "name": "Paitan West",
+        "city_code": "0105542000"
+    },
+    "0105542013": {
+        "code": "0105542013",
+        "name": "Pangascasan",
+        "city_code": "0105542000"
+    },
+    "0105542014": {
+        "code": "0105542014",
+        "name": "Poblacion",
+        "city_code": "0105542000"
+    },
+    "0105542015": {
+        "code": "0105542015",
+        "name": "Santo Domingo",
+        "city_code": "0105542000"
+    },
+    "0105542016": {
+        "code": "0105542016",
+        "name": "Seselangen",
+        "city_code": "0105542000"
+    },
+    "0105542018": {
+        "code": "0105542018",
+        "name": "Sioasio East",
+        "city_code": "0105542000"
+    },
+    "0105542019": {
+        "code": "0105542019",
+        "name": "Sioasio West",
+        "city_code": "0105542000"
+    },
+    "0105542020": {
+        "code": "0105542020",
+        "name": "Victoria",
+        "city_code": "0105542000"
+    }
+}

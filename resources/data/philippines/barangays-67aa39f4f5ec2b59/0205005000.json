@@ -1,0 +1,127 @@
+{
+    "0205005001": {
+        "code": "0205005001",
+        "name": "Bonfal East",
+        "city_code": "0205005000"
+    },
+    "0205005002": {
+        "code": "0205005002",
+        "name": "Bonfal Proper",
+        "city_code": "0205005000"
+    },
+    "0205005003": {
+        "code": "0205005003",
+        "name": "Bonfal West",
+        "city_code": "0205005000"
+    },
+    "0205005004": {
+        "code": "0205005004",
+        "name": "Buenavista",
+        "city_code": "0205005000"
+    },
+    "0205005005": {
+        "code": "0205005005",
+        "name": "Busilac",
+        "city_code": "0205005000"
+    },
+    "0205005006": {
+        "code": "0205005006",
+        "name": "Casat",
+        "city_code": "0205005000"
+    },
+    "0205005008": {
+        "code": "0205005008",
+        "name": "La Torre North",
+        "city_code": "0205005000"
+    },
+    "0205005009": {
+        "code": "0205005009",
+        "name": "Magapuy",
+        "city_code": "0205005000"
+    },
+    "0205005010": {
+        "code": "0205005010",
+        "name": "Magsaysay",
+        "city_code": "0205005000"
+    },
+    "0205005011": {
+        "code": "0205005011",
+        "name": "Masoc",
+        "city_code": "0205005000"
+    },
+    "0205005012": {
+        "code": "0205005012",
+        "name": "Paitan",
+        "city_code": "0205005000"
+    },
+    "0205005014": {
+        "code": "0205005014",
+        "name": "Don Domingo Maddela Pob.",
+        "city_code": "0205005000"
+    },
+    "0205005015": {
+        "code": "0205005015",
+        "name": "Don Tomas Maddela Pob.",
+        "city_code": "0205005000"
+    },
+    "0205005016": {
+        "code": "0205005016",
+        "name": "District III Pob.",
+        "city_code": "0205005000"
+    },
+    "0205005017": {
+        "code": "0205005017",
+        "name": "District IV",
+        "city_code": "0205005000"
+    },
+    "0205005019": {
+        "code": "0205005019",
+        "name": "Bansing",
+        "city_code": "0205005000"
+    },
+    "0205005020": {
+        "code": "0205005020",
+        "name": "Cabuaan",
+        "city_code": "0205005000"
+    },
+    "0205005021": {
+        "code": "0205005021",
+        "name": "Don Mariano Marcos",
+        "city_code": "0205005000"
+    },
+    "0205005022": {
+        "code": "0205005022",
+        "name": "Ipil-Cuneg",
+        "city_code": "0205005000"
+    },
+    "0205005023": {
+        "code": "0205005023",
+        "name": "La Torre South",
+        "city_code": "0205005000"
+    },
+    "0205005024": {
+        "code": "0205005024",
+        "name": "Luyang",
+        "city_code": "0205005000"
+    },
+    "0205005025": {
+        "code": "0205005025",
+        "name": "Salvacion",
+        "city_code": "0205005000"
+    },
+    "0205005026": {
+        "code": "0205005026",
+        "name": "San Nicolas North",
+        "city_code": "0205005000"
+    },
+    "0205005027": {
+        "code": "0205005027",
+        "name": "Santa Rosa",
+        "city_code": "0205005000"
+    },
+    "0205005028": {
+        "code": "0205005028",
+        "name": "Vista Alegre",
+        "city_code": "0205005000"
+    }
+}

@@ -1,0 +1,87 @@
+{
+    "0305417001": {
+        "code": "0305417001",
+        "name": "San Agustin",
+        "city_code": "0305417000"
+    },
+    "0305417002": {
+        "code": "0305417002",
+        "name": "San Carlos",
+        "city_code": "0305417000"
+    },
+    "0305417003": {
+        "code": "0305417003",
+        "name": "San Isidro",
+        "city_code": "0305417000"
+    },
+    "0305417004": {
+        "code": "0305417004",
+        "name": "San Jose",
+        "city_code": "0305417000"
+    },
+    "0305417005": {
+        "code": "0305417005",
+        "name": "San Juan",
+        "city_code": "0305417000"
+    },
+    "0305417006": {
+        "code": "0305417006",
+        "name": "San Nicolas",
+        "city_code": "0305417000"
+    },
+    "0305417008": {
+        "code": "0305417008",
+        "name": "San Roque",
+        "city_code": "0305417000"
+    },
+    "0305417009": {
+        "code": "0305417009",
+        "name": "San Sebastian",
+        "city_code": "0305417000"
+    },
+    "0305417010": {
+        "code": "0305417010",
+        "name": "Santa Catalina",
+        "city_code": "0305417000"
+    },
+    "0305417011": {
+        "code": "0305417011",
+        "name": "Santa Cruz Pambilog",
+        "city_code": "0305417000"
+    },
+    "0305417012": {
+        "code": "0305417012",
+        "name": "Santa Cruz Poblacion",
+        "city_code": "0305417000"
+    },
+    "0305417013": {
+        "code": "0305417013",
+        "name": "Santa Lucia",
+        "city_code": "0305417000"
+    },
+    "0305417014": {
+        "code": "0305417014",
+        "name": "Santa Monica",
+        "city_code": "0305417000"
+    },
+    "0305417015": {
+        "code": "0305417015",
+        "name": "Santa Rita",
+        "city_code": "0305417000"
+    },
+    "0305417016": {
+        "code": "0305417016",
+        "name": "Santo Niño",
+        "city_code": "0305417000"
+    },
+    "0305417017": {
+        "code": "0305417017",
+        "name": "Santo Rosario",
+        "city_code": "0305417000"
+    },
+    "0305417018": {
+        "code": "0305417018",
+        "name": "Santo Tomas",
+        "city_code": "0305417000"
+    }
+}

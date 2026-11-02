@@ -1,0 +1,412 @@
+{
+    "0105527001": {
+        "code": "0105527001",
+        "name": "Andangin",
+        "city_code": "0105527000"
+    },
+    "0105527002": {
+        "code": "0105527002",
+        "name": "Arellano Street",
+        "city_code": "0105527000"
+    },
+    "0105527003": {
+        "code": "0105527003",
+        "name": "Bantay",
+        "city_code": "0105527000"
+    },
+    "0105527004": {
+        "code": "0105527004",
+        "name": "Bantocaling",
+        "city_code": "0105527000"
+    },
+    "0105527005": {
+        "code": "0105527005",
+        "name": "Baracbac",
+        "city_code": "0105527000"
+    },
+    "0105527006": {
+        "code": "0105527006",
+        "name": "Peania Pedania",
+        "city_code": "0105527000"
+    },
+    "0105527007": {
+        "code": "0105527007",
+        "name": "Bogtong Bolo",
+        "city_code": "0105527000"
+    },
+    "0105527008": {
+        "code": "0105527008",
+        "name": "Bogtong Bunao",
+        "city_code": "0105527000"
+    },
+    "0105527009": {
+        "code": "0105527009",
+        "name": "Bogtong Centro",
+        "city_code": "0105527000"
+    },
+    "0105527010": {
+        "code": "0105527010",
+        "name": "Bogtong Niog",
+        "city_code": "0105527000"
+    },
+    "0105527011": {
+        "code": "0105527011",
+        "name": "Bogtong Silag",
+        "city_code": "0105527000"
+    },
+    "0105527012": {
+        "code": "0105527012",
+        "name": "Buaya",
+        "city_code": "0105527000"
+    },
+    "0105527013": {
+        "code": "0105527013",
+        "name": "Buenlag",
+        "city_code": "0105527000"
+    },
+    "0105527014": {
+        "code": "0105527014",
+        "name": "Bueno",
+        "city_code": "0105527000"
+    },
+    "0105527015": {
+        "code": "0105527015",
+        "name": "Bunagan",
+        "city_code": "0105527000"
+    },
+    "0105527017": {
+        "code": "0105527017",
+        "name": "Bunlalacao",
+        "city_code": "0105527000"
+    },
+    "0105527018": {
+        "code": "0105527018",
+        "name": "Burgos Street",
+        "city_code": "0105527000"
+    },
+    "0105527019": {
+        "code": "0105527019",
+        "name": "Cabaluyan 1st",
+        "city_code": "0105527000"
+    },
+    "0105527020": {
+        "code": "0105527020",
+        "name": "Cabaluyan 2nd",
+        "city_code": "0105527000"
+    },
+    "0105527021": {
+        "code": "0105527021",
+        "name": "Cabarabuan",
+        "city_code": "0105527000"
+    },
+    "0105527022": {
+        "code": "0105527022",
+        "name": "Cabaruan",
+        "city_code": "0105527000"
+    },
+    "0105527023": {
+        "code": "0105527023",
+        "name": "Cabayaoasan",
+        "city_code": "0105527000"
+    },
+    "0105527024": {
+        "code": "0105527024",
+        "name": "Cabayugan",
+        "city_code": "0105527000"
+    },
+    "0105527025": {
+        "code": "0105527025",
+        "name": "Cacaoiten",
+        "city_code": "0105527000"
+    },
+    "0105527026": {
+        "code": "0105527026",
+        "name": "Calomboyan Norte",
+        "city_code": "0105527000"
+    },
+    "0105527027": {
+        "code": "0105527027",
+        "name": "Calomboyan Sur",
+        "city_code": "0105527000"
+    },
+    "0105527028": {
+        "code": "0105527028",
+        "name": "Calvo",
+        "city_code": "0105527000"
+    },
+    "0105527029": {
+        "code": "0105527029",
+        "name": "Casilagan",
+        "city_code": "0105527000"
+    },
+    "0105527030": {
+        "code": "0105527030",
+        "name": "Catarataraan",
+        "city_code": "0105527000"
+    },
+    "0105527031": {
+        "code": "0105527031",
+        "name": "Caturay Norte",
+        "city_code": "0105527000"
+    },
+    "0105527032": {
+        "code": "0105527032",
+        "name": "Caturay Sur",
+        "city_code": "0105527000"
+    },
+    "0105527033": {
+        "code": "0105527033",
+        "name": "Caviernesan",
+        "city_code": "0105527000"
+    },
+    "0105527034": {
+        "code": "0105527034",
+        "name": "Dorongan Ketaket",
+        "city_code": "0105527000"
+    },
+    "0105527035": {
+        "code": "0105527035",
+        "name": "Dorongan Linmansangan",
+        "city_code": "0105527000"
+    },
+    "0105527036": {
+        "code": "0105527036",
+        "name": "Dorongan Punta",
+        "city_code": "0105527000"
+    },
+    "0105527037": {
+        "code": "0105527037",
+        "name": "Dorongan Sawat",
+        "city_code": "0105527000"
+    },
+    "0105527038": {
+        "code": "0105527038",
+        "name": "Dorongan Valerio",
+        "city_code": "0105527000"
+    },
+    "0105527039": {
+        "code": "0105527039",
+        "name": "General Luna",
+        "city_code": "0105527000"
+    },
+    "0105527040": {
+        "code": "0105527040",
+        "name": "Historia",
+        "city_code": "0105527000"
+    },
+    "0105527041": {
+        "code": "0105527041",
+        "name": "Lawak Langka",
+        "city_code": "0105527000"
+    },
+    "0105527042": {
+        "code": "0105527042",
+        "name": "Linmansangan",
+        "city_code": "0105527000"
+    },
+    "0105527043": {
+        "code": "0105527043",
+        "name": "Lopez",
+        "city_code": "0105527000"
+    },
+    "0105527044": {
+        "code": "0105527044",
+        "name": "Mabini",
+        "city_code": "0105527000"
+    },
+    "0105527045": {
+        "code": "0105527045",
+        "name": "Macarang",
+        "city_code": "0105527000"
+    },
+    "0105527046": {
+        "code": "0105527046",
+        "name": "Malabobo",
+        "city_code": "0105527000"
+    },
+    "0105527047": {
+        "code": "0105527047",
+        "name": "Malibong",
+        "city_code": "0105527000"
+    },
+    "0105527048": {
+        "code": "0105527048",
+        "name": "Malunec",
+        "city_code": "0105527000"
+    },
+    "0105527049": {
+        "code": "0105527049",
+        "name": "Maravilla",
+        "city_code": "0105527000"
+    },
+    "0105527050": {
+        "code": "0105527050",
+        "name": "Maravilla-Arellano Ext.",
+        "city_code": "0105527000"
+    },
+    "0105527051": {
+        "code": "0105527051",
+        "name": "Muelang",
+        "city_code": "0105527000"
+    },
+    "0105527052": {
+        "code": "0105527052",
+        "name": "Naguilayan East",
+        "city_code": "0105527000"
+    },
+    "0105527053": {
+        "code": "0105527053",
+        "name": "Naguilayan West",
+        "city_code": "0105527000"
+    },
+    "0105527054": {
+        "code": "0105527054",
+        "name": "Nancasalan",
+        "city_code": "0105527000"
+    },
+    "0105527055": {
+        "code": "0105527055",
+        "name": "Niog-Cabison-Bulaney",
+        "city_code": "0105527000"
+    },
+    "0105527056": {
+        "code": "0105527056",
+        "name": "Olegario-Caoile",
+        "city_code": "0105527000"
+    },
+    "0105527057": {
+        "code": "0105527057",
+        "name": "Olo Cacamposan",
+        "city_code": "0105527000"
+    },
+    "0105527058": {
+        "code": "0105527058",
+        "name": "Olo Cafabrosan",
+        "city_code": "0105527000"
+    },
+    "0105527059": {
+        "code": "0105527059",
+        "name": "Olo Cagarlitan",
+        "city_code": "0105527000"
+    },
+    "0105527060": {
+        "code": "0105527060",
+        "name": "Osmeña",
+        "city_code": "0105527000"
+    },
+    "0105527061": {
+        "code": "0105527061",
+        "name": "Pacalat",
+        "city_code": "0105527000"
+    },
+    "0105527062": {
+        "code": "0105527062",
+        "name": "Pampano",
+        "city_code": "0105527000"
+    },
+    "0105527063": {
+        "code": "0105527063",
+        "name": "Parian",
+        "city_code": "0105527000"
+    },
+    "0105527064": {
+        "code": "0105527064",
+        "name": "Paul",
+        "city_code": "0105527000"
+    },
+    "0105527065": {
+        "code": "0105527065",
+        "name": "Pogon-Aniat",
+        "city_code": "0105527000"
+    },
+    "0105527066": {
+        "code": "0105527066",
+        "name": "Pogon-Lomboy",
+        "city_code": "0105527000"
+    },
+    "0105527067": {
+        "code": "0105527067",
+        "name": "Ponglo-Baleg",
+        "city_code": "0105527000"
+    },
+    "0105527068": {
+        "code": "0105527068",
+        "name": "Ponglo-Muelag",
+        "city_code": "0105527000"
+    },
+    "0105527069": {
+        "code": "0105527069",
+        "name": "Quetegan",
+        "city_code": "0105527000"
+    },
+    "0105527070": {
+        "code": "0105527070",
+        "name": "Quezon",
+        "city_code": "0105527000"
+    },
+    "0105527071": {
+        "code": "0105527071",
+        "name": "Salavante",
+        "city_code": "0105527000"
+    },
+    "0105527072": {
+        "code": "0105527072",
+        "name": "Sapang",
+        "city_code": "0105527000"
+    },
+    "0105527073": {
+        "code": "0105527073",
+        "name": "Sonson Ongkit",
+        "city_code": "0105527000"
+    },
+    "0105527074": {
+        "code": "0105527074",
+        "name": "Suaco",
+        "city_code": "0105527000"
+    },
+    "0105527075": {
+        "code": "0105527075",
+        "name": "Tagac",
+        "city_code": "0105527000"
+    },
+    "0105527076": {
+        "code": "0105527076",
+        "name": "Takipan",
+        "city_code": "0105527000"
+    },
+    "0105527077": {
+        "code": "0105527077",
+        "name": "Talogtog",
+        "city_code": "0105527000"
+    },
+    "0105527078": {
+        "code": "0105527078",
+        "name": "Tococ Barikir",
+        "city_code": "0105527000"
+    },
+    "0105527079": {
+        "code": "0105527079",
+        "name": "Torre 1st",
+        "city_code": "0105527000"
+    },
+    "0105527080": {
+        "code": "0105527080",
+        "name": "Torre 2nd",
+        "city_code": "0105527000"
+    },
+    "0105527081": {
+        "code": "0105527081",
+        "name": "Torres Bugallon",
+        "city_code": "0105527000"
+    },
+    "0105527082": {
+        "code": "0105527082",
+        "name": "Umangan",
+        "city_code": "0105527000"
+    },
+    "0105527083": {
+        "code": "0105527083",
+        "name": "Zamora",
+        "city_code": "0105527000"
+    }
+}

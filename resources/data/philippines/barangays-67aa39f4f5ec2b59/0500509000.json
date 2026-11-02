@@ -1,0 +1,92 @@
+{
+    "0500509001": {
+        "code": "0500509001",
+        "name": "Binitayan",
+        "city_code": "0500509000"
+    },
+    "0500509002": {
+        "code": "0500509002",
+        "name": "Calbayog",
+        "city_code": "0500509000"
+    },
+    "0500509003": {
+        "code": "0500509003",
+        "name": "Canaway",
+        "city_code": "0500509000"
+    },
+    "0500509004": {
+        "code": "0500509004",
+        "name": "Barangay I",
+        "city_code": "0500509000"
+    },
+    "0500509005": {
+        "code": "0500509005",
+        "name": "Barangay II",
+        "city_code": "0500509000"
+    },
+    "0500509006": {
+        "code": "0500509006",
+        "name": "Barangay III",
+        "city_code": "0500509000"
+    },
+    "0500509007": {
+        "code": "0500509007",
+        "name": "Barangay IV",
+        "city_code": "0500509000"
+    },
+    "0500509008": {
+        "code": "0500509008",
+        "name": "Barangay V",
+        "city_code": "0500509000"
+    },
+    "0500509009": {
+        "code": "0500509009",
+        "name": "Salvacion",
+        "city_code": "0500509000"
+    },
+    "0500509010": {
+        "code": "0500509010",
+        "name": "San Antonio Santicon",
+        "city_code": "0500509000"
+    },
+    "0500509011": {
+        "code": "0500509011",
+        "name": "San Antonio Sulong",
+        "city_code": "0500509000"
+    },
+    "0500509012": {
+        "code": "0500509012",
+        "name": "San Francisco",
+        "city_code": "0500509000"
+    },
+    "0500509013": {
+        "code": "0500509013",
+        "name": "San Isidro Ilawod",
+        "city_code": "0500509000"
+    },
+    "0500509014": {
+        "code": "0500509014",
+        "name": "San Isidro Iraya",
+        "city_code": "0500509000"
+    },
+    "0500509015": {
+        "code": "0500509015",
+        "name": "San Jose",
+        "city_code": "0500509000"
+    },
+    "0500509016": {
+        "code": "0500509016",
+        "name": "San Roque",
+        "city_code": "0500509000"
+    },
+    "0500509017": {
+        "code": "0500509017",
+        "name": "Santa Cruz",
+        "city_code": "0500509000"
+    },
+    "0500509018": {
+        "code": "0500509018",
+        "name": "Santa Teresa",
+        "city_code": "0500509000"
+    }
+}

@@ -10,6 +10,7 @@ use App\Models\CommunityPost;
 use App\Models\CommunityPostComment;
 use App\Models\CommunityPostHidden;
 use App\Models\CommunityPostReport;
+use App\Models\Event;
 use App\Models\PushNotification;
 use App\Models\TrainingModule;
 use App\Models\User;
@@ -26,7 +27,7 @@ class ContentController extends Controller
 
     public function announcements(): JsonResponse
     {
-        $announcements = Announcement::with('event:id,title')
+        $announcements = Announcement::with('event:id,title,review_status,revision_of_id')
             ->active()
             ->latest('published_at')
             ->get();
@@ -86,7 +87,7 @@ class ContentController extends Controller
     {
         $posts = CommunityPost::with([
             'user:id,name,avatar_path',
-            'event:id,title',
+            'event:id,title,review_status,revision_of_id',
             'comments' => fn ($query) => $query->where('is_flagged', false)->with('user:id,name,avatar_path'),
         ])
             ->withCount('likes')
@@ -103,7 +104,7 @@ class ContentController extends Controller
 
         $posts = CommunityPost::with([
             'user:id,name,avatar_path',
-            'event:id,title',
+            'event:id,title,review_status,revision_of_id',
             'comments' => fn ($query) => $query->where('is_flagged', false)->with('user:id,name,avatar_path'),
         ])
             ->withCount('likes')
@@ -124,7 +125,7 @@ class ContentController extends Controller
 
         $post->load([
             'user:id,name,avatar_path',
-            'event:id,title',
+            'event:id,title,review_status,revision_of_id',
             'comments' => fn ($query) => $query->where('is_flagged', false)->with('user:id,name,avatar_path'),
         ])->loadCount('likes');
 
@@ -138,7 +139,12 @@ class ContentController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'content' => ['nullable', 'string', 'max:5000', 'required_without_all:image,video'],
-            'event_id' => ['nullable', 'exists:events,id'],
+            'event_id' => ['bail', 'nullable', 'integer', 'exists:events,id', function ($attribute, $value, $fail) {
+                $event = Event::find($value);
+                if (! $event || ! in_array($event->effective_status, ['upcoming', 'ongoing', 'completed'], true)) {
+                    $fail('Select a published event.');
+                }
+            }],
             'image' => ['nullable', 'image', 'max:10240', 'required_without_all:content,video'],
             'video' => ['nullable', 'file', 'mimes:mp4,mov,webm,m4v', 'max:51200', 'required_without_all:content,image'],
         ]);
@@ -150,7 +156,7 @@ class ContentController extends Controller
             'content' => $validated['content'] ?? null,
             'image_path' => isset($validated['image']) ? $validated['image']->store('community/images', 'public') : null,
             'video_path' => isset($validated['video']) ? $validated['video']->store('community/videos', 'public') : null,
-        ])->load(['user:id,name,avatar_path', 'event:id,title', 'comments' => fn ($query) => $query->where('is_flagged', false)->with('user:id,name,avatar_path')]);
+        ])->load(['user:id,name,avatar_path', 'event:id,title,review_status,revision_of_id', 'comments' => fn ($query) => $query->where('is_flagged', false)->with('user:id,name,avatar_path')]);
 
         $post->loadCount('likes');
 
@@ -212,7 +218,7 @@ class ContentController extends Controller
             'content' => $content,
         ]);
 
-        $post->load(['user:id,name,avatar_path', 'event:id,title', 'comments' => fn ($query) => $query->where('is_flagged', false)->with('user:id,name,avatar_path')]);
+        $post->load(['user:id,name,avatar_path', 'event:id,title,review_status,revision_of_id', 'comments' => fn ($query) => $query->where('is_flagged', false)->with('user:id,name,avatar_path')]);
         $post->loadCount('likes');
 
         return response()->json([
@@ -225,7 +231,7 @@ class ContentController extends Controller
     {
         $hides = CommunityPostHidden::with([
             'post.user:id,name,avatar_path',
-            'post.event:id,title',
+            'post.event:id,title,review_status,revision_of_id',
             'post.comments' => fn ($query) => $query->where('is_flagged', false)->with('user:id,name,avatar_path'),
         ])
             ->where('user_id', $request->user()->id)
@@ -277,7 +283,7 @@ class ContentController extends Controller
     {
         $reports = CommunityPostReport::with([
             'post.user:id,name,avatar_path',
-            'post.event:id,title',
+            'post.event:id,title,review_status,revision_of_id',
             'post.comments' => fn ($query) => $query->where('is_flagged', false)->with('user:id,name,avatar_path'),
         ])
             ->where('user_id', $request->user()->id)
@@ -419,7 +425,7 @@ class ContentController extends Controller
             ->where('deleted_at', '>', now()->subDays(30))
             ->with([
                 'user:id,name,avatar_path',
-                'event:id,title',
+                'event:id,title,review_status,revision_of_id',
                 'comments' => fn ($query) => $query->where('is_flagged', false)->with('user:id,name,avatar_path'),
             ])
             ->withCount('likes')
@@ -468,7 +474,7 @@ class ContentController extends Controller
         $archivedPost->forceFill(['deleted_by_user_id' => null])->save();
         $archivedPost->load([
             'user:id,name,avatar_path',
-            'event:id,title',
+            'event:id,title,review_status,revision_of_id',
             'comments' => fn ($query) => $query->where('is_flagged', false)->with('user:id,name,avatar_path'),
         ])->loadCount('likes');
 
@@ -499,7 +505,7 @@ class ContentController extends Controller
                 ->sortBy('created_at')
                 ->map(fn (CommunityPostComment $comment) => $this->commentPayload($comment))
                 ->values(),
-            'event' => $post->event ? [
+            'event' => $post->event?->isReviewPublished() ? [
                 'id' => $post->event->id,
                 'title' => $post->event->title,
             ] : null,

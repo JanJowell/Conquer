@@ -1,0 +1,147 @@
+{
+    "1001304001": {
+        "code": "1001304001",
+        "name": "Cabadiangan",
+        "city_code": "1001304000"
+    },
+    "1001304002": {
+        "code": "1001304002",
+        "name": "Bocboc",
+        "city_code": "1001304000"
+    },
+    "1001304003": {
+        "code": "1001304003",
+        "name": "Buyot",
+        "city_code": "1001304000"
+    },
+    "1001304004": {
+        "code": "1001304004",
+        "name": "Calaocalao",
+        "city_code": "1001304000"
+    },
+    "1001304005": {
+        "code": "1001304005",
+        "name": "Don Carlos Norte",
+        "city_code": "1001304000"
+    },
+    "1001304006": {
+        "code": "1001304006",
+        "name": "Embayao",
+        "city_code": "1001304000"
+    },
+    "1001304008": {
+        "code": "1001304008",
+        "name": "Kalubihon",
+        "city_code": "1001304000"
+    },
+    "1001304009": {
+        "code": "1001304009",
+        "name": "Kasigkot",
+        "city_code": "1001304000"
+    },
+    "1001304010": {
+        "code": "1001304010",
+        "name": "Kawilihan",
+        "city_code": "1001304000"
+    },
+    "1001304011": {
+        "code": "1001304011",
+        "name": "Kiara",
+        "city_code": "1001304000"
+    },
+    "1001304012": {
+        "code": "1001304012",
+        "name": "Kibatang",
+        "city_code": "1001304000"
+    },
+    "1001304013": {
+        "code": "1001304013",
+        "name": "Mahayahay",
+        "city_code": "1001304000"
+    },
+    "1001304014": {
+        "code": "1001304014",
+        "name": "Manlamonay",
+        "city_code": "1001304000"
+    },
+    "1001304015": {
+        "code": "1001304015",
+        "name": "Maraymaray",
+        "city_code": "1001304000"
+    },
+    "1001304016": {
+        "code": "1001304016",
+        "name": "Mauswagon",
+        "city_code": "1001304000"
+    },
+    "1001304017": {
+        "code": "1001304017",
+        "name": "Minsalagan",
+        "city_code": "1001304000"
+    },
+    "1001304018": {
+        "code": "1001304018",
+        "name": "New Nongnongan",
+        "city_code": "1001304000"
+    },
+    "1001304019": {
+        "code": "1001304019",
+        "name": "New Visayas",
+        "city_code": "1001304000"
+    },
+    "1001304020": {
+        "code": "1001304020",
+        "name": "Old Nongnongan",
+        "city_code": "1001304000"
+    },
+    "1001304021": {
+        "code": "1001304021",
+        "name": "Pinamaloy",
+        "city_code": "1001304000"
+    },
+    "1001304022": {
+        "code": "1001304022",
+        "name": "Don Carlos Sur",
+        "city_code": "1001304000"
+    },
+    "1001304023": {
+        "code": "1001304023",
+        "name": "Pualas",
+        "city_code": "1001304000"
+    },
+    "1001304024": {
+        "code": "1001304024",
+        "name": "San Antonio East",
+        "city_code": "1001304000"
+    },
+    "1001304025": {
+        "code": "1001304025",
+        "name": "San Antonio West",
+        "city_code": "1001304000"
+    },
+    "1001304026": {
+        "code": "1001304026",
+        "name": "San Francisco",
+        "city_code": "1001304000"
+    },
+    "1001304027": {
+        "code": "1001304027",
+        "name": "San Nicolas",
+        "city_code": "1001304000"
+    },
+    "1001304028": {
+        "code": "1001304028",
+        "name": "San Roque",
+        "city_code": "1001304000"
+    },
+    "1001304029": {
+        "code": "1001304029",
+        "name": "Sinangguyan",
+        "city_code": "1001304000"
+    },
+    "1001304030": {
+        "code": "1001304030",
+        "name": "Bismartz",
+        "city_code": "1001304000"
+    }
+}

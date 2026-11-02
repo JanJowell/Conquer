@@ -1,0 +1,77 @@
+{
+    "0304927002": {
+        "code": "0304927002",
+        "name": "Bonifacio District",
+        "city_code": "0304927000"
+    },
+    "0304927003": {
+        "code": "0304927003",
+        "name": "Burgos District",
+        "city_code": "0304927000"
+    },
+    "0304927004": {
+        "code": "0304927004",
+        "name": "Castellano",
+        "city_code": "0304927000"
+    },
+    "0304927005": {
+        "code": "0304927005",
+        "name": "Diversion",
+        "city_code": "0304927000"
+    },
+    "0304927006": {
+        "code": "0304927006",
+        "name": "Magpapalayoc",
+        "city_code": "0304927000"
+    },
+    "0304927007": {
+        "code": "0304927007",
+        "name": "Mallorca",
+        "city_code": "0304927000"
+    },
+    "0304927008": {
+        "code": "0304927008",
+        "name": "Mambangnan",
+        "city_code": "0304927000"
+    },
+    "0304927009": {
+        "code": "0304927009",
+        "name": "Nieves",
+        "city_code": "0304927000"
+    },
+    "0304927010": {
+        "code": "0304927010",
+        "name": "San Bartolome",
+        "city_code": "0304927000"
+    },
+    "0304927011": {
+        "code": "0304927011",
+        "name": "Rizal District",
+        "city_code": "0304927000"
+    },
+    "0304927012": {
+        "code": "0304927012",
+        "name": "San Anton",
+        "city_code": "0304927000"
+    },
+    "0304927013": {
+        "code": "0304927013",
+        "name": "San Roque",
+        "city_code": "0304927000"
+    },
+    "0304927014": {
+        "code": "0304927014",
+        "name": "Tabuating",
+        "city_code": "0304927000"
+    },
+    "0304927015": {
+        "code": "0304927015",
+        "name": "Tagumpay",
+        "city_code": "0304927000"
+    },
+    "0304927016": {
+        "code": "0304927016",
+        "name": "Tambo Adorable",
+        "city_code": "0304927000"
+    }
+}

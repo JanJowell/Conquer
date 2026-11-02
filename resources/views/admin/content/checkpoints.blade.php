@@ -11,10 +11,12 @@
             <p class="mt-2 max-w-2xl text-sm text-[#6d7685]">Manage course markers, hydration stations, medical posts, and finish points.</p>
         </div>
 
+        @if (auth()->user()->managesAssignedEventsOnly())
         <a href="{{ route('admin.content.checkpoints.create') }}" class="inline-flex items-center justify-center rounded-2xl bg-[#151b26] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#232b39]">
             <i class="fas fa-plus mr-2 text-xs"></i>
             Add Checkpoint
         </a>
+        @endif
     </div>
 
     <form method="GET" class="grid gap-3 rounded-2xl border border-[#d9dee7] bg-white p-4 shadow-sm lg:grid-cols-[minmax(220px,1fr)_minmax(220px,1fr)_180px_auto_auto] lg:items-end">
@@ -100,12 +102,14 @@
                             <td class="px-6 py-5">{{ $checkpoint->order }}</td>
                             <td class="px-6 py-5 text-right">
                                 <div class="flex flex-wrap justify-end gap-2">
+                                    @if ($checkpoint->event?->canEditSetup(auth()->user()))
                                     <x-admin.icon-action :href="route('admin.content.checkpoints.edit', $checkpoint)" label="Edit checkpoint" icon="fa-pen" />
                                     <form method="POST" action="{{ route('admin.content.checkpoints.destroy', $checkpoint) }}" onsubmit="return confirm('Are you sure you want to delete this checkpoint?')">
                                         @csrf
                                         @method('DELETE')
                                         <x-admin.icon-action type="submit" label="Delete checkpoint" icon="fa-trash" tone="danger" />
                                     </form>
+                                    @endif
                                 </div>
                             </td>
                         </tr>

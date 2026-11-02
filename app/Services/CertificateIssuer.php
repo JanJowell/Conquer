@@ -12,10 +12,12 @@ class CertificateIssuer
 
     public function isEligible(Registration $registration): bool
     {
-        $registration->loadMissing('raceResult');
+        $registration->loadMissing(['raceResult', 'feedback', 'certificate']);
 
         return $registration->status === 'completed'
-            && $registration->raceResult !== null;
+            && $registration->raceResult !== null
+            // A stored certificate is an already-issued document, not a pending request.
+            && ($registration->feedback !== null || $registration->certificate !== null);
     }
 
     public function syncForRegistration(
@@ -84,7 +86,7 @@ class CertificateIssuer
             ->where(function ($query) {
                 $query->where('status', 'completed')->orWhereHas('certificate');
             })
-            ->with(['event', 'raceResult', 'certificate'])
+            ->with(['event', 'raceResult', 'feedback', 'certificate'])
             ->chunkById(100, function ($registrations) use (&$count, $notify) {
                 foreach ($registrations as $registration) {
                     $before = $registration->certificate?->updated_at;
@@ -107,7 +109,7 @@ class CertificateIssuer
             ->where(function ($query) {
                 $query->where('status', 'completed')->orWhereHas('certificate');
             })
-            ->with(['event', 'raceResult', 'certificate'])
+            ->with(['event', 'raceResult', 'feedback', 'certificate'])
             ->chunkById(100, function ($registrations) use (&$count, $notify) {
                 foreach ($registrations as $registration) {
                     if ($this->syncForRegistration($registration, notify: $notify)) {

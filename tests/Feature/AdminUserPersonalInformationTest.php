@@ -44,9 +44,9 @@ test('administrator creation discards participant-only personal information', fu
 
     $this->actingAs($admin)
         ->post(route('admin.users.store'), [
-            'name' => 'Invited Content Moderator',
-            'email' => 'content.moderator@example.test',
-            'role' => User::ROLE_CONTENT_MODERATOR,
+            'name' => 'Invited Event Manager',
+            'email' => 'invited.manager@example.test',
+            'role' => User::ROLE_EVENT_MANAGER,
             'address' => 'Should not be stored',
             'medical_conditions' => 'Should not be stored',
             'emergency_contact' => 'Legacy value',
@@ -59,7 +59,7 @@ test('administrator creation discards participant-only personal information', fu
         ->assertRedirect(route('admin.users.index'))
         ->assertSessionHasNoErrors();
 
-    $createdAdmin = User::where('email', 'content.moderator@example.test')->firstOrFail();
+    $createdAdmin = User::where('email', 'invited.manager@example.test')->firstOrFail();
 
     expect($createdAdmin->address)->toBeNull()
         ->and($createdAdmin->medical_conditions)->toBeNull()

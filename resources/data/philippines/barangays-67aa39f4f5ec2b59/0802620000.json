@@ -1,0 +1,82 @@
+{
+    "0802620001": {
+        "code": "0802620001",
+        "name": "Bunacan",
+        "city_code": "0802620000"
+    },
+    "0802620002": {
+        "code": "0802620002",
+        "name": "Campidhan",
+        "city_code": "0802620000"
+    },
+    "0802620003": {
+        "code": "0802620003",
+        "name": "Casoroy",
+        "city_code": "0802620000"
+    },
+    "0802620004": {
+        "code": "0802620004",
+        "name": "Libas",
+        "city_code": "0802620000"
+    },
+    "0802620005": {
+        "code": "0802620005",
+        "name": "Nena",
+        "city_code": "0802620000"
+    },
+    "0802620006": {
+        "code": "0802620006",
+        "name": "Pagbabangnan",
+        "city_code": "0802620000"
+    },
+    "0802620007": {
+        "code": "0802620007",
+        "name": "Barangay No. 1 Poblacion",
+        "city_code": "0802620000"
+    },
+    "0802620008": {
+        "code": "0802620008",
+        "name": "Barangay No. 2 Poblacion",
+        "city_code": "0802620000"
+    },
+    "0802620009": {
+        "code": "0802620009",
+        "name": "Barangay No. 3 Poblacion",
+        "city_code": "0802620000"
+    },
+    "0802620010": {
+        "code": "0802620010",
+        "name": "Barangay No. 4 Poblacion",
+        "city_code": "0802620000"
+    },
+    "0802620011": {
+        "code": "0802620011",
+        "name": "Barangay No. 5 Poblacion",
+        "city_code": "0802620000"
+    },
+    "0802620012": {
+        "code": "0802620012",
+        "name": "Barangay No. 6 Poblacion",
+        "city_code": "0802620000"
+    },
+    "0802620013": {
+        "code": "0802620013",
+        "name": "Putong",
+        "city_code": "0802620000"
+    },
+    "0802620015": {
+        "code": "0802620015",
+        "name": "San Isidro",
+        "city_code": "0802620000"
+    },
+    "0802620016": {
+        "code": "0802620016",
+        "name": "San Miguel",
+        "city_code": "0802620000"
+    },
+    "0802620020": {
+        "code": "0802620020",
+        "name": "Lunang",
+        "city_code": "0802620000"
+    }
+}

@@ -1,0 +1,72 @@
+{
+    "0806015001": {
+        "code": "0806015001",
+        "name": "Poblacion Barangay 1",
+        "city_code": "0806015000"
+    },
+    "0806015002": {
+        "code": "0806015002",
+        "name": "Poblacion Barangay 2",
+        "city_code": "0806015000"
+    },
+    "0806015003": {
+        "code": "0806015003",
+        "name": "Poblacion Barangay 3",
+        "city_code": "0806015000"
+    },
+    "0806015004": {
+        "code": "0806015004",
+        "name": "Poblacion Barangay 4",
+        "city_code": "0806015000"
+    },
+    "0806015005": {
+        "code": "0806015005",
+        "name": "Balogo",
+        "city_code": "0806015000"
+    },
+    "0806015006": {
+        "code": "0806015006",
+        "name": "Bontod",
+        "city_code": "0806015000"
+    },
+    "0806015007": {
+        "code": "0806015007",
+        "name": "Camanhagay",
+        "city_code": "0806015000"
+    },
+    "0806015008": {
+        "code": "0806015008",
+        "name": "Campiyak",
+        "city_code": "0806015000"
+    },
+    "0806015010": {
+        "code": "0806015010",
+        "name": "Dolores",
+        "city_code": "0806015000"
+    },
+    "0806015011": {
+        "code": "0806015011",
+        "name": "Hita-asan I",
+        "city_code": "0806015000"
+    },
+    "0806015012": {
+        "code": "0806015012",
+        "name": "Inobongan",
+        "city_code": "0806015000"
+    },
+    "0806015013": {
+        "code": "0806015013",
+        "name": "Cabaywa",
+        "city_code": "0806015000"
+    },
+    "0806015014": {
+        "code": "0806015014",
+        "name": "Canduyucan",
+        "city_code": "0806015000"
+    },
+    "0806015015": {
+        "code": "0806015015",
+        "name": "Hita-asan II",
+        "city_code": "0806015000"
+    }
+}

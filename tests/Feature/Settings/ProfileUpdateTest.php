@@ -50,8 +50,8 @@ test('email verification status is unchanged when email address is unchanged', f
     expect($user->refresh()->email_verified_at)->not->toBeNull();
 });
 
-test('user can delete their account', function () {
-    $user = User::factory()->create();
+test('event managers can still delete their own account through the existing profile route', function () {
+    $user = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
 
     $this->actingAs($user);
 
@@ -63,8 +63,8 @@ test('user can delete their account', function () {
     expect(auth()->check())->toBeFalse();
 });
 
-test('authenticated users can delete their account without a password prompt', function () {
-    $user = User::factory()->create();
+test('legacy event managers retain the existing profile deletion behavior', function () {
+    $user = User::factory()->create(['role' => User::ROLE_LEGACY_ADMIN]);
 
     $this->actingAs($user);
 

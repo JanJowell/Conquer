@@ -7,7 +7,7 @@
         <div>
             <p class="text-sm font-medium uppercase tracking-[0.24em] text-[#7a8495]">Event Operations</p>
             <h1 class="mt-2 text-3xl font-semibold tracking-tight text-[#151b26]">Create Event</h1>
-            <p class="mt-2 text-sm text-[#6d7685]">Set up a new race event as a draft, then open registration after the setup is complete.</p>
+            <p class="mt-2 text-sm text-[#6d7685]">Prepare a private draft, then submit it for Admin review. Approval publishes the event immediately.</p>
         </div>
 
         @if ($errors->any())

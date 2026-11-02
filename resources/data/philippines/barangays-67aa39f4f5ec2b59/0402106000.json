@@ -1,0 +1,377 @@
+{
+    "0402106003": {
+        "code": "0402106003",
+        "name": "Burol",
+        "city_code": "0402106000"
+    },
+    "0402106005": {
+        "code": "0402106005",
+        "name": "Langkaan I",
+        "city_code": "0402106000"
+    },
+    "0402106008": {
+        "code": "0402106008",
+        "name": "Paliparan I",
+        "city_code": "0402106000"
+    },
+    "0402106010": {
+        "code": "0402106010",
+        "name": "Sabang",
+        "city_code": "0402106000"
+    },
+    "0402106011": {
+        "code": "0402106011",
+        "name": "Salawag",
+        "city_code": "0402106000"
+    },
+    "0402106012": {
+        "code": "0402106012",
+        "name": "Salitran I",
+        "city_code": "0402106000"
+    },
+    "0402106013": {
+        "code": "0402106013",
+        "name": "Sampaloc I",
+        "city_code": "0402106000"
+    },
+    "0402106014": {
+        "code": "0402106014",
+        "name": "San Agustin I",
+        "city_code": "0402106000"
+    },
+    "0402106015": {
+        "code": "0402106015",
+        "name": "San Jose",
+        "city_code": "0402106000"
+    },
+    "0402106016": {
+        "code": "0402106016",
+        "name": "Zone I",
+        "city_code": "0402106000"
+    },
+    "0402106017": {
+        "code": "0402106017",
+        "name": "Zone II",
+        "city_code": "0402106000"
+    },
+    "0402106018": {
+        "code": "0402106018",
+        "name": "Zone III",
+        "city_code": "0402106000"
+    },
+    "0402106019": {
+        "code": "0402106019",
+        "name": "Zone IV",
+        "city_code": "0402106000"
+    },
+    "0402106020": {
+        "code": "0402106020",
+        "name": "Datu Esmael",
+        "city_code": "0402106000"
+    },
+    "0402106021": {
+        "code": "0402106021",
+        "name": "Emmanuel Bergado I",
+        "city_code": "0402106000"
+    },
+    "0402106022": {
+        "code": "0402106022",
+        "name": "Fatima I",
+        "city_code": "0402106000"
+    },
+    "0402106023": {
+        "code": "0402106023",
+        "name": "Luzviminda I",
+        "city_code": "0402106000"
+    },
+    "0402106024": {
+        "code": "0402106024",
+        "name": "Saint Peter I",
+        "city_code": "0402106000"
+    },
+    "0402106025": {
+        "code": "0402106025",
+        "name": "San Andres I",
+        "city_code": "0402106000"
+    },
+    "0402106026": {
+        "code": "0402106026",
+        "name": "San Antonio De Padua I",
+        "city_code": "0402106000"
+    },
+    "0402106027": {
+        "code": "0402106027",
+        "name": "San Dionisio",
+        "city_code": "0402106000"
+    },
+    "0402106028": {
+        "code": "0402106028",
+        "name": "San Esteban",
+        "city_code": "0402106000"
+    },
+    "0402106029": {
+        "code": "0402106029",
+        "name": "San Francisco I",
+        "city_code": "0402106000"
+    },
+    "0402106030": {
+        "code": "0402106030",
+        "name": "San Isidro Labrador I",
+        "city_code": "0402106000"
+    },
+    "0402106031": {
+        "code": "0402106031",
+        "name": "San Juan",
+        "city_code": "0402106000"
+    },
+    "0402106032": {
+        "code": "0402106032",
+        "name": "San Lorenzo Ruiz I",
+        "city_code": "0402106000"
+    },
+    "0402106033": {
+        "code": "0402106033",
+        "name": "San Luis I",
+        "city_code": "0402106000"
+    },
+    "0402106034": {
+        "code": "0402106034",
+        "name": "San Manuel I",
+        "city_code": "0402106000"
+    },
+    "0402106035": {
+        "code": "0402106035",
+        "name": "San Mateo",
+        "city_code": "0402106000"
+    },
+    "0402106036": {
+        "code": "0402106036",
+        "name": "San Miguel",
+        "city_code": "0402106000"
+    },
+    "0402106037": {
+        "code": "0402106037",
+        "name": "San Nicolas I",
+        "city_code": "0402106000"
+    },
+    "0402106038": {
+        "code": "0402106038",
+        "name": "San Roque",
+        "city_code": "0402106000"
+    },
+    "0402106039": {
+        "code": "0402106039",
+        "name": "San Simon",
+        "city_code": "0402106000"
+    },
+    "0402106040": {
+        "code": "0402106040",
+        "name": "Santa Cristina I",
+        "city_code": "0402106000"
+    },
+    "0402106041": {
+        "code": "0402106041",
+        "name": "Santa Cruz I",
+        "city_code": "0402106000"
+    },
+    "0402106042": {
+        "code": "0402106042",
+        "name": "Santa Fe",
+        "city_code": "0402106000"
+    },
+    "0402106043": {
+        "code": "0402106043",
+        "name": "Santa Lucia",
+        "city_code": "0402106000"
+    },
+    "0402106044": {
+        "code": "0402106044",
+        "name": "Santa Maria",
+        "city_code": "0402106000"
+    },
+    "0402106045": {
+        "code": "0402106045",
+        "name": "Santo Cristo",
+        "city_code": "0402106000"
+    },
+    "0402106046": {
+        "code": "0402106046",
+        "name": "Santo Niño I",
+        "city_code": "0402106000"
+    },
+    "0402106047": {
+        "code": "0402106047",
+        "name": "Burol I",
+        "city_code": "0402106000"
+    },
+    "0402106048": {
+        "code": "0402106048",
+        "name": "Burol II",
+        "city_code": "0402106000"
+    },
+    "0402106049": {
+        "code": "0402106049",
+        "name": "Burol III",
+        "city_code": "0402106000"
+    },
+    "0402106050": {
+        "code": "0402106050",
+        "name": "Emmanuel Bergado II",
+        "city_code": "0402106000"
+    },
+    "0402106051": {
+        "code": "0402106051",
+        "name": "Fatima II",
+        "city_code": "0402106000"
+    },
+    "0402106052": {
+        "code": "0402106052",
+        "name": "Fatima III",
+        "city_code": "0402106000"
+    },
+    "0402106053": {
+        "code": "0402106053",
+        "name": "Langkaan II",
+        "city_code": "0402106000"
+    },
+    "0402106054": {
+        "code": "0402106054",
+        "name": "Luzviminda II",
+        "city_code": "0402106000"
+    },
+    "0402106055": {
+        "code": "0402106055",
+        "name": "Paliparan II",
+        "city_code": "0402106000"
+    },
+    "0402106056": {
+        "code": "0402106056",
+        "name": "Paliparan III",
+        "city_code": "0402106000"
+    },
+    "0402106057": {
+        "code": "0402106057",
+        "name": "Saint Peter II",
+        "city_code": "0402106000"
+    },
+    "0402106058": {
+        "code": "0402106058",
+        "name": "Salitran II",
+        "city_code": "0402106000"
+    },
+    "0402106059": {
+        "code": "0402106059",
+        "name": "Salitran III",
+        "city_code": "0402106000"
+    },
+    "0402106060": {
+        "code": "0402106060",
+        "name": "Salitran IV",
+        "city_code": "0402106000"
+    },
+    "0402106061": {
+        "code": "0402106061",
+        "name": "Sampaloc II",
+        "city_code": "0402106000"
+    },
+    "0402106062": {
+        "code": "0402106062",
+        "name": "Sampaloc III",
+        "city_code": "0402106000"
+    },
+    "0402106063": {
+        "code": "0402106063",
+        "name": "Sampaloc IV",
+        "city_code": "0402106000"
+    },
+    "0402106064": {
+        "code": "0402106064",
+        "name": "Sampaloc V",
+        "city_code": "0402106000"
+    },
+    "0402106065": {
+        "code": "0402106065",
+        "name": "San Agustin II",
+        "city_code": "0402106000"
+    },
+    "0402106066": {
+        "code": "0402106066",
+        "name": "San Agustin III",
+        "city_code": "0402106000"
+    },
+    "0402106067": {
+        "code": "0402106067",
+        "name": "San Andres II",
+        "city_code": "0402106000"
+    },
+    "0402106068": {
+        "code": "0402106068",
+        "name": "San Antonio De Padua II",
+        "city_code": "0402106000"
+    },
+    "0402106069": {
+        "code": "0402106069",
+        "name": "San Francisco II",
+        "city_code": "0402106000"
+    },
+    "0402106070": {
+        "code": "0402106070",
+        "name": "San Isidro Labrador II",
+        "city_code": "0402106000"
+    },
+    "0402106071": {
+        "code": "0402106071",
+        "name": "San Lorenzo Ruiz II",
+        "city_code": "0402106000"
+    },
+    "0402106072": {
+        "code": "0402106072",
+        "name": "San Luis II",
+        "city_code": "0402106000"
+    },
+    "0402106073": {
+        "code": "0402106073",
+        "name": "San Manuel II",
+        "city_code": "0402106000"
+    },
+    "0402106074": {
+        "code": "0402106074",
+        "name": "San Miguel II",
+        "city_code": "0402106000"
+    },
+    "0402106075": {
+        "code": "0402106075",
+        "name": "San Nicolas II",
+        "city_code": "0402106000"
+    },
+    "0402106076": {
+        "code": "0402106076",
+        "name": "Santa Cristina II",
+        "city_code": "0402106000"
+    },
+    "0402106077": {
+        "code": "0402106077",
+        "name": "Santa Cruz II",
+        "city_code": "0402106000"
+    },
+    "0402106078": {
+        "code": "0402106078",
+        "name": "Santo Niño II",
+        "city_code": "0402106000"
+    },
+    "0402106079": {
+        "code": "0402106079",
+        "name": "Zone I-B",
+        "city_code": "0402106000"
+    },
+    "0402106080": {
+        "code": "0402106080",
+        "name": "H-2",
+        "city_code": "0402106000"
+    },
+    "0402106081": {
+        "code": "0402106081",
+        "name": "Victoria Reyes",
+        "city_code": "0402106000"
+    }
+}

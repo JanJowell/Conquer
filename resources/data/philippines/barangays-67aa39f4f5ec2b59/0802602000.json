@@ -1,0 +1,67 @@
+{
+    "0802602001": {
+        "code": "0802602001",
+        "name": "Bacjao",
+        "city_code": "0802602000"
+    },
+    "0802602002": {
+        "code": "0802602002",
+        "name": "Cag-olango",
+        "city_code": "0802602000"
+    },
+    "0802602003": {
+        "code": "0802602003",
+        "name": "Cansumangcay",
+        "city_code": "0802602000"
+    },
+    "0802602004": {
+        "code": "0802602004",
+        "name": "Guinmaayohan",
+        "city_code": "0802602000"
+    },
+    "0802602005": {
+        "code": "0802602005",
+        "name": "Barangay Poblacion I",
+        "city_code": "0802602000"
+    },
+    "0802602006": {
+        "code": "0802602006",
+        "name": "Barangay Poblacion II",
+        "city_code": "0802602000"
+    },
+    "0802602007": {
+        "code": "0802602007",
+        "name": "Barangay Poblacion III",
+        "city_code": "0802602000"
+    },
+    "0802602008": {
+        "code": "0802602008",
+        "name": "Barangay Poblacion IV",
+        "city_code": "0802602000"
+    },
+    "0802602009": {
+        "code": "0802602009",
+        "name": "Barangay Poblacion V",
+        "city_code": "0802602000"
+    },
+    "0802602010": {
+        "code": "0802602010",
+        "name": "Barangay Poblacion VI",
+        "city_code": "0802602000"
+    },
+    "0802602011": {
+        "code": "0802602011",
+        "name": "San Miguel",
+        "city_code": "0802602000"
+    },
+    "0802602012": {
+        "code": "0802602012",
+        "name": "Santa Rosa",
+        "city_code": "0802602000"
+    },
+    "0802602013": {
+        "code": "0802602013",
+        "name": "Maybunga",
+        "city_code": "0802602000"
+    }
+}

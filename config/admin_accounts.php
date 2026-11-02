@@ -14,8 +14,6 @@ return [
     */
     'limits' => [
         'super_admin' => env('MAX_ADMIN_ACCOUNTS', 2),
-        'executive' => env('MAX_EXECUTIVE_ACCOUNTS', 3),
-        'content_moderator' => env('MAX_CONTENT_MODERATOR_ACCOUNTS', 5),
         'event_manager' => env('MAX_EVENT_MANAGER_ACCOUNTS'),
     ],
 ];

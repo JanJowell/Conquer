@@ -25,7 +25,7 @@ class UserActivityController extends Controller
     public function results(Request $request): JsonResponse
     {
         $results = $request->user()->raceResults()
-            ->with(['event', 'category', 'registration.feedback'])
+            ->with(['event', 'category', 'registration.feedback', 'registration.certificate'])
             ->latest()
             ->get();
 

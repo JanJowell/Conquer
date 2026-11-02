@@ -1,0 +1,97 @@
+{
+    "0203124001": {
+        "code": "0203124001",
+        "name": "Ambatali",
+        "city_code": "0203124000"
+    },
+    "0203124002": {
+        "code": "0203124002",
+        "name": "Bantug",
+        "city_code": "0203124000"
+    },
+    "0203124004": {
+        "code": "0203124004",
+        "name": "Bugallon Norte",
+        "city_code": "0203124000"
+    },
+    "0203124005": {
+        "code": "0203124005",
+        "name": "Burgos",
+        "city_code": "0203124000"
+    },
+    "0203124006": {
+        "code": "0203124006",
+        "name": "Nagbacalan",
+        "city_code": "0203124000"
+    },
+    "0203124007": {
+        "code": "0203124007",
+        "name": "Oscariz",
+        "city_code": "0203124000"
+    },
+    "0203124008": {
+        "code": "0203124008",
+        "name": "Pabil",
+        "city_code": "0203124000"
+    },
+    "0203124009": {
+        "code": "0203124009",
+        "name": "Pagrang-ayan",
+        "city_code": "0203124000"
+    },
+    "0203124011": {
+        "code": "0203124011",
+        "name": "Planas",
+        "city_code": "0203124000"
+    },
+    "0203124012": {
+        "code": "0203124012",
+        "name": "Purok ni Bulan",
+        "city_code": "0203124000"
+    },
+    "0203124013": {
+        "code": "0203124013",
+        "name": "Raniag",
+        "city_code": "0203124000"
+    },
+    "0203124014": {
+        "code": "0203124014",
+        "name": "San Antonio",
+        "city_code": "0203124000"
+    },
+    "0203124015": {
+        "code": "0203124015",
+        "name": "San Miguel",
+        "city_code": "0203124000"
+    },
+    "0203124016": {
+        "code": "0203124016",
+        "name": "San Sebastian",
+        "city_code": "0203124000"
+    },
+    "0203124018": {
+        "code": "0203124018",
+        "name": "Villa Beltran",
+        "city_code": "0203124000"
+    },
+    "0203124019": {
+        "code": "0203124019",
+        "name": "Villa Carmen",
+        "city_code": "0203124000"
+    },
+    "0203124020": {
+        "code": "0203124020",
+        "name": "Villa Marcos",
+        "city_code": "0203124000"
+    },
+    "0203124021": {
+        "code": "0203124021",
+        "name": "General Aguinaldo",
+        "city_code": "0203124000"
+    },
+    "0203124022": {
+        "code": "0203124022",
+        "name": "Bugallon Proper",
+        "city_code": "0203124000"
+    }
+}

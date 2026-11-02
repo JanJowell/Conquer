@@ -22,7 +22,7 @@ function imageTestRoute(): array
 
 function imageTestCategory(): Category
 {
-    $event = Event::create([
+    $event = Event::forceCreate(['review_status' => null,
         'title' => 'Map image run', 'slug' => 'map-image-run',
         'description' => 'A complete public event description.', 'venue' => 'Bacoor City',
         'event_date' => now()->addMonth()->toDateString(), 'start_time' => '06:00', 'end_time' => '12:00',

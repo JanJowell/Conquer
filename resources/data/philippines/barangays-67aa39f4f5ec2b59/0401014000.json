@@ -1,0 +1,362 @@
+{
+    "0401014001": {
+        "code": "0401014001",
+        "name": "Adya",
+        "city_code": "0401014000"
+    },
+    "0401014003": {
+        "code": "0401014003",
+        "name": "Anilao",
+        "city_code": "0401014000"
+    },
+    "0401014004": {
+        "code": "0401014004",
+        "name": "Anilao-Labac",
+        "city_code": "0401014000"
+    },
+    "0401014005": {
+        "code": "0401014005",
+        "name": "Antipolo Del Norte",
+        "city_code": "0401014000"
+    },
+    "0401014006": {
+        "code": "0401014006",
+        "name": "Antipolo Del Sur",
+        "city_code": "0401014000"
+    },
+    "0401014007": {
+        "code": "0401014007",
+        "name": "Bagong Pook",
+        "city_code": "0401014000"
+    },
+    "0401014008": {
+        "code": "0401014008",
+        "name": "San Sebastian",
+        "city_code": "0401014000"
+    },
+    "0401014009": {
+        "code": "0401014009",
+        "name": "Balintawak",
+        "city_code": "0401014000"
+    },
+    "0401014010": {
+        "code": "0401014010",
+        "name": "Banaybanay",
+        "city_code": "0401014000"
+    },
+    "0401014011": {
+        "code": "0401014011",
+        "name": "Bolbok",
+        "city_code": "0401014000"
+    },
+    "0401014012": {
+        "code": "0401014012",
+        "name": "Bugtong na Pulo",
+        "city_code": "0401014000"
+    },
+    "0401014013": {
+        "code": "0401014013",
+        "name": "Bulacnin",
+        "city_code": "0401014000"
+    },
+    "0401014014": {
+        "code": "0401014014",
+        "name": "Bulaklakan",
+        "city_code": "0401014000"
+    },
+    "0401014015": {
+        "code": "0401014015",
+        "name": "Calamias",
+        "city_code": "0401014000"
+    },
+    "0401014016": {
+        "code": "0401014016",
+        "name": "Cumba",
+        "city_code": "0401014000"
+    },
+    "0401014017": {
+        "code": "0401014017",
+        "name": "Dagatan",
+        "city_code": "0401014000"
+    },
+    "0401014018": {
+        "code": "0401014018",
+        "name": "Duhatan",
+        "city_code": "0401014000"
+    },
+    "0401014020": {
+        "code": "0401014020",
+        "name": "Halang",
+        "city_code": "0401014000"
+    },
+    "0401014021": {
+        "code": "0401014021",
+        "name": "Inosloban",
+        "city_code": "0401014000"
+    },
+    "0401014022": {
+        "code": "0401014022",
+        "name": "Kayumanggi",
+        "city_code": "0401014000"
+    },
+    "0401014024": {
+        "code": "0401014024",
+        "name": "Latag",
+        "city_code": "0401014000"
+    },
+    "0401014025": {
+        "code": "0401014025",
+        "name": "Lodlod",
+        "city_code": "0401014000"
+    },
+    "0401014026": {
+        "code": "0401014026",
+        "name": "Lumbang",
+        "city_code": "0401014000"
+    },
+    "0401014027": {
+        "code": "0401014027",
+        "name": "Mabini",
+        "city_code": "0401014000"
+    },
+    "0401014028": {
+        "code": "0401014028",
+        "name": "Malagonlong",
+        "city_code": "0401014000"
+    },
+    "0401014029": {
+        "code": "0401014029",
+        "name": "Malitlit",
+        "city_code": "0401014000"
+    },
+    "0401014030": {
+        "code": "0401014030",
+        "name": "Marauoy",
+        "city_code": "0401014000"
+    },
+    "0401014031": {
+        "code": "0401014031",
+        "name": "Mataas Na Lupa",
+        "city_code": "0401014000"
+    },
+    "0401014032": {
+        "code": "0401014032",
+        "name": "Munting Pulo",
+        "city_code": "0401014000"
+    },
+    "0401014033": {
+        "code": "0401014033",
+        "name": "Pagolingin Bata",
+        "city_code": "0401014000"
+    },
+    "0401014034": {
+        "code": "0401014034",
+        "name": "Pagolingin East",
+        "city_code": "0401014000"
+    },
+    "0401014035": {
+        "code": "0401014035",
+        "name": "Pagolingin West",
+        "city_code": "0401014000"
+    },
+    "0401014036": {
+        "code": "0401014036",
+        "name": "Pangao",
+        "city_code": "0401014000"
+    },
+    "0401014037": {
+        "code": "0401014037",
+        "name": "Pinagkawitan",
+        "city_code": "0401014000"
+    },
+    "0401014038": {
+        "code": "0401014038",
+        "name": "Pinagtongulan",
+        "city_code": "0401014000"
+    },
+    "0401014039": {
+        "code": "0401014039",
+        "name": "Plaridel",
+        "city_code": "0401014000"
+    },
+    "0401014040": {
+        "code": "0401014040",
+        "name": "Poblacion Barangay 1",
+        "city_code": "0401014000"
+    },
+    "0401014041": {
+        "code": "0401014041",
+        "name": "Poblacion Barangay 10",
+        "city_code": "0401014000"
+    },
+    "0401014042": {
+        "code": "0401014042",
+        "name": "Poblacion Barangay 11",
+        "city_code": "0401014000"
+    },
+    "0401014043": {
+        "code": "0401014043",
+        "name": "Poblacion Barangay 2",
+        "city_code": "0401014000"
+    },
+    "0401014044": {
+        "code": "0401014044",
+        "name": "Poblacion Barangay 3",
+        "city_code": "0401014000"
+    },
+    "0401014045": {
+        "code": "0401014045",
+        "name": "Poblacion Barangay 4",
+        "city_code": "0401014000"
+    },
+    "0401014046": {
+        "code": "0401014046",
+        "name": "Poblacion Barangay 5",
+        "city_code": "0401014000"
+    },
+    "0401014047": {
+        "code": "0401014047",
+        "name": "Poblacion Barangay 6",
+        "city_code": "0401014000"
+    },
+    "0401014048": {
+        "code": "0401014048",
+        "name": "Poblacion Barangay 7",
+        "city_code": "0401014000"
+    },
+    "0401014049": {
+        "code": "0401014049",
+        "name": "Poblacion Barangay 8",
+        "city_code": "0401014000"
+    },
+    "0401014050": {
+        "code": "0401014050",
+        "name": "Poblacion Barangay 9",
+        "city_code": "0401014000"
+    },
+    "0401014051": {
+        "code": "0401014051",
+        "name": "Pusil",
+        "city_code": "0401014000"
+    },
+    "0401014052": {
+        "code": "0401014052",
+        "name": "Quezon",
+        "city_code": "0401014000"
+    },
+    "0401014053": {
+        "code": "0401014053",
+        "name": "Rizal",
+        "city_code": "0401014000"
+    },
+    "0401014054": {
+        "code": "0401014054",
+        "name": "Sabang",
+        "city_code": "0401014000"
+    },
+    "0401014055": {
+        "code": "0401014055",
+        "name": "Sampaguita",
+        "city_code": "0401014000"
+    },
+    "0401014056": {
+        "code": "0401014056",
+        "name": "San Benito",
+        "city_code": "0401014000"
+    },
+    "0401014057": {
+        "code": "0401014057",
+        "name": "San Carlos",
+        "city_code": "0401014000"
+    },
+    "0401014058": {
+        "code": "0401014058",
+        "name": "San Celestino",
+        "city_code": "0401014000"
+    },
+    "0401014059": {
+        "code": "0401014059",
+        "name": "San Francisco",
+        "city_code": "0401014000"
+    },
+    "0401014060": {
+        "code": "0401014060",
+        "name": "San Guillermo",
+        "city_code": "0401014000"
+    },
+    "0401014061": {
+        "code": "0401014061",
+        "name": "San Jose",
+        "city_code": "0401014000"
+    },
+    "0401014062": {
+        "code": "0401014062",
+        "name": "San Lucas",
+        "city_code": "0401014000"
+    },
+    "0401014063": {
+        "code": "0401014063",
+        "name": "San Salvador",
+        "city_code": "0401014000"
+    },
+    "0401014064": {
+        "code": "0401014064",
+        "name": "Sapac",
+        "city_code": "0401014000"
+    },
+    "0401014066": {
+        "code": "0401014066",
+        "name": "Sico",
+        "city_code": "0401014000"
+    },
+    "0401014068": {
+        "code": "0401014068",
+        "name": "Santo Niño",
+        "city_code": "0401014000"
+    },
+    "0401014069": {
+        "code": "0401014069",
+        "name": "Santo Toribio",
+        "city_code": "0401014000"
+    },
+    "0401014070": {
+        "code": "0401014070",
+        "name": "Talisay",
+        "city_code": "0401014000"
+    },
+    "0401014071": {
+        "code": "0401014071",
+        "name": "Tambo",
+        "city_code": "0401014000"
+    },
+    "0401014072": {
+        "code": "0401014072",
+        "name": "Tangob",
+        "city_code": "0401014000"
+    },
+    "0401014073": {
+        "code": "0401014073",
+        "name": "Tanguay",
+        "city_code": "0401014000"
+    },
+    "0401014074": {
+        "code": "0401014074",
+        "name": "Tibig",
+        "city_code": "0401014000"
+    },
+    "0401014075": {
+        "code": "0401014075",
+        "name": "Tipacan",
+        "city_code": "0401014000"
+    },
+    "0401014076": {
+        "code": "0401014076",
+        "name": "Poblacion Barangay 9-A",
+        "city_code": "0401014000"
+    },
+    "0401014077": {
+        "code": "0401014077",
+        "name": "Barangay 12",
+        "city_code": "0401014000"
+    }
+}

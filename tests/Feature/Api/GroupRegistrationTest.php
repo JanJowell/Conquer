@@ -16,7 +16,7 @@ function groupRunner(string $token): User
 
 function groupEventAndCategory(array $categoryOverrides = []): array
 {
-    $event = Event::create([
+    $event = Event::forceCreate(['review_status' => null,
         'title' => 'Community Team Run',
         'slug' => 'community-team-run-'.uniqid(),
         'description' => 'A group registration test event.',

@@ -33,6 +33,7 @@ class EventOperationsController extends Controller
         $accessibleEventIds = $this->accessibleEventIds($user);
 
         $events = Event::query()
+            ->visibleToStaff($user)
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($user) {
                 $query->where('manager_id', $user->id);
             })
@@ -40,6 +41,7 @@ class EventOperationsController extends Controller
             ->get(['id', 'title']);
 
         $categories = Category::query()
+            ->whereHas('event', fn ($query) => $query->visibleToStaff($user))
             ->with('event:id,title')
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($accessibleEventIds) {
                 $query->whereIn('event_id', $accessibleEventIds);
@@ -249,6 +251,7 @@ class EventOperationsController extends Controller
         $accessibleEventIds = $this->accessibleEventIds($user);
 
         $events = Event::query()
+            ->visibleToStaff($user)
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($user) {
                 $query->where('manager_id', $user->id);
             })
@@ -359,6 +362,7 @@ class EventOperationsController extends Controller
         $accessibleEventIds = $this->accessibleEventIds($user);
 
         $events = Event::query()
+            ->visibleToStaff($user)
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($user) {
                 $query->where('manager_id', $user->id);
             })
@@ -366,7 +370,7 @@ class EventOperationsController extends Controller
             ->get(['id', 'title']);
 
         $registrations = Registration::query()
-            ->with(['user', 'event', 'category', 'raceResult', 'certificate', 'finishScan.scannedBy'])
+            ->with(['user', 'event', 'category', 'raceResult', 'feedback', 'certificate', 'finishScan.scannedBy'])
             ->whereIn('status', ['checked_in', 'completed'])
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($accessibleEventIds) {
                 $query->whereIn('event_id', $accessibleEventIds);
@@ -724,7 +728,7 @@ class EventOperationsController extends Controller
     private function accessibleEventIds($user): array
     {
         if (! $user->managesAssignedEventsOnly()) {
-            return Event::pluck('id')->all();
+            return Event::visibleToStaff($user)->pluck('id')->all();
         }
 
         return $user->managedEventIds();

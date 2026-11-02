@@ -13,7 +13,7 @@ function participantConfirmationRegistration(array $registrationOverrides = []):
         'name' => 'Confirmation Runner',
         'email' => 'confirmation.runner@example.test',
     ]);
-    $event = Event::create([
+    $event = Event::forceCreate(['review_status' => null,
         'title' => 'Confirmation Marathon',
         'slug' => 'confirmation-marathon-'.uniqid(),
         'description' => 'Participant decision confirmation test event.',

@@ -18,7 +18,7 @@ function paymentRunnerWithToken(string $token = 'payment-mobile-token'): User
 
 function paymentReadyEvent(?User $manager = null): Event
 {
-    return Event::create([
+    return Event::forceCreate(['review_status' => null,
         'title' => 'Payment Ready Run',
         'slug' => 'payment-ready-run-'.uniqid(),
         'description' => 'A complete public event description.',

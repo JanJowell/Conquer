@@ -1,0 +1,127 @@
+{
+    "0501725001": {
+        "code": "0501725001",
+        "name": "Ayugan",
+        "city_code": "0501725000"
+    },
+    "0501725002": {
+        "code": "0501725002",
+        "name": "Cabariwan",
+        "city_code": "0501725000"
+    },
+    "0501725003": {
+        "code": "0501725003",
+        "name": "Cagmanaba",
+        "city_code": "0501725000"
+    },
+    "0501725004": {
+        "code": "0501725004",
+        "name": "Del Rosario",
+        "city_code": "0501725000"
+    },
+    "0501725005": {
+        "code": "0501725005",
+        "name": "Gatbo",
+        "city_code": "0501725000"
+    },
+    "0501725006": {
+        "code": "0501725006",
+        "name": "Guinaban",
+        "city_code": "0501725000"
+    },
+    "0501725007": {
+        "code": "0501725007",
+        "name": "Hanawan",
+        "city_code": "0501725000"
+    },
+    "0501725008": {
+        "code": "0501725008",
+        "name": "Hibago",
+        "city_code": "0501725000"
+    },
+    "0501725009": {
+        "code": "0501725009",
+        "name": "La Purisima Nuevo",
+        "city_code": "0501725000"
+    },
+    "0501725010": {
+        "code": "0501725010",
+        "name": "May-Ogob",
+        "city_code": "0501725000"
+    },
+    "0501725011": {
+        "code": "0501725011",
+        "name": "New Moriones",
+        "city_code": "0501725000"
+    },
+    "0501725012": {
+        "code": "0501725012",
+        "name": "Old Moriones",
+        "city_code": "0501725000"
+    },
+    "0501725013": {
+        "code": "0501725013",
+        "name": "Pinit",
+        "city_code": "0501725000"
+    },
+    "0501725014": {
+        "code": "0501725014",
+        "name": "Poblacion Central",
+        "city_code": "0501725000"
+    },
+    "0501725015": {
+        "code": "0501725015",
+        "name": "Poblacion East",
+        "city_code": "0501725000"
+    },
+    "0501725016": {
+        "code": "0501725016",
+        "name": "Poblacion West",
+        "city_code": "0501725000"
+    },
+    "0501725017": {
+        "code": "0501725017",
+        "name": "Salvacion",
+        "city_code": "0501725000"
+    },
+    "0501725018": {
+        "code": "0501725018",
+        "name": "San Antonio",
+        "city_code": "0501725000"
+    },
+    "0501725019": {
+        "code": "0501725019",
+        "name": "San Francisco",
+        "city_code": "0501725000"
+    },
+    "0501725020": {
+        "code": "0501725020",
+        "name": "San Jose Oras",
+        "city_code": "0501725000"
+    },
+    "0501725022": {
+        "code": "0501725022",
+        "name": "San Roque Commonal",
+        "city_code": "0501725000"
+    },
+    "0501725023": {
+        "code": "0501725023",
+        "name": "San Vicente",
+        "city_code": "0501725000"
+    },
+    "0501725024": {
+        "code": "0501725024",
+        "name": "Santa Cruz",
+        "city_code": "0501725000"
+    },
+    "0501725025": {
+        "code": "0501725025",
+        "name": "Santo Niño",
+        "city_code": "0501725000"
+    },
+    "0501725026": {
+        "code": "0501725026",
+        "name": "Villaflorida",
+        "city_code": "0501725000"
+    }
+}

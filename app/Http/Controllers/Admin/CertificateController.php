@@ -41,6 +41,7 @@ class CertificateController extends Controller
             ->withQueryString();
 
         $events = Event::query()
+            ->visibleToStaff($user)
             ->when($user->managesAssignedEventsOnly(), fn ($query) => $query->whereIn('id', $eventIds))
             ->orderByDesc('event_date')
             ->get(['id', 'title']);
@@ -65,7 +66,7 @@ class CertificateController extends Controller
         $this->authorizeEvent($request, $registration->event);
 
         if (! $issuer->isEligible($registration)) {
-            return back()->with('error', 'A certificate requires a completed registration with an official result.');
+            return back()->with('error', 'A new certificate requires a completed registration, an official result, and submitted participant feedback.');
         }
 
         $certificate = $issuer->syncForRegistration($registration, $request->user()->id);

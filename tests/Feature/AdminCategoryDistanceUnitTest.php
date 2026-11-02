@@ -43,8 +43,8 @@ function distanceUnitCategoryPayload(Event $event, array $overrides = []): array
     ], $overrides);
 }
 
-test('admin can create a category in miles while kilometers remain authoritative', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+test('event manager can create a category in miles while kilometers remain authoritative', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = distanceUnitEvent($admin);
 
     $this->actingAs($admin)
@@ -67,7 +67,7 @@ test('admin can create a category in miles while kilometers remain authoritative
 });
 
 test('legacy category requests without a unit continue to use kilometers', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = distanceUnitEvent($admin, 'Legacy Distance');
     $payload = distanceUnitCategoryPayload($event);
     unset($payload['distance_unit']);
@@ -83,8 +83,8 @@ test('legacy category requests without a unit continue to use kilometers', funct
         ->and($category->name)->toBe('5K Open');
 });
 
-test('admin can edit a custom category distance in miles', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+test('event manager can edit a custom category distance in miles', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = distanceUnitEvent($admin, 'Editable Distance');
     $category = Category::create([
         'event_id' => $event->id,
@@ -111,7 +111,7 @@ test('admin can edit a custom category distance in miles', function () {
 });
 
 test('embedded event creation stores the category distance unit', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $eventDate = now()->addMonth()->toDateString();
     $title = 'Miles Embedded Event '.uniqid();
 
@@ -153,7 +153,7 @@ test('embedded event creation stores the category distance unit', function () {
 });
 
 test('unsupported category distance units are rejected', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = distanceUnitEvent($admin, 'Invalid Distance Unit');
 
     $this->actingAs($admin)
@@ -166,7 +166,7 @@ test('unsupported category distance units are rejected', function () {
 });
 
 test('category forms expose kilometer and mile choices beside distance', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = distanceUnitEvent($admin, 'Distance Unit Form');
 
     $this->actingAs($admin)

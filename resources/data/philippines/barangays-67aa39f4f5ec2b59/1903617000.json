@@ -1,0 +1,507 @@
+{
+    "1903617001": {
+        "code": "1903617001",
+        "name": "Ambolong",
+        "city_code": "1903617000"
+    },
+    "1903617003": {
+        "code": "1903617003",
+        "name": "Bacolod Chico Proper",
+        "city_code": "1903617000"
+    },
+    "1903617006": {
+        "code": "1903617006",
+        "name": "Banga",
+        "city_code": "1903617000"
+    },
+    "1903617007": {
+        "code": "1903617007",
+        "name": "Bangco",
+        "city_code": "1903617000"
+    },
+    "1903617008": {
+        "code": "1903617008",
+        "name": "Banggolo Poblacion",
+        "city_code": "1903617000"
+    },
+    "1903617009": {
+        "code": "1903617009",
+        "name": "Bangon",
+        "city_code": "1903617000"
+    },
+    "1903617010": {
+        "code": "1903617010",
+        "name": "Beyaba-Damag",
+        "city_code": "1903617000"
+    },
+    "1903617012": {
+        "code": "1903617012",
+        "name": "Bito Buadi Itowa",
+        "city_code": "1903617000"
+    },
+    "1903617013": {
+        "code": "1903617013",
+        "name": "Bito Buadi Parba",
+        "city_code": "1903617000"
+    },
+    "1903617014": {
+        "code": "1903617014",
+        "name": "Bubonga Pagalamatan",
+        "city_code": "1903617000"
+    },
+    "1903617015": {
+        "code": "1903617015",
+        "name": "Bubonga Lilod Madaya",
+        "city_code": "1903617000"
+    },
+    "1903617016": {
+        "code": "1903617016",
+        "name": "Boganga",
+        "city_code": "1903617000"
+    },
+    "1903617017": {
+        "code": "1903617017",
+        "name": "Boto Ambolong",
+        "city_code": "1903617000"
+    },
+    "1903617019": {
+        "code": "1903617019",
+        "name": "Bubonga Cadayonan",
+        "city_code": "1903617000"
+    },
+    "1903617021": {
+        "code": "1903617021",
+        "name": "Bubong Lumbac",
+        "city_code": "1903617000"
+    },
+    "1903617022": {
+        "code": "1903617022",
+        "name": "Bubonga Marawi",
+        "city_code": "1903617000"
+    },
+    "1903617023": {
+        "code": "1903617023",
+        "name": "Bubonga Punod",
+        "city_code": "1903617000"
+    },
+    "1903617024": {
+        "code": "1903617024",
+        "name": "Cabasaran",
+        "city_code": "1903617000"
+    },
+    "1903617025": {
+        "code": "1903617025",
+        "name": "Cabingan",
+        "city_code": "1903617000"
+    },
+    "1903617026": {
+        "code": "1903617026",
+        "name": "Cadayonan",
+        "city_code": "1903617000"
+    },
+    "1903617027": {
+        "code": "1903617027",
+        "name": "Cadayonan I",
+        "city_code": "1903617000"
+    },
+    "1903617029": {
+        "code": "1903617029",
+        "name": "Calocan East",
+        "city_code": "1903617000"
+    },
+    "1903617030": {
+        "code": "1903617030",
+        "name": "Calocan West",
+        "city_code": "1903617000"
+    },
+    "1903617032": {
+        "code": "1903617032",
+        "name": "Kormatan Matampay",
+        "city_code": "1903617000"
+    },
+    "1903617033": {
+        "code": "1903617033",
+        "name": "Daguduban",
+        "city_code": "1903617000"
+    },
+    "1903617035": {
+        "code": "1903617035",
+        "name": "Dansalan",
+        "city_code": "1903617000"
+    },
+    "1903617036": {
+        "code": "1903617036",
+        "name": "Datu Sa Dansalan",
+        "city_code": "1903617000"
+    },
+    "1903617037": {
+        "code": "1903617037",
+        "name": "Dayawan",
+        "city_code": "1903617000"
+    },
+    "1903617039": {
+        "code": "1903617039",
+        "name": "Dimaluna",
+        "city_code": "1903617000"
+    },
+    "1903617040": {
+        "code": "1903617040",
+        "name": "Dulay",
+        "city_code": "1903617000"
+    },
+    "1903617042": {
+        "code": "1903617042",
+        "name": "Dulay West",
+        "city_code": "1903617000"
+    },
+    "1903617043": {
+        "code": "1903617043",
+        "name": "East Basak",
+        "city_code": "1903617000"
+    },
+    "1903617044": {
+        "code": "1903617044",
+        "name": "Emie Punud",
+        "city_code": "1903617000"
+    },
+    "1903617045": {
+        "code": "1903617045",
+        "name": "Fort",
+        "city_code": "1903617000"
+    },
+    "1903617046": {
+        "code": "1903617046",
+        "name": "Gadongan",
+        "city_code": "1903617000"
+    },
+    "1903617048": {
+        "code": "1903617048",
+        "name": "Buadi Sacayo",
+        "city_code": "1903617000"
+    },
+    "1903617049": {
+        "code": "1903617049",
+        "name": "Guimba",
+        "city_code": "1903617000"
+    },
+    "1903617051": {
+        "code": "1903617051",
+        "name": "Kapantaran",
+        "city_code": "1903617000"
+    },
+    "1903617052": {
+        "code": "1903617052",
+        "name": "Kilala",
+        "city_code": "1903617000"
+    },
+    "1903617057": {
+        "code": "1903617057",
+        "name": "Lilod Madaya",
+        "city_code": "1903617000"
+    },
+    "1903617058": {
+        "code": "1903617058",
+        "name": "Lilod Saduc",
+        "city_code": "1903617000"
+    },
+    "1903617060": {
+        "code": "1903617060",
+        "name": "Lomidong",
+        "city_code": "1903617000"
+    },
+    "1903617062": {
+        "code": "1903617062",
+        "name": "Lumbaca Madaya",
+        "city_code": "1903617000"
+    },
+    "1903617063": {
+        "code": "1903617063",
+        "name": "Lumbac Marinaut",
+        "city_code": "1903617000"
+    },
+    "1903617064": {
+        "code": "1903617064",
+        "name": "Lumbaca Toros",
+        "city_code": "1903617000"
+    },
+    "1903617065": {
+        "code": "1903617065",
+        "name": "Malimono",
+        "city_code": "1903617000"
+    },
+    "1903617066": {
+        "code": "1903617066",
+        "name": "Basak Malutlut",
+        "city_code": "1903617000"
+    },
+    "1903617068": {
+        "code": "1903617068",
+        "name": "Gadongan Mapantao",
+        "city_code": "1903617000"
+    },
+    "1903617069": {
+        "code": "1903617069",
+        "name": "Amito Marantao",
+        "city_code": "1903617000"
+    },
+    "1903617070": {
+        "code": "1903617070",
+        "name": "Marinaut East",
+        "city_code": "1903617000"
+    },
+    "1903617071": {
+        "code": "1903617071",
+        "name": "Marinaut West",
+        "city_code": "1903617000"
+    },
+    "1903617072": {
+        "code": "1903617072",
+        "name": "Matampay",
+        "city_code": "1903617000"
+    },
+    "1903617074": {
+        "code": "1903617074",
+        "name": "Pantaon",
+        "city_code": "1903617000"
+    },
+    "1903617075": {
+        "code": "1903617075",
+        "name": "Mipaga Proper",
+        "city_code": "1903617000"
+    },
+    "1903617076": {
+        "code": "1903617076",
+        "name": "Moncado Colony",
+        "city_code": "1903617000"
+    },
+    "1903617077": {
+        "code": "1903617077",
+        "name": "Moncado Kadingilan",
+        "city_code": "1903617000"
+    },
+    "1903617079": {
+        "code": "1903617079",
+        "name": "Moriatao Loksadato",
+        "city_code": "1903617000"
+    },
+    "1903617080": {
+        "code": "1903617080",
+        "name": "Datu Naga",
+        "city_code": "1903617000"
+    },
+    "1903617083": {
+        "code": "1903617083",
+        "name": "Navarro",
+        "city_code": "1903617000"
+    },
+    "1903617085": {
+        "code": "1903617085",
+        "name": "Olawa Ambolong",
+        "city_code": "1903617000"
+    },
+    "1903617086": {
+        "code": "1903617086",
+        "name": "Pagalamatan Gambai",
+        "city_code": "1903617000"
+    },
+    "1903617089": {
+        "code": "1903617089",
+        "name": "Pagayawan",
+        "city_code": "1903617000"
+    },
+    "1903617090": {
+        "code": "1903617090",
+        "name": "Panggao Saduc",
+        "city_code": "1903617000"
+    },
+    "1903617097": {
+        "code": "1903617097",
+        "name": "Papandayan",
+        "city_code": "1903617000"
+    },
+    "1903617098": {
+        "code": "1903617098",
+        "name": "Paridi",
+        "city_code": "1903617000"
+    },
+    "1903617099": {
+        "code": "1903617099",
+        "name": "Patani",
+        "city_code": "1903617000"
+    },
+    "1903617101": {
+        "code": "1903617101",
+        "name": "Pindolonan",
+        "city_code": "1903617000"
+    },
+    "1903617103": {
+        "code": "1903617103",
+        "name": "Poona Marantao",
+        "city_code": "1903617000"
+    },
+    "1903617105": {
+        "code": "1903617105",
+        "name": "Pugaan",
+        "city_code": "1903617000"
+    },
+    "1903617107": {
+        "code": "1903617107",
+        "name": "Rapasun MSU",
+        "city_code": "1903617000"
+    },
+    "1903617109": {
+        "code": "1903617109",
+        "name": "Raya Madaya I",
+        "city_code": "1903617000"
+    },
+    "1903617110": {
+        "code": "1903617110",
+        "name": "Raya Madaya II",
+        "city_code": "1903617000"
+    },
+    "1903617111": {
+        "code": "1903617111",
+        "name": "Raya Saduc",
+        "city_code": "1903617000"
+    },
+    "1903617112": {
+        "code": "1903617112",
+        "name": "Rorogagus Proper",
+        "city_code": "1903617000"
+    },
+    "1903617113": {
+        "code": "1903617113",
+        "name": "Rorogagus East",
+        "city_code": "1903617000"
+    },
+    "1903617116": {
+        "code": "1903617116",
+        "name": "Sabala Manao",
+        "city_code": "1903617000"
+    },
+    "1903617117": {
+        "code": "1903617117",
+        "name": "Sabala Manao Proper",
+        "city_code": "1903617000"
+    },
+    "1903617118": {
+        "code": "1903617118",
+        "name": "Saduc Proper",
+        "city_code": "1903617000"
+    },
+    "1903617119": {
+        "code": "1903617119",
+        "name": "Sagonsongan",
+        "city_code": "1903617000"
+    },
+    "1903617120": {
+        "code": "1903617120",
+        "name": "Sangcay Dansalan",
+        "city_code": "1903617000"
+    },
+    "1903617123": {
+        "code": "1903617123",
+        "name": "Somiorang",
+        "city_code": "1903617000"
+    },
+    "1903617124": {
+        "code": "1903617124",
+        "name": "South Madaya Proper",
+        "city_code": "1903617000"
+    },
+    "1903617125": {
+        "code": "1903617125",
+        "name": "Sugod Proper",
+        "city_code": "1903617000"
+    },
+    "1903617126": {
+        "code": "1903617126",
+        "name": "Tampilong",
+        "city_code": "1903617000"
+    },
+    "1903617127": {
+        "code": "1903617127",
+        "name": "Timbangalan",
+        "city_code": "1903617000"
+    },
+    "1903617129": {
+        "code": "1903617129",
+        "name": "Tuca Ambolong",
+        "city_code": "1903617000"
+    },
+    "1903617131": {
+        "code": "1903617131",
+        "name": "Tolali",
+        "city_code": "1903617000"
+    },
+    "1903617133": {
+        "code": "1903617133",
+        "name": "Toros",
+        "city_code": "1903617000"
+    },
+    "1903617134": {
+        "code": "1903617134",
+        "name": "Tuca",
+        "city_code": "1903617000"
+    },
+    "1903617136": {
+        "code": "1903617136",
+        "name": "Tuca Marinaut",
+        "city_code": "1903617000"
+    },
+    "1903617137": {
+        "code": "1903617137",
+        "name": "Tongantongan-Tuca Timbangalan",
+        "city_code": "1903617000"
+    },
+    "1903617138": {
+        "code": "1903617138",
+        "name": "Wawalayan Calocan",
+        "city_code": "1903617000"
+    },
+    "1903617139": {
+        "code": "1903617139",
+        "name": "Wawalayan Marinaut",
+        "city_code": "1903617000"
+    },
+    "1903617141": {
+        "code": "1903617141",
+        "name": "Marawi Poblacion",
+        "city_code": "1903617000"
+    },
+    "1903617142": {
+        "code": "1903617142",
+        "name": "Norhaya Village",
+        "city_code": "1903617000"
+    },
+    "1903617143": {
+        "code": "1903617143",
+        "name": "Papandayan Caniogan",
+        "city_code": "1903617000"
+    },
+    "1903617144": {
+        "code": "1903617144",
+        "name": "Boganga II",
+        "city_code": "1903617000"
+    },
+    "1903617145": {
+        "code": "1903617145",
+        "name": "Datu Dalidigan",
+        "city_code": "1903617000"
+    },
+    "1903617146": {
+        "code": "1903617146",
+        "name": "Angoyao",
+        "city_code": "1903617000"
+    },
+    "1903617147": {
+        "code": "1903617147",
+        "name": "Sultan Corobong",
+        "city_code": "1903617000"
+    },
+    "1903617148": {
+        "code": "1903617148",
+        "name": "Sultan Panoroganan",
+        "city_code": "1903617000"
+    }
+}

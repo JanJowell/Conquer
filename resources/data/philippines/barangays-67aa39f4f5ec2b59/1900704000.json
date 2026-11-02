@@ -1,0 +1,102 @@
+{
+    "1900704001": {
+        "code": "1900704001",
+        "name": "Abong-Abong",
+        "city_code": "1900704000"
+    },
+    "1900704002": {
+        "code": "1900704002",
+        "name": "Batungal",
+        "city_code": "1900704000"
+    },
+    "1900704003": {
+        "code": "1900704003",
+        "name": "Calang Canas",
+        "city_code": "1900704000"
+    },
+    "1900704004": {
+        "code": "1900704004",
+        "name": "Guanan North",
+        "city_code": "1900704000"
+    },
+    "1900704005": {
+        "code": "1900704005",
+        "name": "Guanan South",
+        "city_code": "1900704000"
+    },
+    "1900704006": {
+        "code": "1900704006",
+        "name": "Limbubong",
+        "city_code": "1900704000"
+    },
+    "1900704007": {
+        "code": "1900704007",
+        "name": "Mahayahay Lower",
+        "city_code": "1900704000"
+    },
+    "1900704008": {
+        "code": "1900704008",
+        "name": "Muslim Area",
+        "city_code": "1900704000"
+    },
+    "1900704009": {
+        "code": "1900704009",
+        "name": "Port Holland Zone I Pob.",
+        "city_code": "1900704000"
+    },
+    "1900704010": {
+        "code": "1900704010",
+        "name": "Port Holland Zone II Pob.",
+        "city_code": "1900704000"
+    },
+    "1900704011": {
+        "code": "1900704011",
+        "name": "Port Holland Zone III Pob.",
+        "city_code": "1900704000"
+    },
+    "1900704012": {
+        "code": "1900704012",
+        "name": "Port Holland Zone IV",
+        "city_code": "1900704000"
+    },
+    "1900704013": {
+        "code": "1900704013",
+        "name": "Townsite",
+        "city_code": "1900704000"
+    },
+    "1900704015": {
+        "code": "1900704015",
+        "name": "Taberlongan",
+        "city_code": "1900704000"
+    },
+    "1900704016": {
+        "code": "1900704016",
+        "name": "Fuente Maluso",
+        "city_code": "1900704000"
+    },
+    "1900704017": {
+        "code": "1900704017",
+        "name": "Tamuk",
+        "city_code": "1900704000"
+    },
+    "1900704018": {
+        "code": "1900704018",
+        "name": "Tubigan",
+        "city_code": "1900704000"
+    },
+    "1900704019": {
+        "code": "1900704019",
+        "name": "Mahayahay Upper",
+        "city_code": "1900704000"
+    },
+    "1900704020": {
+        "code": "1900704020",
+        "name": "Port Holland Zone V",
+        "city_code": "1900704000"
+    },
+    "1900704021": {
+        "code": "1900704021",
+        "name": "Upper Garlayan",
+        "city_code": "1900704000"
+    }
+}

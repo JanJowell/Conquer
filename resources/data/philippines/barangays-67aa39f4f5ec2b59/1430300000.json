@@ -1,0 +1,647 @@
+{
+    "1430300001": {
+        "code": "1430300001",
+        "name": "Apugan-Loakan",
+        "city_code": "1430300000"
+    },
+    "1430300002": {
+        "code": "1430300002",
+        "name": "Asin Road",
+        "city_code": "1430300000"
+    },
+    "1430300003": {
+        "code": "1430300003",
+        "name": "Atok Trail",
+        "city_code": "1430300000"
+    },
+    "1430300004": {
+        "code": "1430300004",
+        "name": "Bakakeng Central",
+        "city_code": "1430300000"
+    },
+    "1430300005": {
+        "code": "1430300005",
+        "name": "Bakakeng North",
+        "city_code": "1430300000"
+    },
+    "1430300006": {
+        "code": "1430300006",
+        "name": "Happy Hollow",
+        "city_code": "1430300000"
+    },
+    "1430300007": {
+        "code": "1430300007",
+        "name": "Balsigan",
+        "city_code": "1430300000"
+    },
+    "1430300008": {
+        "code": "1430300008",
+        "name": "Bayan Park West",
+        "city_code": "1430300000"
+    },
+    "1430300010": {
+        "code": "1430300010",
+        "name": "Bayan Park East",
+        "city_code": "1430300000"
+    },
+    "1430300011": {
+        "code": "1430300011",
+        "name": "Brookspoint",
+        "city_code": "1430300000"
+    },
+    "1430300012": {
+        "code": "1430300012",
+        "name": "Brookside",
+        "city_code": "1430300000"
+    },
+    "1430300013": {
+        "code": "1430300013",
+        "name": "Cabinet Hill-Teacher's Camp",
+        "city_code": "1430300000"
+    },
+    "1430300016": {
+        "code": "1430300016",
+        "name": "Camp Allen",
+        "city_code": "1430300000"
+    },
+    "1430300017": {
+        "code": "1430300017",
+        "name": "Camp 7",
+        "city_code": "1430300000"
+    },
+    "1430300018": {
+        "code": "1430300018",
+        "name": "Camp 8",
+        "city_code": "1430300000"
+    },
+    "1430300019": {
+        "code": "1430300019",
+        "name": "Campo Filipino",
+        "city_code": "1430300000"
+    },
+    "1430300022": {
+        "code": "1430300022",
+        "name": "City Camp Central",
+        "city_code": "1430300000"
+    },
+    "1430300023": {
+        "code": "1430300023",
+        "name": "City Camp Proper",
+        "city_code": "1430300000"
+    },
+    "1430300025": {
+        "code": "1430300025",
+        "name": "Country Club Village",
+        "city_code": "1430300000"
+    },
+    "1430300026": {
+        "code": "1430300026",
+        "name": "Cresencia Village",
+        "city_code": "1430300000"
+    },
+    "1430300028": {
+        "code": "1430300028",
+        "name": "Dagsian, Upper",
+        "city_code": "1430300000"
+    },
+    "1430300029": {
+        "code": "1430300029",
+        "name": "DPS Area",
+        "city_code": "1430300000"
+    },
+    "1430300030": {
+        "code": "1430300030",
+        "name": "Dizon Subdivision",
+        "city_code": "1430300000"
+    },
+    "1430300034": {
+        "code": "1430300034",
+        "name": "Quirino Hill, East",
+        "city_code": "1430300000"
+    },
+    "1430300035": {
+        "code": "1430300035",
+        "name": "Engineers' Hill",
+        "city_code": "1430300000"
+    },
+    "1430300036": {
+        "code": "1430300036",
+        "name": "Fairview Village",
+        "city_code": "1430300000"
+    },
+    "1430300037": {
+        "code": "1430300037",
+        "name": "Fort del Pilar",
+        "city_code": "1430300000"
+    },
+    "1430300038": {
+        "code": "1430300038",
+        "name": "General Luna, Upper",
+        "city_code": "1430300000"
+    },
+    "1430300039": {
+        "code": "1430300039",
+        "name": "General Luna, Lower",
+        "city_code": "1430300000"
+    },
+    "1430300040": {
+        "code": "1430300040",
+        "name": "Gibraltar",
+        "city_code": "1430300000"
+    },
+    "1430300041": {
+        "code": "1430300041",
+        "name": "Greenwater Village",
+        "city_code": "1430300000"
+    },
+    "1430300042": {
+        "code": "1430300042",
+        "name": "Guisad Central",
+        "city_code": "1430300000"
+    },
+    "1430300043": {
+        "code": "1430300043",
+        "name": "Guisad Sorong",
+        "city_code": "1430300000"
+    },
+    "1430300045": {
+        "code": "1430300045",
+        "name": "Hillside",
+        "city_code": "1430300000"
+    },
+    "1430300046": {
+        "code": "1430300046",
+        "name": "Holy Ghost Extension",
+        "city_code": "1430300000"
+    },
+    "1430300047": {
+        "code": "1430300047",
+        "name": "Holy Ghost Proper",
+        "city_code": "1430300000"
+    },
+    "1430300049": {
+        "code": "1430300049",
+        "name": "Imelda Village",
+        "city_code": "1430300000"
+    },
+    "1430300050": {
+        "code": "1430300050",
+        "name": "Irisan",
+        "city_code": "1430300000"
+    },
+    "1430300051": {
+        "code": "1430300051",
+        "name": "Kayang Extension",
+        "city_code": "1430300000"
+    },
+    "1430300052": {
+        "code": "1430300052",
+        "name": "Kias",
+        "city_code": "1430300000"
+    },
+    "1430300053": {
+        "code": "1430300053",
+        "name": "Kagitingan",
+        "city_code": "1430300000"
+    },
+    "1430300054": {
+        "code": "1430300054",
+        "name": "Loakan Proper",
+        "city_code": "1430300000"
+    },
+    "1430300055": {
+        "code": "1430300055",
+        "name": "Lopez Jaena",
+        "city_code": "1430300000"
+    },
+    "1430300056": {
+        "code": "1430300056",
+        "name": "Lourdes Subdivision Extension",
+        "city_code": "1430300000"
+    },
+    "1430300058": {
+        "code": "1430300058",
+        "name": "Dagsian, Lower",
+        "city_code": "1430300000"
+    },
+    "1430300059": {
+        "code": "1430300059",
+        "name": "Lourdes Subdivision, Lower",
+        "city_code": "1430300000"
+    },
+    "1430300061": {
+        "code": "1430300061",
+        "name": "Quirino Hill, Lower",
+        "city_code": "1430300000"
+    },
+    "1430300062": {
+        "code": "1430300062",
+        "name": "General Emilio F. Aguinaldo",
+        "city_code": "1430300000"
+    },
+    "1430300063": {
+        "code": "1430300063",
+        "name": "Lualhati",
+        "city_code": "1430300000"
+    },
+    "1430300064": {
+        "code": "1430300064",
+        "name": "Lucnab",
+        "city_code": "1430300000"
+    },
+    "1430300065": {
+        "code": "1430300065",
+        "name": "Magsaysay, Lower",
+        "city_code": "1430300000"
+    },
+    "1430300066": {
+        "code": "1430300066",
+        "name": "Magsaysay Private Road",
+        "city_code": "1430300000"
+    },
+    "1430300067": {
+        "code": "1430300067",
+        "name": "Aurora Hill Proper",
+        "city_code": "1430300000"
+    },
+    "1430300068": {
+        "code": "1430300068",
+        "name": "Bal-Marcoville",
+        "city_code": "1430300000"
+    },
+    "1430300069": {
+        "code": "1430300069",
+        "name": "Quirino Hill, Middle",
+        "city_code": "1430300000"
+    },
+    "1430300071": {
+        "code": "1430300071",
+        "name": "Military Cut-off",
+        "city_code": "1430300000"
+    },
+    "1430300072": {
+        "code": "1430300072",
+        "name": "Mines View Park",
+        "city_code": "1430300000"
+    },
+    "1430300074": {
+        "code": "1430300074",
+        "name": "Modern Site, East",
+        "city_code": "1430300000"
+    },
+    "1430300075": {
+        "code": "1430300075",
+        "name": "Modern Site, West",
+        "city_code": "1430300000"
+    },
+    "1430300076": {
+        "code": "1430300076",
+        "name": "New Lucban",
+        "city_code": "1430300000"
+    },
+    "1430300078": {
+        "code": "1430300078",
+        "name": "Aurora Hill, North Central",
+        "city_code": "1430300000"
+    },
+    "1430300079": {
+        "code": "1430300079",
+        "name": "Sanitary Camp, North",
+        "city_code": "1430300000"
+    },
+    "1430300081": {
+        "code": "1430300081",
+        "name": "Outlook Drive",
+        "city_code": "1430300000"
+    },
+    "1430300082": {
+        "code": "1430300082",
+        "name": "Pacdal",
+        "city_code": "1430300000"
+    },
+    "1430300086": {
+        "code": "1430300086",
+        "name": "Pinget",
+        "city_code": "1430300000"
+    },
+    "1430300087": {
+        "code": "1430300087",
+        "name": "Pinsao Pilot Project",
+        "city_code": "1430300000"
+    },
+    "1430300088": {
+        "code": "1430300088",
+        "name": "Pinsao Proper",
+        "city_code": "1430300000"
+    },
+    "1430300089": {
+        "code": "1430300089",
+        "name": "Poliwes",
+        "city_code": "1430300000"
+    },
+    "1430300090": {
+        "code": "1430300090",
+        "name": "Pucsusan",
+        "city_code": "1430300000"
+    },
+    "1430300091": {
+        "code": "1430300091",
+        "name": "MRR-Queen Of Peace",
+        "city_code": "1430300000"
+    },
+    "1430300092": {
+        "code": "1430300092",
+        "name": "Rock Quarry, Lower",
+        "city_code": "1430300000"
+    },
+    "1430300094": {
+        "code": "1430300094",
+        "name": "Salud Mitra",
+        "city_code": "1430300000"
+    },
+    "1430300096": {
+        "code": "1430300096",
+        "name": "San Antonio Village",
+        "city_code": "1430300000"
+    },
+    "1430300097": {
+        "code": "1430300097",
+        "name": "San Luis Village",
+        "city_code": "1430300000"
+    },
+    "1430300098": {
+        "code": "1430300098",
+        "name": "San Roque Village",
+        "city_code": "1430300000"
+    },
+    "1430300099": {
+        "code": "1430300099",
+        "name": "San Vicente",
+        "city_code": "1430300000"
+    },
+    "1430300100": {
+        "code": "1430300100",
+        "name": "Santa Escolastica",
+        "city_code": "1430300000"
+    },
+    "1430300101": {
+        "code": "1430300101",
+        "name": "Santo Rosario",
+        "city_code": "1430300000"
+    },
+    "1430300102": {
+        "code": "1430300102",
+        "name": "Santo Tomas School Area",
+        "city_code": "1430300000"
+    },
+    "1430300103": {
+        "code": "1430300103",
+        "name": "Santo Tomas Proper",
+        "city_code": "1430300000"
+    },
+    "1430300105": {
+        "code": "1430300105",
+        "name": "Scout Barrio",
+        "city_code": "1430300000"
+    },
+    "1430300106": {
+        "code": "1430300106",
+        "name": "Session Road Area",
+        "city_code": "1430300000"
+    },
+    "1430300107": {
+        "code": "1430300107",
+        "name": "Slaughter House Area",
+        "city_code": "1430300000"
+    },
+    "1430300109": {
+        "code": "1430300109",
+        "name": "Sanitary Camp, South",
+        "city_code": "1430300000"
+    },
+    "1430300110": {
+        "code": "1430300110",
+        "name": "Saint Joseph Village",
+        "city_code": "1430300000"
+    },
+    "1430300111": {
+        "code": "1430300111",
+        "name": "Teodora Alonzo",
+        "city_code": "1430300000"
+    },
+    "1430300112": {
+        "code": "1430300112",
+        "name": "Trancoville",
+        "city_code": "1430300000"
+    },
+    "1430300114": {
+        "code": "1430300114",
+        "name": "Rock Quarry, Upper",
+        "city_code": "1430300000"
+    },
+    "1430300115": {
+        "code": "1430300115",
+        "name": "Victoria Village",
+        "city_code": "1430300000"
+    },
+    "1430300116": {
+        "code": "1430300116",
+        "name": "Quirino Hill, West",
+        "city_code": "1430300000"
+    },
+    "1430300117": {
+        "code": "1430300117",
+        "name": "Andres Bonifacio",
+        "city_code": "1430300000"
+    },
+    "1430300119": {
+        "code": "1430300119",
+        "name": "Legarda-Burnham-Kisad",
+        "city_code": "1430300000"
+    },
+    "1430300120": {
+        "code": "1430300120",
+        "name": "Imelda R. Marcos",
+        "city_code": "1430300000"
+    },
+    "1430300122": {
+        "code": "1430300122",
+        "name": "Lourdes Subdivision, Proper",
+        "city_code": "1430300000"
+    },
+    "1430300124": {
+        "code": "1430300124",
+        "name": "Quirino-Magsaysay, Upper",
+        "city_code": "1430300000"
+    },
+    "1430300125": {
+        "code": "1430300125",
+        "name": "A. Bonifacio-Caguioa-Rimando",
+        "city_code": "1430300000"
+    },
+    "1430300126": {
+        "code": "1430300126",
+        "name": "Ambiong",
+        "city_code": "1430300000"
+    },
+    "1430300128": {
+        "code": "1430300128",
+        "name": "Aurora Hill, South Central",
+        "city_code": "1430300000"
+    },
+    "1430300129": {
+        "code": "1430300129",
+        "name": "Abanao-Zandueta-Kayong-Chugum-Otek",
+        "city_code": "1430300000"
+    },
+    "1430300130": {
+        "code": "1430300130",
+        "name": "Bagong Lipunan",
+        "city_code": "1430300000"
+    },
+    "1430300131": {
+        "code": "1430300131",
+        "name": "BGH Compound",
+        "city_code": "1430300000"
+    },
+    "1430300132": {
+        "code": "1430300132",
+        "name": "Bayan Park Village",
+        "city_code": "1430300000"
+    },
+    "1430300133": {
+        "code": "1430300133",
+        "name": "Camdas Subdivision",
+        "city_code": "1430300000"
+    },
+    "1430300134": {
+        "code": "1430300134",
+        "name": "Palma-Urbano",
+        "city_code": "1430300000"
+    },
+    "1430300135": {
+        "code": "1430300135",
+        "name": "Dominican Hill-Mirador",
+        "city_code": "1430300000"
+    },
+    "1430300136": {
+        "code": "1430300136",
+        "name": "Alfonso Tabora",
+        "city_code": "1430300000"
+    },
+    "1430300137": {
+        "code": "1430300137",
+        "name": "Dontogan",
+        "city_code": "1430300000"
+    },
+    "1430300138": {
+        "code": "1430300138",
+        "name": "Ferdinand",
+        "city_code": "1430300000"
+    },
+    "1430300139": {
+        "code": "1430300139",
+        "name": "Happy Homes",
+        "city_code": "1430300000"
+    },
+    "1430300140": {
+        "code": "1430300140",
+        "name": "Harrison-Claudio Carantes",
+        "city_code": "1430300000"
+    },
+    "1430300141": {
+        "code": "1430300141",
+        "name": "Honeymoon",
+        "city_code": "1430300000"
+    },
+    "1430300142": {
+        "code": "1430300142",
+        "name": "Kabayanihan",
+        "city_code": "1430300000"
+    },
+    "1430300143": {
+        "code": "1430300143",
+        "name": "Kayang-Hilltop",
+        "city_code": "1430300000"
+    },
+    "1430300144": {
+        "code": "1430300144",
+        "name": "Gabriela Silang",
+        "city_code": "1430300000"
+    },
+    "1430300145": {
+        "code": "1430300145",
+        "name": "Liwanag-Loakan",
+        "city_code": "1430300000"
+    },
+    "1430300147": {
+        "code": "1430300147",
+        "name": "Malcolm Square-Perfecto",
+        "city_code": "1430300000"
+    },
+    "1430300148": {
+        "code": "1430300148",
+        "name": "Manuel A. Roxas",
+        "city_code": "1430300000"
+    },
+    "1430300149": {
+        "code": "1430300149",
+        "name": "Padre Burgos",
+        "city_code": "1430300000"
+    },
+    "1430300150": {
+        "code": "1430300150",
+        "name": "Quezon Hill, Upper",
+        "city_code": "1430300000"
+    },
+    "1430300151": {
+        "code": "1430300151",
+        "name": "Rock Quarry, Middle",
+        "city_code": "1430300000"
+    },
+    "1430300152": {
+        "code": "1430300152",
+        "name": "Phil-Am",
+        "city_code": "1430300000"
+    },
+    "1430300153": {
+        "code": "1430300153",
+        "name": "Quezon Hill Proper",
+        "city_code": "1430300000"
+    },
+    "1430300154": {
+        "code": "1430300154",
+        "name": "Middle Quezon Hill Subdivision",
+        "city_code": "1430300000"
+    },
+    "1430300155": {
+        "code": "1430300155",
+        "name": "Rizal Monument Area",
+        "city_code": "1430300000"
+    },
+    "1430300156": {
+        "code": "1430300156",
+        "name": "SLU-SVP Housing Village",
+        "city_code": "1430300000"
+    },
+    "1430300157": {
+        "code": "1430300157",
+        "name": "South Drive",
+        "city_code": "1430300000"
+    },
+    "1430300159": {
+        "code": "1430300159",
+        "name": "Magsaysay, Upper",
+        "city_code": "1430300000"
+    },
+    "1430300160": {
+        "code": "1430300160",
+        "name": "Market Subdivision, Upper",
+        "city_code": "1430300000"
+    },
+    "1430300161": {
+        "code": "1430300161",
+        "name": "Padre Zamora",
+        "city_code": "1430300000"
+    }
+}

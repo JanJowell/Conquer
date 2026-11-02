@@ -1,0 +1,52 @@
+{
+    "0405801001": {
+        "code": "0405801001",
+        "name": "Bagumbayan",
+        "city_code": "0405801000"
+    },
+    "0405801005": {
+        "code": "0405801005",
+        "name": "Kalayaan",
+        "city_code": "0405801000"
+    },
+    "0405801007": {
+        "code": "0405801007",
+        "name": "Poblacion Ibaba",
+        "city_code": "0405801000"
+    },
+    "0405801008": {
+        "code": "0405801008",
+        "name": "Poblacion Itaas",
+        "city_code": "0405801000"
+    },
+    "0405801009": {
+        "code": "0405801009",
+        "name": "San Isidro",
+        "city_code": "0405801000"
+    },
+    "0405801010": {
+        "code": "0405801010",
+        "name": "San Pedro",
+        "city_code": "0405801000"
+    },
+    "0405801011": {
+        "code": "0405801011",
+        "name": "San Roque",
+        "city_code": "0405801000"
+    },
+    "0405801012": {
+        "code": "0405801012",
+        "name": "San Vicente",
+        "city_code": "0405801000"
+    },
+    "0405801013": {
+        "code": "0405801013",
+        "name": "Santo Niño",
+        "city_code": "0405801000"
+    },
+    "0405801014": {
+        "code": "0405801014",
+        "name": "Mahabang Parang",
+        "city_code": "0405801000"
+    }
+}

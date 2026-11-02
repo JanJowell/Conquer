@@ -11,7 +11,7 @@ use App\Services\EBadgeNotificationService;
 
 function eBadgeEvent(): Event
 {
-    return Event::create([
+    return Event::forceCreate(['review_status' => null,
         'title' => 'City Championship',
         'slug' => 'city-championship-'.uniqid(),
         'venue' => 'Bacoor City',

@@ -39,8 +39,8 @@ function scheduledCategoryPayload(Event $event, string $scheduledStartTime, stri
     ];
 }
 
-test('admin can save a category on the second day of a multi-day event', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+test('event manager can save a category on the second day of a multi-day event', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = scheduledCategoryEvent($admin);
     $event->update(['event_end_date' => $event->event_date->copy()->addDay()]);
     $secondDay = $event->event_end_date->format('Y-m-d');
@@ -61,7 +61,7 @@ test('admin can save a category on the second day of a multi-day event', functio
 });
 
 test('an overnight category is valid inside a multi-day event', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = scheduledCategoryEvent($admin);
     $event->update(['event_end_date' => $event->event_date->copy()->addDay()]);
     $payload = scheduledCategoryPayload($event, '23:00', '02:00') + [
@@ -80,7 +80,7 @@ test('an overnight category is valid inside a multi-day event', function () {
 });
 
 test('a category cannot be scheduled outside a multi-day event date range', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = scheduledCategoryEvent($admin);
     $event->update(['event_end_date' => $event->event_date->copy()->addDay()]);
     $outsideDate = $event->event_end_date->copy()->addDay()->format('Y-m-d');
@@ -97,8 +97,8 @@ test('a category cannot be scheduled outside a multi-day event date range', func
     expect($event->categories()->count())->toBe(0);
 });
 
-test('admin can save a category-specific gun start and cutoff end time', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+test('event manager can save a category-specific gun start and cutoff end time', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = scheduledCategoryEvent($admin);
 
     $this
@@ -116,7 +116,7 @@ test('admin can save a category-specific gun start and cutoff end time', functio
 });
 
 test('triathlon category stores component distances and calculates its total distance', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = scheduledCategoryEvent($admin);
     $event->update(['interest_type' => 'Triathlon']);
     $payload = scheduledCategoryPayload($event, '07:30');
@@ -143,7 +143,7 @@ test('triathlon category stores component distances and calculates its total dis
 });
 
 test('multisport category requires every component distance', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = scheduledCategoryEvent($admin);
     $event->update(['interest_type' => 'Duathlon']);
     $payload = scheduledCategoryPayload($event, '07:30');
@@ -162,7 +162,7 @@ test('multisport category requires every component distance', function () {
 });
 
 test('category schedule must stay inside the overall event schedule', function (string $scheduledStartTime) {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = scheduledCategoryEvent($admin);
 
     $this
@@ -176,7 +176,7 @@ test('category schedule must stay inside the overall event schedule', function (
 })->with(['before event' => '05:59', 'after event' => '12:01']);
 
 test('category cutoff end must be after its gun start and inside the event schedule', function (string $scheduledEndTime) {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = scheduledCategoryEvent($admin);
 
     $this
@@ -188,7 +188,7 @@ test('category cutoff end must be after its gun start and inside the event sched
 })->with(['equal to gun start' => '07:30', 'before gun start' => '07:29', 'after event' => '12:01']);
 
 test('category schedule is exposed to the mobile API resource', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = scheduledCategoryEvent($admin);
     $category = Category::create([
         'event_id' => $event->id,
@@ -210,7 +210,7 @@ test('category schedule is exposed to the mobile API resource', function () {
 });
 
 test('category forms display the gun start and end fields', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = scheduledCategoryEvent($admin);
 
     $this
@@ -228,7 +228,7 @@ test('category forms display the gun start and end fields', function () {
 });
 
 test('category forms use group as a category type without a separate participation mode', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = scheduledCategoryEvent($admin);
 
     $this
@@ -241,7 +241,7 @@ test('category forms use group as a category type without a separate participati
 });
 
 test('group category type derives group participation settings', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = scheduledCategoryEvent($admin);
     $payload = scheduledCategoryPayload($event, '07:30') + [
         'group_min_members' => 3,
@@ -263,7 +263,7 @@ test('group category type derives group participation settings', function () {
 });
 
 test('non-group category type clears submitted group limits', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = scheduledCategoryEvent($admin);
     $payload = scheduledCategoryPayload($event, '07:30') + [
         'group_min_members' => 3,

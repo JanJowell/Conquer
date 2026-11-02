@@ -1,0 +1,137 @@
+{
+    "0402113001": {
+        "code": "0402113001",
+        "name": "Caingin Pob.",
+        "city_code": "0402113000"
+    },
+    "0402113002": {
+        "code": "0402113002",
+        "name": "Bucal I",
+        "city_code": "0402113000"
+    },
+    "0402113003": {
+        "code": "0402113003",
+        "name": "Bucal II",
+        "city_code": "0402113000"
+    },
+    "0402113004": {
+        "code": "0402113004",
+        "name": "Bucal III A",
+        "city_code": "0402113000"
+    },
+    "0402113005": {
+        "code": "0402113005",
+        "name": "Bucal IV A",
+        "city_code": "0402113000"
+    },
+    "0402113007": {
+        "code": "0402113007",
+        "name": "San Miguel I A",
+        "city_code": "0402113000"
+    },
+    "0402113008": {
+        "code": "0402113008",
+        "name": "Garita I A",
+        "city_code": "0402113000"
+    },
+    "0402113009": {
+        "code": "0402113009",
+        "name": "Mabato",
+        "city_code": "0402113000"
+    },
+    "0402113010": {
+        "code": "0402113010",
+        "name": "Talipusngo",
+        "city_code": "0402113000"
+    },
+    "0402113011": {
+        "code": "0402113011",
+        "name": "Pantihan I",
+        "city_code": "0402113000"
+    },
+    "0402113012": {
+        "code": "0402113012",
+        "name": "Pantihan II",
+        "city_code": "0402113000"
+    },
+    "0402113013": {
+        "code": "0402113013",
+        "name": "Pantihan III",
+        "city_code": "0402113000"
+    },
+    "0402113014": {
+        "code": "0402113014",
+        "name": "Pantihan IV",
+        "city_code": "0402113000"
+    },
+    "0402113015": {
+        "code": "0402113015",
+        "name": "Patungan",
+        "city_code": "0402113000"
+    },
+    "0402113016": {
+        "code": "0402113016",
+        "name": "Pinagsanhan I A",
+        "city_code": "0402113000"
+    },
+    "0402113018": {
+        "code": "0402113018",
+        "name": "Poblacion I A",
+        "city_code": "0402113000"
+    },
+    "0402113019": {
+        "code": "0402113019",
+        "name": "Poblacion II A",
+        "city_code": "0402113000"
+    },
+    "0402113020": {
+        "code": "0402113020",
+        "name": "Tulay Silangan",
+        "city_code": "0402113000"
+    },
+    "0402113021": {
+        "code": "0402113021",
+        "name": "Layong Mabilog",
+        "city_code": "0402113000"
+    },
+    "0402113022": {
+        "code": "0402113022",
+        "name": "Bucal III B",
+        "city_code": "0402113000"
+    },
+    "0402113023": {
+        "code": "0402113023",
+        "name": "Bucal IV B",
+        "city_code": "0402113000"
+    },
+    "0402113024": {
+        "code": "0402113024",
+        "name": "Garita I B",
+        "city_code": "0402113000"
+    },
+    "0402113025": {
+        "code": "0402113025",
+        "name": "Pinagsanhan I B",
+        "city_code": "0402113000"
+    },
+    "0402113026": {
+        "code": "0402113026",
+        "name": "Poblacion I B",
+        "city_code": "0402113000"
+    },
+    "0402113027": {
+        "code": "0402113027",
+        "name": "Poblacion II B",
+        "city_code": "0402113000"
+    },
+    "0402113028": {
+        "code": "0402113028",
+        "name": "San Miguel I B",
+        "city_code": "0402113000"
+    },
+    "0402113029": {
+        "code": "0402113029",
+        "name": "Tulay Kanluran",
+        "city_code": "0402113000"
+    }
+}

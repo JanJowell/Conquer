@@ -28,6 +28,8 @@ return [
         'Triathlon' => 'Competition Categories',
     ],
 
+    'cutoff_duration_presets' => ['30 minutes', '1 hour', '2 hours', '3 hours', '6 hours', '12 hours'],
+
     'event_type_details' => [
         'Cycling' => [
             'route_distance_km' => ['label' => 'Route Distance', 'type' => 'number', 'suffix' => 'km', 'rules' => ['nullable', 'numeric', 'min:0.01'], 'required_for_publication' => false, 'category_owned' => true],
@@ -45,7 +47,7 @@ return [
         ],
         'Marathon' => [
             'distances' => ['label' => 'Distances', 'type' => 'text', 'placeholder' => 'e.g. 5K, 10K, 21K, 42K', 'rules' => ['nullable', 'string', 'max:255'], 'required_for_publication' => false, 'category_owned' => true],
-            'cutoff_time' => ['label' => 'Cutoff Time', 'type' => 'text', 'placeholder' => 'e.g. 6 hours', 'rules' => ['nullable', 'string', 'max:100'], 'required_for_publication' => true],
+            'cutoff_time' => ['label' => 'Cut-off Duration', 'type' => 'duration', 'rules' => ['nullable', 'string', 'max:100'], 'required_for_publication' => true],
         ],
         'Trail Run' => [
             'distance_km' => ['label' => 'Distance', 'type' => 'number', 'suffix' => 'km', 'rules' => ['nullable', 'numeric', 'min:0.01'], 'required_for_publication' => false, 'category_owned' => true],
@@ -53,7 +55,7 @@ return [
             'elevation_gain_m' => ['label' => 'Elevation Gain', 'type' => 'number', 'suffix' => 'm', 'rules' => ['nullable', 'numeric', 'min:0'], 'required_for_publication' => false],
             'terrain' => ['label' => 'Terrain', 'type' => 'text', 'placeholder' => 'e.g. rocky, muddy, forest trail', 'rules' => ['nullable', 'string', 'max:255'], 'required_for_publication' => false],
             'mandatory_gear' => ['label' => 'Mandatory Gear', 'type' => 'textarea', 'rules' => ['nullable', 'string', 'max:2000'], 'required_for_publication' => false, 'category_owned' => true],
-            'cutoff_time' => ['label' => 'Cutoff Time', 'type' => 'text', 'placeholder' => 'e.g. 8 hours', 'rules' => ['nullable', 'string', 'max:100'], 'required_for_publication' => true],
+            'cutoff_time' => ['label' => 'Cut-off Duration', 'type' => 'duration', 'rules' => ['nullable', 'string', 'max:100'], 'required_for_publication' => true],
         ],
         'Triathlon' => [
             'swim_distance_m' => ['label' => 'Swim Distance', 'type' => 'number', 'suffix' => 'm', 'rules' => ['nullable', 'numeric', 'min:0.01'], 'required_for_publication' => false, 'category_owned' => true],
@@ -61,7 +63,7 @@ return [
             'bike_distance_km' => ['label' => 'Bike Distance', 'type' => 'number', 'suffix' => 'km', 'rules' => ['nullable', 'numeric', 'min:0.01'], 'required_for_publication' => false, 'category_owned' => true],
             'run_distance_km' => ['label' => 'Run Distance', 'type' => 'number', 'suffix' => 'km', 'rules' => ['nullable', 'numeric', 'min:0.01'], 'required_for_publication' => false, 'category_owned' => true],
             'transition_details' => ['label' => 'Transition Details', 'type' => 'textarea', 'rules' => ['nullable', 'string', 'max:2000'], 'required_for_publication' => true],
-            'cutoff_time' => ['label' => 'Cutoff Time', 'type' => 'text', 'placeholder' => 'e.g. 8 hours', 'rules' => ['nullable', 'string', 'max:100'], 'required_for_publication' => true],
+            'cutoff_time' => ['label' => 'Cut-off Duration', 'type' => 'duration', 'rules' => ['nullable', 'string', 'max:100'], 'required_for_publication' => true],
         ],
         'Duathlon' => [
             'first_run_distance_km' => ['label' => 'First-run Distance', 'type' => 'number', 'suffix' => 'km', 'rules' => ['nullable', 'numeric', 'min:0.01'], 'required_for_publication' => false, 'category_owned' => true],

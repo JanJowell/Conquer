@@ -1,0 +1,212 @@
+{
+    "0501723001": {
+        "code": "0501723001",
+        "name": "Angustia",
+        "city_code": "0501723000"
+    },
+    "0501723002": {
+        "code": "0501723002",
+        "name": "Antipolo Old",
+        "city_code": "0501723000"
+    },
+    "0501723003": {
+        "code": "0501723003",
+        "name": "Antipolo Young",
+        "city_code": "0501723000"
+    },
+    "0501723004": {
+        "code": "0501723004",
+        "name": "Aro-aldao",
+        "city_code": "0501723000"
+    },
+    "0501723005": {
+        "code": "0501723005",
+        "name": "Bustrac",
+        "city_code": "0501723000"
+    },
+    "0501723006": {
+        "code": "0501723006",
+        "name": "Inapatan",
+        "city_code": "0501723000"
+    },
+    "0501723007": {
+        "code": "0501723007",
+        "name": "Dolorosa",
+        "city_code": "0501723000"
+    },
+    "0501723009": {
+        "code": "0501723009",
+        "name": "Duran",
+        "city_code": "0501723000"
+    },
+    "0501723010": {
+        "code": "0501723010",
+        "name": "La Purisima",
+        "city_code": "0501723000"
+    },
+    "0501723011": {
+        "code": "0501723011",
+        "name": "Lourdes Old",
+        "city_code": "0501723000"
+    },
+    "0501723012": {
+        "code": "0501723012",
+        "name": "Lourdes Young",
+        "city_code": "0501723000"
+    },
+    "0501723015": {
+        "code": "0501723015",
+        "name": "La Opinion",
+        "city_code": "0501723000"
+    },
+    "0501723016": {
+        "code": "0501723016",
+        "name": "Paloyon Proper",
+        "city_code": "0501723000"
+    },
+    "0501723018": {
+        "code": "0501723018",
+        "name": "Salvacion Que Gatos",
+        "city_code": "0501723000"
+    },
+    "0501723019": {
+        "code": "0501723019",
+        "name": "San Antonio",
+        "city_code": "0501723000"
+    },
+    "0501723020": {
+        "code": "0501723020",
+        "name": "San Antonio Ogbon",
+        "city_code": "0501723000"
+    },
+    "0501723021": {
+        "code": "0501723021",
+        "name": "San Esteban",
+        "city_code": "0501723000"
+    },
+    "0501723022": {
+        "code": "0501723022",
+        "name": "San Francisco",
+        "city_code": "0501723000"
+    },
+    "0501723023": {
+        "code": "0501723023",
+        "name": "San Isidro",
+        "city_code": "0501723000"
+    },
+    "0501723024": {
+        "code": "0501723024",
+        "name": "San Isidro Inapatan",
+        "city_code": "0501723000"
+    },
+    "0501723026": {
+        "code": "0501723026",
+        "name": "Malawag",
+        "city_code": "0501723000"
+    },
+    "0501723027": {
+        "code": "0501723027",
+        "name": "San Jose",
+        "city_code": "0501723000"
+    },
+    "0501723028": {
+        "code": "0501723028",
+        "name": "San Juan",
+        "city_code": "0501723000"
+    },
+    "0501723029": {
+        "code": "0501723029",
+        "name": "San Luis",
+        "city_code": "0501723000"
+    },
+    "0501723030": {
+        "code": "0501723030",
+        "name": "San Miguel",
+        "city_code": "0501723000"
+    },
+    "0501723031": {
+        "code": "0501723031",
+        "name": "San Nicolas",
+        "city_code": "0501723000"
+    },
+    "0501723033": {
+        "code": "0501723033",
+        "name": "San Roque",
+        "city_code": "0501723000"
+    },
+    "0501723034": {
+        "code": "0501723034",
+        "name": "San Roque Madawon",
+        "city_code": "0501723000"
+    },
+    "0501723035": {
+        "code": "0501723035",
+        "name": "San Roque Sagumay",
+        "city_code": "0501723000"
+    },
+    "0501723036": {
+        "code": "0501723036",
+        "name": "San Vicente Gorong-Gorong",
+        "city_code": "0501723000"
+    },
+    "0501723037": {
+        "code": "0501723037",
+        "name": "San Vicente Ogbon",
+        "city_code": "0501723000"
+    },
+    "0501723038": {
+        "code": "0501723038",
+        "name": "Santa Barbara",
+        "city_code": "0501723000"
+    },
+    "0501723039": {
+        "code": "0501723039",
+        "name": "Santa Cruz",
+        "city_code": "0501723000"
+    },
+    "0501723040": {
+        "code": "0501723040",
+        "name": "Santa Elena Baras",
+        "city_code": "0501723000"
+    },
+    "0501723041": {
+        "code": "0501723041",
+        "name": "Santa Lucia Baras",
+        "city_code": "0501723000"
+    },
+    "0501723042": {
+        "code": "0501723042",
+        "name": "Santiago Old",
+        "city_code": "0501723000"
+    },
+    "0501723043": {
+        "code": "0501723043",
+        "name": "Santiago Young",
+        "city_code": "0501723000"
+    },
+    "0501723044": {
+        "code": "0501723044",
+        "name": "Santo Domingo",
+        "city_code": "0501723000"
+    },
+    "0501723045": {
+        "code": "0501723045",
+        "name": "Tandaay",
+        "city_code": "0501723000"
+    },
+    "0501723046": {
+        "code": "0501723046",
+        "name": "Topas Proper",
+        "city_code": "0501723000"
+    },
+    "0501723047": {
+        "code": "0501723047",
+        "name": "Topas Sogod",
+        "city_code": "0501723000"
+    },
+    "0501723048": {
+        "code": "0501723048",
+        "name": "Paloyon Oriental",
+        "city_code": "0501723000"
+    }
+}

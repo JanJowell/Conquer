@@ -11,6 +11,11 @@ use App\Models\EventPaymentMethod;
 use App\Models\User;
 use App\Rules\CategoryCourseMap;
 use App\Services\EventManagerAvailability;
+use App\Services\EventReviewWorkflow;
+use App\Services\EventRevisionComparison;
+use App\Services\EventVenueSelection;
+use App\Services\PhilippineLocations;
+use App\Support\CutoffDuration;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -23,7 +28,11 @@ use Illuminate\View\View;
 
 class EventController extends Controller
 {
-    public function __construct(private readonly EventManagerAvailability $managerAvailability) {}
+    public function __construct(
+        private readonly EventManagerAvailability $managerAvailability,
+        private readonly EventVenueSelection $venueSelection,
+        private readonly PhilippineLocations $venueLocations
+    ) {}
 
     public function index(Request $request): View
     {
@@ -33,11 +42,17 @@ class EventController extends Controller
         $this->completePastUpcomingEvents($user);
 
         $events = Event::query()
-            ->with(['manager'])
+            ->whereNull('revision_of_id')
+            ->visibleToStaff($user)
+            ->with(['manager', 'activeRevision' => fn ($query) => $query->visibleToStaff($user)])
             ->withCount(['categories', 'registrations', 'raceResults'])
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($user) {
                 $query->where('manager_id', $user->id);
             })
+            ->when($request->filled('review_status'), fn ($query) => $query->where(fn ($inner) => $inner
+                ->where('review_status', $request->string('review_status')->value())
+                ->orWhereHas('activeRevision', fn ($revision) => $revision->visibleToStaff($user)
+                    ->where('review_status', $request->string('review_status')->value()))))
             ->when($request->filled('status') && $request->string('status')->value() === 'draft', function ($query) {
                 $query->where('status', 'draft');
             })
@@ -53,11 +68,11 @@ class EventController extends Controller
                 $query->where(function ($inner) use ($search) {
                     $inner->where('title', 'like', "%{$search}%")
                         ->orWhere('venue', 'like', "%{$search}%")
-                        ->orWhere('organized_by', 'like', "%{$search}%")
                         ->orWhere('interest_type', 'like', "%{$search}%");
                 });
             })
-            ->orderBy('event_date')
+            ->latest('created_at')
+            ->latest('id')
             ->paginate(10)
             ->withQueryString();
 
@@ -72,19 +87,20 @@ class EventController extends Controller
 
     public function create(): View
     {
-        $user = auth()->user();
         $interestTypes = $this->eventInterestTypes();
         $categoryTypes = $this->categoryTypes();
         $distanceOptions = $this->distanceOptions();
         $paymentMethods = EventPaymentMethod::providers();
 
         $managers = User::query()
+            ->whereKey(auth()->id())
             ->whereIn('role', [User::ROLE_EVENT_MANAGER, User::ROLE_LEGACY_ADMIN])
             ->orderBy('name')
             ->get(['id', 'name', 'email']);
         $managerSchedules = $this->managerSchedules($managers->pluck('id')->all());
+        $venueLocationsAvailable = $this->venueLocations->available();
 
-        return view('admin.events.create', compact('interestTypes', 'managers', 'managerSchedules', 'categoryTypes', 'distanceOptions', 'paymentMethods'));
+        return view('admin.events.create', compact('interestTypes', 'managers', 'managerSchedules', 'categoryTypes', 'distanceOptions', 'paymentMethods', 'venueLocationsAvailable'));
     }
 
     public function show(Event $event): View
@@ -111,12 +127,25 @@ class EventController extends Controller
             ->get();
         $readinessErrors = $event->publicReadinessErrors();
 
-        return view('admin.events.show', compact('event', 'participantStatusCounts', 'recentRegistrations', 'readinessErrors'));
+        $event->load(['reviews.actor']);
+        $activeRevision = Event::query()->where('revision_of_id', $event->id)
+            ->visibleToStaff(auth()->user())
+            ->whereIn('review_status', ['draft', 'changes_requested', 'pending_review'])->first();
+        $revisionComparison = $event->revision_of_id
+            ? app(EventRevisionComparison::class)->build($event) : null;
+        $revisionHistory = Event::where('revision_of_id', $event->id)
+            ->whereHas('reviews', fn ($reviews) => $reviews->where('action', 'submit'))
+            ->latest('id')->get(['id', 'review_status', 'revision_of_id']);
+        $reviewSnapshot = app(EventReviewWorkflow::class)->snapshot($event);
+
+        return view('admin.events.show', compact('event', 'participantStatusCounts', 'recentRegistrations', 'readinessErrors', 'activeRevision', 'revisionComparison', 'revisionHistory', 'reviewSnapshot'));
     }
 
     public function store(Request $request): RedirectResponse
     {
         $user = $request->user();
+        $venueSelection = $this->venueSelection->prepare($request);
+        $request->merge(['venue' => $venueSelection['label']]);
         $usesSegmentedDistances = $this->usesSegmentedCategoryDistances($request->input('interest_type'));
         $eventStartDate = $request->input('event_date');
         $eventEndDate = $request->input('event_end_date', $eventStartDate);
@@ -140,7 +169,6 @@ class EventController extends Controller
             'registration_deadline' => ['nullable', 'date', 'before_or_equal:event_date'],
             'banner_image' => ['nullable', 'string', 'max:255'],
             'banner_image_upload' => ['nullable', 'image', 'max:4096'],
-            'organized_by' => ['nullable', 'string', 'max:255'],
             'interest_type' => ['required', Rule::in($this->eventInterestTypes())],
             'manager_id' => [
                 'nullable',
@@ -180,7 +208,7 @@ class EventController extends Controller
             'categories.*.payment_instructions' => ['nullable', 'string', 'max:5000'],
             'categories.*.status' => ['required', 'in:open,closed,draft'],
             ...$this->categoryTypeDetailValidationRules($request->input('interest_type')),
-            ...$this->typeDetailValidationRules($request),
+            ...$this->typeDetailValidationRules($request, null),
         ]);
 
         if ($errors = $this->eventScheduleErrors($validated)) {
@@ -217,9 +245,10 @@ class EventController extends Controller
 
         unset($validated['banner_image_upload']);
 
-        $event = DB::transaction(function () use ($validated, $categoryRows, $paymentMethodRows, $paymentMethodsSubmitted) {
+        $event = DB::transaction(function () use ($validated, $categoryRows, $paymentMethodRows, $paymentMethodsSubmitted, $venueSelection, $user) {
             $event = Event::create([
                 ...$validated,
+                ...$this->venueSelection->persist($venueSelection, $user),
                 'slug' => Str::slug($validated['title'].'-'.time()),
             ]);
 
@@ -235,7 +264,7 @@ class EventController extends Controller
 
         return redirect()
             ->route('admin.events.show', $event)
-            ->with('success', 'Event setup saved. The status updates automatically when event details, categories, and payment setup are ready.');
+            ->with('success', 'Draft saved privately. Complete the setup, then submit it for Admin approval and publication.');
     }
 
     public function edit(Event $event): View
@@ -245,6 +274,7 @@ class EventController extends Controller
         $event->load([
             'categories' => fn ($query) => $query->withCount(['registrations', 'raceResults'])->orderBy('distance_km')->orderBy('name'),
             'paymentMethods',
+            'savedVenue',
         ])->loadCount(['categories', 'registrations', 'raceResults']);
         $interestTypes = $this->eventInterestTypes();
         $categoryTypes = $this->categoryTypes();
@@ -256,12 +286,14 @@ class EventController extends Controller
             ->all();
 
         $managers = User::query()
+            ->whereKey(auth()->id())
             ->whereIn('role', [User::ROLE_EVENT_MANAGER, User::ROLE_LEGACY_ADMIN])
             ->orderBy('name')
             ->get(['id', 'name', 'email']);
-        $managerSchedules = $this->managerSchedules($managers->pluck('id')->all(), $event->id);
+        $managerSchedules = $this->managerSchedules($managers->pluck('id')->all(), $event->revision_of_id ?: $event->id);
+        $venueLocationsAvailable = $this->venueLocations->available();
 
-        return view('admin.events.edit', compact('event', 'interestTypes', 'managers', 'managerSchedules', 'categoryTypes', 'distanceOptions', 'paymentMethods', 'categoryRows'));
+        return view('admin.events.edit', compact('event', 'interestTypes', 'managers', 'managerSchedules', 'categoryTypes', 'distanceOptions', 'paymentMethods', 'categoryRows', 'venueLocationsAvailable'));
     }
 
     public function update(Request $request, Event $event): RedirectResponse
@@ -269,6 +301,8 @@ class EventController extends Controller
         abort_unless($this->canAccessEvent($event), 403);
 
         $user = $request->user();
+        $venueSelection = $this->venueSelection->prepare($request, $event);
+        $request->merge(['venue' => $venueSelection['label']]);
         $usesSegmentedDistances = $this->usesSegmentedCategoryDistances($request->input('interest_type'));
         $eventStartDate = $request->input('event_date');
         $eventEndDate = $request->input('event_end_date', $eventStartDate);
@@ -292,7 +326,6 @@ class EventController extends Controller
             'registration_deadline' => ['nullable', 'date', 'before_or_equal:event_date'],
             'banner_image' => ['nullable', 'string', 'max:255'],
             'banner_image_upload' => ['nullable', 'image', 'max:4096'],
-            'organized_by' => ['nullable', 'string', 'max:255'],
             'interest_type' => ['required', Rule::in($this->eventInterestTypes())],
             'manager_id' => [
                 'nullable',
@@ -335,7 +368,7 @@ class EventController extends Controller
             'categories.*.payment_instructions' => ['nullable', 'string', 'max:5000'],
             'categories.*.status' => ['required', 'in:open,closed,draft'],
             ...$this->categoryTypeDetailValidationRules($request->input('interest_type')),
-            ...$this->typeDetailValidationRules($request),
+            ...$this->typeDetailValidationRules($request, $event),
         ]);
 
         if ($errors = $this->eventScheduleErrors($validated)) {
@@ -346,7 +379,7 @@ class EventController extends Controller
             $validated['manager_id'] = $user->id;
         }
 
-        if ($errors = $this->managerAvailabilityErrors($validated, $event->id)) {
+        if ($errors = $this->managerAvailabilityErrors($validated, $event->revision_of_id ?: $event->id)) {
             return back()->withErrors($errors)->withInput();
         }
 
@@ -374,9 +407,10 @@ class EventController extends Controller
 
         unset($validated['banner_image_upload']);
 
-        DB::transaction(function () use ($event, $validated, $categoryRows, $paymentMethodRows, $paymentMethodsSubmitted) {
+        DB::transaction(function () use ($event, $validated, $categoryRows, $paymentMethodRows, $paymentMethodsSubmitted, $venueSelection, $user) {
             $event->update([
                 ...$validated,
+                ...$this->venueSelection->persist($venueSelection, $user),
                 'slug' => Str::slug($validated['title'].'-'.$event->id),
             ]);
 
@@ -388,12 +422,16 @@ class EventController extends Controller
             $event->refreshAutomaticStatus();
         });
 
-        return redirect()->route('admin.events.show', $event)->with('success', 'Event setup updated. Status was detected automatically.');
+        return redirect()->route('admin.events.show', $event)->with('success', 'Draft updated. Submit it for Admin review when ready; saving does not publish it.');
     }
 
     public function destroy(Event $event): RedirectResponse
     {
         abort_unless($this->canAccessEvent($event), 403);
+
+        if ($event->reviews()->exists() || $event->revision_of_id) {
+            return back()->with('error', 'Reviewed submissions and revision history cannot be deleted.');
+        }
 
         $event->loadCount(['categories', 'registrations', 'raceResults']);
         $checkpointsCount = Checkpoint::where('event_id', $event->id)->count();
@@ -423,7 +461,7 @@ class EventController extends Controller
         return config('conquer.event_interest_types', []);
     }
 
-    private function typeDetailValidationRules(Request $request): array
+    private function typeDetailValidationRules(Request $request, ?Event $event = null): array
     {
         if (! $request->has('type_details')) {
             return [];
@@ -448,7 +486,27 @@ class EventController extends Controller
                 $fieldRules[] = Rule::in($definition['options']);
             }
 
+            if (($definition['type'] ?? null) === 'duration') {
+                $fieldRules[] = function (string $attribute, mixed $value, \Closure $fail) use ($event, $interestType, $key): void {
+                    if ($value === CutoffDuration::CUSTOM || CutoffDuration::parse($value) !== null) {
+                        return;
+                    }
+                    // Keep historical free-text durations until an admin explicitly replaces them.
+                    if ($event && $event->interest_type === $interestType && $value === data_get($event->type_details, $key)) {
+                        return;
+                    }
+                    $fail('Choose a cut-off duration or use Custom to enter hours and minutes.');
+                };
+            }
+
             $rules["type_details.{$interestType}.{$key}"] = $fieldRules;
+
+            if (($definition['type'] ?? null) === 'duration'
+                && $request->input("type_details.{$interestType}.{$key}") === CutoffDuration::CUSTOM) {
+                $rules["type_details.{$interestType}.{$key}_hours"] = ['required', 'integer', 'min:0', 'max:1000000'];
+                $minimumMinutes = $request->integer("type_details.{$interestType}.{$key}_hours") === 0 ? 1 : 0;
+                $rules["type_details.{$interestType}.{$key}_minutes"] = ['required', 'integer', 'min:'.$minimumMinutes, 'max:59'];
+            }
         }
 
         return $rules;
@@ -488,6 +546,9 @@ class EventController extends Controller
             }
 
             $value = $submitted[$key] ?? null;
+            if (($definition['type'] ?? null) === 'duration' && $value === CutoffDuration::CUSTOM) {
+                $value = CutoffDuration::format((int) $submitted[$key.'_hours'], (int) $submitted[$key.'_minutes']);
+            }
             $details[$key] = ($definition['type'] ?? null) === 'boolean'
                 ? filter_var($value, FILTER_VALIDATE_BOOLEAN)
                 : $value;
@@ -800,14 +861,16 @@ class EventController extends Controller
     private function categoryRowForEditing(Category $category): array
     {
         $categoryType = $this->categoryTypeFromName($category);
-        $distanceOption = $this->distanceOptionFromValue($category->displayDistance());
+        // Match the form's 0.01 step without changing the stored kilometer value.
+        $displayDistance = round($category->displayDistance(), 2);
+        $distanceOption = $this->distanceOptionFromValue($displayDistance);
 
         return [
             'id' => $category->id,
             'category_type' => $categoryType['key'],
             'custom_category_name' => $categoryType['custom'],
             'distance_option' => $distanceOption,
-            'custom_distance_km' => $distanceOption === 'custom' ? $category->displayDistance() : null,
+            'custom_distance_km' => $distanceOption === 'custom' ? $displayDistance : null,
             'distance_unit' => $category->distance_unit ?? Category::DISTANCE_UNIT_KILOMETERS,
             'type_details' => $category->resolvedTypeDetails(),
             'scheduled_start_date' => ($category->scheduled_start_date ?? $category->event?->event_date)?->format('Y-m-d'),
@@ -980,6 +1043,7 @@ class EventController extends Controller
 
         return Event::query()
             ->whereIn('manager_id', $managerIds)
+            ->whereNull('revision_of_id')
             ->when($exceptEventId, fn ($query) => $query->whereKeyNot($exceptEventId))
             ->orderBy('event_date')
             ->orderBy('start_time')

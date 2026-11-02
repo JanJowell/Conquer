@@ -1,0 +1,97 @@
+{
+    "0401002001": {
+        "code": "0401002001",
+        "name": "Balagbag",
+        "city_code": "0401002000"
+    },
+    "0401002002": {
+        "code": "0401002002",
+        "name": "Concepcion",
+        "city_code": "0401002000"
+    },
+    "0401002003": {
+        "code": "0401002003",
+        "name": "Concordia",
+        "city_code": "0401002000"
+    },
+    "0401002004": {
+        "code": "0401002004",
+        "name": "Dalipit East",
+        "city_code": "0401002000"
+    },
+    "0401002005": {
+        "code": "0401002005",
+        "name": "Dalipit West",
+        "city_code": "0401002000"
+    },
+    "0401002006": {
+        "code": "0401002006",
+        "name": "Dominador East",
+        "city_code": "0401002000"
+    },
+    "0401002007": {
+        "code": "0401002007",
+        "name": "Dominador West",
+        "city_code": "0401002000"
+    },
+    "0401002008": {
+        "code": "0401002008",
+        "name": "Munlawin Sur",
+        "city_code": "0401002000"
+    },
+    "0401002009": {
+        "code": "0401002009",
+        "name": "Munlawin Norte",
+        "city_code": "0401002000"
+    },
+    "0401002011": {
+        "code": "0401002011",
+        "name": "Muzon Primero",
+        "city_code": "0401002000"
+    },
+    "0401002012": {
+        "code": "0401002012",
+        "name": "Muzon Segundo",
+        "city_code": "0401002000"
+    },
+    "0401002013": {
+        "code": "0401002013",
+        "name": "Pinagkurusan",
+        "city_code": "0401002000"
+    },
+    "0401002014": {
+        "code": "0401002014",
+        "name": "Ping-As",
+        "city_code": "0401002000"
+    },
+    "0401002015": {
+        "code": "0401002015",
+        "name": "Poblacion East",
+        "city_code": "0401002000"
+    },
+    "0401002016": {
+        "code": "0401002016",
+        "name": "Poblacion West",
+        "city_code": "0401002000"
+    },
+    "0401002018": {
+        "code": "0401002018",
+        "name": "San Jose",
+        "city_code": "0401002000"
+    },
+    "0401002019": {
+        "code": "0401002019",
+        "name": "Santa Cruz",
+        "city_code": "0401002000"
+    },
+    "0401002020": {
+        "code": "0401002020",
+        "name": "Tadlac",
+        "city_code": "0401002000"
+    },
+    "0401002021": {
+        "code": "0401002021",
+        "name": "San Juan",
+        "city_code": "0401002000"
+    }
+}

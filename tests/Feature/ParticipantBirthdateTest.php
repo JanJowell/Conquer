@@ -71,7 +71,7 @@ test('legacy participants must complete a valid birthdate before event registrat
         'api_token' => hash('sha256', $token),
         'api_token_expires_at' => now()->addDay(),
     ]);
-    $event = Event::create([
+    $event = Event::forceCreate(['review_status' => null,
         'title' => 'Birthdate Validation Run',
         'slug' => 'birthdate-validation-run',
         'description' => 'An event used to verify participant birthdate eligibility.',

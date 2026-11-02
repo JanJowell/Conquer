@@ -27,7 +27,7 @@ class SearchController extends Controller
         $communityPosts = collect();
 
         if ($term !== '') {
-            if ($user->hasAdminRole([User::ROLE_SUPER_ADMIN, User::ROLE_EXECUTIVE])) {
+            if ($user->hasAdminRole([User::ROLE_SUPER_ADMIN])) {
                 $users = User::query()
                     ->where(function ($query) use ($term) {
                         $query->where('name', 'like', "%{$term}%")
@@ -38,15 +38,15 @@ class SearchController extends Controller
                     ->get();
             }
 
-            if ($user->hasAdminRole([User::ROLE_SUPER_ADMIN, User::ROLE_EXECUTIVE, User::ROLE_EVENT_MANAGER])) {
+            if ($user->hasAdminRole([User::ROLE_SUPER_ADMIN, User::ROLE_EVENT_MANAGER])) {
                 $events = Event::query()
+                    ->visibleToStaff($user)
                     ->when($scopeManagedEvents, function ($query) use ($managedEventIds) {
                         $query->whereIn('id', $managedEventIds);
                     })
                     ->where(function ($query) use ($term) {
                         $query->where('title', 'like', "%{$term}%")
-                            ->orWhere('venue', 'like', "%{$term}%")
-                            ->orWhere('organized_by', 'like', "%{$term}%");
+                            ->orWhere('venue', 'like', "%{$term}%");
                     })
                     ->orderBy('event_date')
                     ->take(6)
@@ -75,8 +75,9 @@ class SearchController extends Controller
                     ->get();
             }
 
-            if ($user->hasAdminRole([User::ROLE_SUPER_ADMIN, User::ROLE_CONTENT_MODERATOR, User::ROLE_EVENT_MANAGER])) {
+            if ($user->hasAdminRole([User::ROLE_SUPER_ADMIN, User::ROLE_EVENT_MANAGER])) {
                 $announcements = Announcement::query()
+                    ->where(fn ($query) => $query->whereNull('event_id')->orWhereHas('event', fn ($event) => $event->visibleToStaff($user)))
                     ->with('event')
                     ->when($scopeManagedEvents, function ($query) use ($managedEventIds) {
                         $query->whereIn('event_id', $managedEventIds);
@@ -90,7 +91,7 @@ class SearchController extends Controller
                     ->get();
             }
 
-            if ($user->hasAdminRole([User::ROLE_SUPER_ADMIN, User::ROLE_CONTENT_MODERATOR])) {
+            if ($user->hasAdminRole([User::ROLE_SUPER_ADMIN])) {
                 $communityPosts = CommunityPost::query()
                     ->with(['user', 'event'])
                     ->where(function ($query) use ($term) {

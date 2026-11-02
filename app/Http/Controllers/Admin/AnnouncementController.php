@@ -18,6 +18,7 @@ class AnnouncementController extends Controller
         $user = $request->user();
 
         $announcements = Announcement::query()
+            ->where(fn ($query) => $query->whereNull('event_id')->orWhereHas('event', fn ($event) => $event->visibleToStaff($user)))
             ->with('event')
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($user) {
                 $query->whereHas('event', function ($eventQuery) use ($user) {
@@ -43,6 +44,7 @@ class AnnouncementController extends Controller
         $events = $this->eventOptions($user);
 
         $summaryBaseQuery = Announcement::query()
+            ->where(fn ($query) => $query->whereNull('event_id')->orWhereHas('event', fn ($event) => $event->visibleToStaff($user)))
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($user) {
                 $query->whereHas('event', function ($eventQuery) use ($user) {
                     $eventQuery->where('manager_id', $user->id);
@@ -208,6 +210,7 @@ class AnnouncementController extends Controller
     private function eventOptions($user)
     {
         return Event::query()
+            ->visibleToStaff($user)
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($user) {
                 $query->where('manager_id', $user->id);
             })
@@ -220,7 +223,7 @@ class AnnouncementController extends Controller
         $user = $request->user();
 
         if (! $user->managesAssignedEventsOnly()) {
-            return Event::pluck('id')->all();
+            return Event::visibleToStaff($user)->pluck('id')->all();
         }
 
         return $user->managedEventIds();

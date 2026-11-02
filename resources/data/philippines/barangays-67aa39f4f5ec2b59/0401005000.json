@@ -1,0 +1,527 @@
+{
+    "0401005001": {
+        "code": "0401005001",
+        "name": "Alangilan",
+        "city_code": "0401005000"
+    },
+    "0401005003": {
+        "code": "0401005003",
+        "name": "Balagtas",
+        "city_code": "0401005000"
+    },
+    "0401005004": {
+        "code": "0401005004",
+        "name": "Balete",
+        "city_code": "0401005000"
+    },
+    "0401005006": {
+        "code": "0401005006",
+        "name": "Banaba Center",
+        "city_code": "0401005000"
+    },
+    "0401005007": {
+        "code": "0401005007",
+        "name": "Banaba Kanluran",
+        "city_code": "0401005000"
+    },
+    "0401005008": {
+        "code": "0401005008",
+        "name": "Banaba Silangan",
+        "city_code": "0401005000"
+    },
+    "0401005009": {
+        "code": "0401005009",
+        "name": "Banaba Ibaba",
+        "city_code": "0401005000"
+    },
+    "0401005010": {
+        "code": "0401005010",
+        "name": "Bilogo",
+        "city_code": "0401005000"
+    },
+    "0401005011": {
+        "code": "0401005011",
+        "name": "Maapas",
+        "city_code": "0401005000"
+    },
+    "0401005012": {
+        "code": "0401005012",
+        "name": "Bolbok",
+        "city_code": "0401005000"
+    },
+    "0401005013": {
+        "code": "0401005013",
+        "name": "Bukal",
+        "city_code": "0401005000"
+    },
+    "0401005014": {
+        "code": "0401005014",
+        "name": "Calicanto",
+        "city_code": "0401005000"
+    },
+    "0401005016": {
+        "code": "0401005016",
+        "name": "Catandala",
+        "city_code": "0401005000"
+    },
+    "0401005017": {
+        "code": "0401005017",
+        "name": "Concepcion",
+        "city_code": "0401005000"
+    },
+    "0401005018": {
+        "code": "0401005018",
+        "name": "Conde Itaas",
+        "city_code": "0401005000"
+    },
+    "0401005019": {
+        "code": "0401005019",
+        "name": "Conde Labak",
+        "city_code": "0401005000"
+    },
+    "0401005020": {
+        "code": "0401005020",
+        "name": "Cuta",
+        "city_code": "0401005000"
+    },
+    "0401005021": {
+        "code": "0401005021",
+        "name": "Dalig",
+        "city_code": "0401005000"
+    },
+    "0401005022": {
+        "code": "0401005022",
+        "name": "Dela Paz",
+        "city_code": "0401005000"
+    },
+    "0401005023": {
+        "code": "0401005023",
+        "name": "Dela Paz Pulot Aplaya",
+        "city_code": "0401005000"
+    },
+    "0401005024": {
+        "code": "0401005024",
+        "name": "Dela Paz Pulot Itaas",
+        "city_code": "0401005000"
+    },
+    "0401005026": {
+        "code": "0401005026",
+        "name": "Domoclay",
+        "city_code": "0401005000"
+    },
+    "0401005027": {
+        "code": "0401005027",
+        "name": "Dumantay",
+        "city_code": "0401005000"
+    },
+    "0401005028": {
+        "code": "0401005028",
+        "name": "Gulod Itaas",
+        "city_code": "0401005000"
+    },
+    "0401005029": {
+        "code": "0401005029",
+        "name": "Gulod Labak",
+        "city_code": "0401005000"
+    },
+    "0401005030": {
+        "code": "0401005030",
+        "name": "Haligue Kanluran",
+        "city_code": "0401005000"
+    },
+    "0401005031": {
+        "code": "0401005031",
+        "name": "Haligue Silangan",
+        "city_code": "0401005000"
+    },
+    "0401005032": {
+        "code": "0401005032",
+        "name": "Ilihan",
+        "city_code": "0401005000"
+    },
+    "0401005033": {
+        "code": "0401005033",
+        "name": "Kumba",
+        "city_code": "0401005000"
+    },
+    "0401005034": {
+        "code": "0401005034",
+        "name": "Kumintang Ibaba",
+        "city_code": "0401005000"
+    },
+    "0401005035": {
+        "code": "0401005035",
+        "name": "Kumintang Ilaya",
+        "city_code": "0401005000"
+    },
+    "0401005036": {
+        "code": "0401005036",
+        "name": "Libjo",
+        "city_code": "0401005000"
+    },
+    "0401005037": {
+        "code": "0401005037",
+        "name": "Liponpon, Isla Verde",
+        "city_code": "0401005000"
+    },
+    "0401005038": {
+        "code": "0401005038",
+        "name": "Mahabang Dahilig",
+        "city_code": "0401005000"
+    },
+    "0401005039": {
+        "code": "0401005039",
+        "name": "Mahabang Parang",
+        "city_code": "0401005000"
+    },
+    "0401005040": {
+        "code": "0401005040",
+        "name": "Mahacot Silangan",
+        "city_code": "0401005000"
+    },
+    "0401005041": {
+        "code": "0401005041",
+        "name": "Mahacot Kanluran",
+        "city_code": "0401005000"
+    },
+    "0401005042": {
+        "code": "0401005042",
+        "name": "Malalim",
+        "city_code": "0401005000"
+    },
+    "0401005043": {
+        "code": "0401005043",
+        "name": "Malibayo",
+        "city_code": "0401005000"
+    },
+    "0401005044": {
+        "code": "0401005044",
+        "name": "Malitam",
+        "city_code": "0401005000"
+    },
+    "0401005045": {
+        "code": "0401005045",
+        "name": "Maruclap",
+        "city_code": "0401005000"
+    },
+    "0401005046": {
+        "code": "0401005046",
+        "name": "Mabacong",
+        "city_code": "0401005000"
+    },
+    "0401005047": {
+        "code": "0401005047",
+        "name": "Pagkilatan",
+        "city_code": "0401005000"
+    },
+    "0401005048": {
+        "code": "0401005048",
+        "name": "Paharang Kanluran",
+        "city_code": "0401005000"
+    },
+    "0401005049": {
+        "code": "0401005049",
+        "name": "Paharang Silangan",
+        "city_code": "0401005000"
+    },
+    "0401005050": {
+        "code": "0401005050",
+        "name": "Pallocan Silangan",
+        "city_code": "0401005000"
+    },
+    "0401005051": {
+        "code": "0401005051",
+        "name": "Pallocan Kanluran",
+        "city_code": "0401005000"
+    },
+    "0401005052": {
+        "code": "0401005052",
+        "name": "Pinamucan",
+        "city_code": "0401005000"
+    },
+    "0401005053": {
+        "code": "0401005053",
+        "name": "Pinamucan Ibaba",
+        "city_code": "0401005000"
+    },
+    "0401005054": {
+        "code": "0401005054",
+        "name": "Pinamucan Silangan",
+        "city_code": "0401005000"
+    },
+    "0401005055": {
+        "code": "0401005055",
+        "name": "Barangay 1",
+        "city_code": "0401005000"
+    },
+    "0401005056": {
+        "code": "0401005056",
+        "name": "Barangay 10",
+        "city_code": "0401005000"
+    },
+    "0401005057": {
+        "code": "0401005057",
+        "name": "Barangay 11",
+        "city_code": "0401005000"
+    },
+    "0401005058": {
+        "code": "0401005058",
+        "name": "Barangay 12",
+        "city_code": "0401005000"
+    },
+    "0401005059": {
+        "code": "0401005059",
+        "name": "Barangay 13",
+        "city_code": "0401005000"
+    },
+    "0401005060": {
+        "code": "0401005060",
+        "name": "Barangay 14",
+        "city_code": "0401005000"
+    },
+    "0401005061": {
+        "code": "0401005061",
+        "name": "Barangay 15",
+        "city_code": "0401005000"
+    },
+    "0401005062": {
+        "code": "0401005062",
+        "name": "Barangay 16",
+        "city_code": "0401005000"
+    },
+    "0401005063": {
+        "code": "0401005063",
+        "name": "Barangay 17",
+        "city_code": "0401005000"
+    },
+    "0401005064": {
+        "code": "0401005064",
+        "name": "Barangay 18",
+        "city_code": "0401005000"
+    },
+    "0401005065": {
+        "code": "0401005065",
+        "name": "Barangay 19",
+        "city_code": "0401005000"
+    },
+    "0401005066": {
+        "code": "0401005066",
+        "name": "Barangay 2",
+        "city_code": "0401005000"
+    },
+    "0401005067": {
+        "code": "0401005067",
+        "name": "Barangay 20",
+        "city_code": "0401005000"
+    },
+    "0401005068": {
+        "code": "0401005068",
+        "name": "Barangay 21",
+        "city_code": "0401005000"
+    },
+    "0401005069": {
+        "code": "0401005069",
+        "name": "Barangay 22",
+        "city_code": "0401005000"
+    },
+    "0401005070": {
+        "code": "0401005070",
+        "name": "Barangay 23",
+        "city_code": "0401005000"
+    },
+    "0401005071": {
+        "code": "0401005071",
+        "name": "Barangay 24",
+        "city_code": "0401005000"
+    },
+    "0401005072": {
+        "code": "0401005072",
+        "name": "Barangay 3",
+        "city_code": "0401005000"
+    },
+    "0401005073": {
+        "code": "0401005073",
+        "name": "Barangay 4",
+        "city_code": "0401005000"
+    },
+    "0401005074": {
+        "code": "0401005074",
+        "name": "Barangay 5",
+        "city_code": "0401005000"
+    },
+    "0401005075": {
+        "code": "0401005075",
+        "name": "Barangay 6",
+        "city_code": "0401005000"
+    },
+    "0401005076": {
+        "code": "0401005076",
+        "name": "Barangay 7",
+        "city_code": "0401005000"
+    },
+    "0401005077": {
+        "code": "0401005077",
+        "name": "Barangay 8",
+        "city_code": "0401005000"
+    },
+    "0401005078": {
+        "code": "0401005078",
+        "name": "Barangay 9",
+        "city_code": "0401005000"
+    },
+    "0401005082": {
+        "code": "0401005082",
+        "name": "Sampaga",
+        "city_code": "0401005000"
+    },
+    "0401005083": {
+        "code": "0401005083",
+        "name": "San Agapito, Isla Verde",
+        "city_code": "0401005000"
+    },
+    "0401005084": {
+        "code": "0401005084",
+        "name": "San Agustin Kanluran, Isla Verde",
+        "city_code": "0401005000"
+    },
+    "0401005085": {
+        "code": "0401005085",
+        "name": "San Agustin Silangan, Isla Verde",
+        "city_code": "0401005000"
+    },
+    "0401005087": {
+        "code": "0401005087",
+        "name": "San Andres, Isla Verde",
+        "city_code": "0401005000"
+    },
+    "0401005088": {
+        "code": "0401005088",
+        "name": "San Antonio, Isla Verde",
+        "city_code": "0401005000"
+    },
+    "0401005090": {
+        "code": "0401005090",
+        "name": "San Isidro",
+        "city_code": "0401005000"
+    },
+    "0401005092": {
+        "code": "0401005092",
+        "name": "San Jose Sico",
+        "city_code": "0401005000"
+    },
+    "0401005093": {
+        "code": "0401005093",
+        "name": "San Miguel",
+        "city_code": "0401005000"
+    },
+    "0401005094": {
+        "code": "0401005094",
+        "name": "San Pedro",
+        "city_code": "0401005000"
+    },
+    "0401005095": {
+        "code": "0401005095",
+        "name": "Santa Clara",
+        "city_code": "0401005000"
+    },
+    "0401005096": {
+        "code": "0401005096",
+        "name": "Santa Rita Aplaya",
+        "city_code": "0401005000"
+    },
+    "0401005097": {
+        "code": "0401005097",
+        "name": "Santa Rita Karsada",
+        "city_code": "0401005000"
+    },
+    "0401005099": {
+        "code": "0401005099",
+        "name": "Santo Domingo",
+        "city_code": "0401005000"
+    },
+    "0401005100": {
+        "code": "0401005100",
+        "name": "Santo Niño",
+        "city_code": "0401005000"
+    },
+    "0401005101": {
+        "code": "0401005101",
+        "name": "Simlong",
+        "city_code": "0401005000"
+    },
+    "0401005102": {
+        "code": "0401005102",
+        "name": "Sirang Lupa",
+        "city_code": "0401005000"
+    },
+    "0401005103": {
+        "code": "0401005103",
+        "name": "Sorosoro Ibaba",
+        "city_code": "0401005000"
+    },
+    "0401005104": {
+        "code": "0401005104",
+        "name": "Sorosoro Ilaya",
+        "city_code": "0401005000"
+    },
+    "0401005105": {
+        "code": "0401005105",
+        "name": "Sorosoro Karsada",
+        "city_code": "0401005000"
+    },
+    "0401005106": {
+        "code": "0401005106",
+        "name": "Tabangao Aplaya",
+        "city_code": "0401005000"
+    },
+    "0401005107": {
+        "code": "0401005107",
+        "name": "Tabangao Ambulong",
+        "city_code": "0401005000"
+    },
+    "0401005109": {
+        "code": "0401005109",
+        "name": "Tabangao Dao",
+        "city_code": "0401005000"
+    },
+    "0401005110": {
+        "code": "0401005110",
+        "name": "Talahib Pandayan",
+        "city_code": "0401005000"
+    },
+    "0401005111": {
+        "code": "0401005111",
+        "name": "Talahib Payapa",
+        "city_code": "0401005000"
+    },
+    "0401005112": {
+        "code": "0401005112",
+        "name": "Talumpok Kanluran",
+        "city_code": "0401005000"
+    },
+    "0401005113": {
+        "code": "0401005113",
+        "name": "Talumpok Silangan",
+        "city_code": "0401005000"
+    },
+    "0401005114": {
+        "code": "0401005114",
+        "name": "Tinga Itaas",
+        "city_code": "0401005000"
+    },
+    "0401005115": {
+        "code": "0401005115",
+        "name": "Tinga Labak",
+        "city_code": "0401005000"
+    },
+    "0401005116": {
+        "code": "0401005116",
+        "name": "Tulo",
+        "city_code": "0401005000"
+    },
+    "0401005117": {
+        "code": "0401005117",
+        "name": "Wawa",
+        "city_code": "0401005000"
+    }
+}

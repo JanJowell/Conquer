@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Hash;
 
 function finishScannerEvent(User $manager, Carbon $now): Event
 {
-    return Event::create([
+    return Event::forceCreate(['review_status' => null,
         'title' => 'Finish Scanner Test '.uniqid(),
         'slug' => 'finish-scanner-test-'.uniqid(),
         'description' => 'Simulated finish-line scanning.',
@@ -380,9 +380,9 @@ test('admin can print an assigned BIB QR and review scan history while other man
         ->assertSee('Finish Scan History');
 });
 
-test('publishing a provisional scan creates the official result and certificate exactly once', function () {
+test('publishing a provisional scan creates the official result but waits for feedback before certification', function () {
     $this->mock(EBadgeNotificationService::class, fn ($mock) => $mock->shouldReceive('notifyIssued')->andReturnNull());
-    $this->mock(CertificateNotificationService::class, fn ($mock) => $mock->shouldReceive('notifyIssued')->once()->andReturnNull());
+    $this->mock(CertificateNotificationService::class, fn ($mock) => $mock->shouldNotReceive('notifyIssued'));
 
     $staff = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
     $raceNow = Carbon::parse('2026-09-02 12:45:00', config('app.timezone'));
@@ -420,12 +420,16 @@ test('publishing a provisional scan creates the official result and certificate 
         ->and($registration->raceResult?->finish_time)->toBe('00:45:00')
         ->and($registration->finishScan?->status)->toBe(FinishScan::STATUS_PUBLISHED)
         ->and($registration->finishScan?->published_at)->not->toBeNull()
-        ->and(Certificate::where('registration_id', $registration->id)->count())->toBe(1);
+        ->and(Certificate::where('registration_id', $registration->id)->count())->toBe(0);
+
+    $this->actingAs($staff)->get(route('admin.results.index', ['event_id' => $event->id]))
+        ->assertOk()->assertSee('Waiting for participant feedback.')
+        ->assertDontSee('Issue E-Certificate');
 });
 
 test('admin can publish all valid provisional scans for one category in a single action', function () {
     $this->mock(EBadgeNotificationService::class, fn ($mock) => $mock->shouldReceive('notifyIssued')->andReturnNull());
-    $this->mock(CertificateNotificationService::class, fn ($mock) => $mock->shouldReceive('notifyIssued')->twice()->andReturnNull());
+    $this->mock(CertificateNotificationService::class, fn ($mock) => $mock->shouldNotReceive('notifyIssued'));
 
     $manager = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $otherManager = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
@@ -485,5 +489,5 @@ test('admin can publish all valid provisional scans for one category in a single
         ->and($second->finishScan?->fresh()->status)->toBe(FinishScan::STATUS_PUBLISHED)
         ->and($invalid->finishScan?->fresh()->status)->toBe(FinishScan::STATUS_PROVISIONAL)
         ->and($otherCategoryRegistration->finishScan?->fresh()->status)->toBe(FinishScan::STATUS_PROVISIONAL)
-        ->and(Certificate::whereIn('registration_id', [$first->id, $second->id])->count())->toBe(2);
+        ->and(Certificate::whereIn('registration_id', [$first->id, $second->id])->count())->toBe(0);
 });

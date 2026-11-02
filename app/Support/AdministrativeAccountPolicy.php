@@ -148,8 +148,6 @@ class AdministrativeAccountPolicy
     {
         return [
             User::ROLE_SUPER_ADMIN,
-            User::ROLE_EXECUTIVE,
-            User::ROLE_CONTENT_MODERATOR,
             User::ROLE_EVENT_MANAGER,
         ];
     }

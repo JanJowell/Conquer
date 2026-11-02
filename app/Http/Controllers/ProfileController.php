@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\AdminActivityLog;
 use App\Models\User;
 use App\Services\AdminInvitationService;
+use App\Support\AdministrativeAccountPolicy;
 use App\Support\ParticipantBirthdate;
 use App\Support\ParticipantHealthProfile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -133,16 +135,33 @@ class ProfileController extends Controller
         return redirect()->route('profile.edit')->with('status', 'profile-updated');
     }
 
-    public function destroy(Request $request): RedirectResponse
+    public function destroy(Request $request, AdministrativeAccountPolicy $accountPolicy): RedirectResponse
     {
-        $user = $request->user();
+        $deletedUser = DB::transaction(function () use ($request, $accountPolicy): ?User {
+            // Match User Management's lock order and recheck the persisted role.
+            // A concurrent promotion must not turn self-deletion into an Admin bypass.
+            $accountPolicy->lockAdministrativeAccounts();
+            $user = User::query()->lockForUpdate()->findOrFail($request->user()->getKey());
 
-        if ($user->avatar_path) {
-            Storage::disk('public')->delete($user->avatar_path);
+            if ($user->isSuperAdmin()) {
+                return null;
+            }
+
+            $user->delete();
+
+            return $user;
+        });
+
+        if ($deletedUser === null) {
+            return redirect()->route('profile.edit')
+                ->with('error', 'Admin accounts cannot be deleted from Profile Settings. Ask another Admin to manage your account through User Management.');
+        }
+
+        if ($deletedUser->avatar_path) {
+            Storage::disk('public')->delete($deletedUser->avatar_path);
         }
 
         Auth::logout();
-        $user->delete();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

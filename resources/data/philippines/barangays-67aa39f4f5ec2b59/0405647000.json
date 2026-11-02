@@ -1,0 +1,332 @@
+{
+    "0405647001": {
+        "code": "0405647001",
+        "name": "Alitao",
+        "city_code": "0405647000"
+    },
+    "0405647002": {
+        "code": "0405647002",
+        "name": "Alupay",
+        "city_code": "0405647000"
+    },
+    "0405647003": {
+        "code": "0405647003",
+        "name": "Angeles Zone I",
+        "city_code": "0405647000"
+    },
+    "0405647004": {
+        "code": "0405647004",
+        "name": "Angeles Zone II",
+        "city_code": "0405647000"
+    },
+    "0405647005": {
+        "code": "0405647005",
+        "name": "Angeles Zone III",
+        "city_code": "0405647000"
+    },
+    "0405647006": {
+        "code": "0405647006",
+        "name": "Angeles Zone IV",
+        "city_code": "0405647000"
+    },
+    "0405647007": {
+        "code": "0405647007",
+        "name": "Angustias Zone I",
+        "city_code": "0405647000"
+    },
+    "0405647008": {
+        "code": "0405647008",
+        "name": "Angustias Zone II",
+        "city_code": "0405647000"
+    },
+    "0405647009": {
+        "code": "0405647009",
+        "name": "Angustias Zone III",
+        "city_code": "0405647000"
+    },
+    "0405647010": {
+        "code": "0405647010",
+        "name": "Angustias Zone IV",
+        "city_code": "0405647000"
+    },
+    "0405647011": {
+        "code": "0405647011",
+        "name": "Anos",
+        "city_code": "0405647000"
+    },
+    "0405647012": {
+        "code": "0405647012",
+        "name": "Ayaas",
+        "city_code": "0405647000"
+    },
+    "0405647013": {
+        "code": "0405647013",
+        "name": "Baguio",
+        "city_code": "0405647000"
+    },
+    "0405647014": {
+        "code": "0405647014",
+        "name": "Banilad",
+        "city_code": "0405647000"
+    },
+    "0405647015": {
+        "code": "0405647015",
+        "name": "Calantas",
+        "city_code": "0405647000"
+    },
+    "0405647016": {
+        "code": "0405647016",
+        "name": "Camaysa",
+        "city_code": "0405647000"
+    },
+    "0405647017": {
+        "code": "0405647017",
+        "name": "Dapdap",
+        "city_code": "0405647000"
+    },
+    "0405647018": {
+        "code": "0405647018",
+        "name": "Gibanga",
+        "city_code": "0405647000"
+    },
+    "0405647019": {
+        "code": "0405647019",
+        "name": "Alsam Ibaba",
+        "city_code": "0405647000"
+    },
+    "0405647020": {
+        "code": "0405647020",
+        "name": "Bukal Ibaba",
+        "city_code": "0405647000"
+    },
+    "0405647021": {
+        "code": "0405647021",
+        "name": "Ilasan Ibaba",
+        "city_code": "0405647000"
+    },
+    "0405647022": {
+        "code": "0405647022",
+        "name": "Nangka Ibaba",
+        "city_code": "0405647000"
+    },
+    "0405647023": {
+        "code": "0405647023",
+        "name": "Palale Ibaba",
+        "city_code": "0405647000"
+    },
+    "0405647024": {
+        "code": "0405647024",
+        "name": "Ibas",
+        "city_code": "0405647000"
+    },
+    "0405647025": {
+        "code": "0405647025",
+        "name": "Alsam Ilaya",
+        "city_code": "0405647000"
+    },
+    "0405647026": {
+        "code": "0405647026",
+        "name": "Bukal Ilaya",
+        "city_code": "0405647000"
+    },
+    "0405647027": {
+        "code": "0405647027",
+        "name": "Ilasan Ilaya",
+        "city_code": "0405647000"
+    },
+    "0405647028": {
+        "code": "0405647028",
+        "name": "Nangka Ilaya",
+        "city_code": "0405647000"
+    },
+    "0405647029": {
+        "code": "0405647029",
+        "name": "Palale Ilaya",
+        "city_code": "0405647000"
+    },
+    "0405647030": {
+        "code": "0405647030",
+        "name": "Ipilan",
+        "city_code": "0405647000"
+    },
+    "0405647031": {
+        "code": "0405647031",
+        "name": "Isabang",
+        "city_code": "0405647000"
+    },
+    "0405647032": {
+        "code": "0405647032",
+        "name": "Calumpang",
+        "city_code": "0405647000"
+    },
+    "0405647033": {
+        "code": "0405647033",
+        "name": "Domoit Kanluran",
+        "city_code": "0405647000"
+    },
+    "0405647034": {
+        "code": "0405647034",
+        "name": "Katigan Kanluran",
+        "city_code": "0405647000"
+    },
+    "0405647035": {
+        "code": "0405647035",
+        "name": "Palale Kanluran",
+        "city_code": "0405647000"
+    },
+    "0405647036": {
+        "code": "0405647036",
+        "name": "Lakawan",
+        "city_code": "0405647000"
+    },
+    "0405647037": {
+        "code": "0405647037",
+        "name": "Lalo",
+        "city_code": "0405647000"
+    },
+    "0405647038": {
+        "code": "0405647038",
+        "name": "Lawigue",
+        "city_code": "0405647000"
+    },
+    "0405647039": {
+        "code": "0405647039",
+        "name": "Lita",
+        "city_code": "0405647000"
+    },
+    "0405647040": {
+        "code": "0405647040",
+        "name": "Malaoa",
+        "city_code": "0405647000"
+    },
+    "0405647041": {
+        "code": "0405647041",
+        "name": "Masin",
+        "city_code": "0405647000"
+    },
+    "0405647042": {
+        "code": "0405647042",
+        "name": "Mate",
+        "city_code": "0405647000"
+    },
+    "0405647043": {
+        "code": "0405647043",
+        "name": "Mateuna",
+        "city_code": "0405647000"
+    },
+    "0405647044": {
+        "code": "0405647044",
+        "name": "Mayowe",
+        "city_code": "0405647000"
+    },
+    "0405647045": {
+        "code": "0405647045",
+        "name": "Opias",
+        "city_code": "0405647000"
+    },
+    "0405647046": {
+        "code": "0405647046",
+        "name": "Pandakaki",
+        "city_code": "0405647000"
+    },
+    "0405647047": {
+        "code": "0405647047",
+        "name": "Pook",
+        "city_code": "0405647000"
+    },
+    "0405647048": {
+        "code": "0405647048",
+        "name": "Potol",
+        "city_code": "0405647000"
+    },
+    "0405647049": {
+        "code": "0405647049",
+        "name": "San Diego Zone I",
+        "city_code": "0405647000"
+    },
+    "0405647050": {
+        "code": "0405647050",
+        "name": "San Diego Zone II",
+        "city_code": "0405647000"
+    },
+    "0405647051": {
+        "code": "0405647051",
+        "name": "San Diego Zone III",
+        "city_code": "0405647000"
+    },
+    "0405647052": {
+        "code": "0405647052",
+        "name": "San Diego Zone IV",
+        "city_code": "0405647000"
+    },
+    "0405647053": {
+        "code": "0405647053",
+        "name": "San Isidro Zone I",
+        "city_code": "0405647000"
+    },
+    "0405647054": {
+        "code": "0405647054",
+        "name": "San Isidro Zone II",
+        "city_code": "0405647000"
+    },
+    "0405647055": {
+        "code": "0405647055",
+        "name": "San Isidro Zone III",
+        "city_code": "0405647000"
+    },
+    "0405647056": {
+        "code": "0405647056",
+        "name": "San Isidro Zone IV",
+        "city_code": "0405647000"
+    },
+    "0405647057": {
+        "code": "0405647057",
+        "name": "San Roque Zone I",
+        "city_code": "0405647000"
+    },
+    "0405647058": {
+        "code": "0405647058",
+        "name": "San Roque Zone II",
+        "city_code": "0405647000"
+    },
+    "0405647059": {
+        "code": "0405647059",
+        "name": "Domoit Silangan",
+        "city_code": "0405647000"
+    },
+    "0405647060": {
+        "code": "0405647060",
+        "name": "Katigan Silangan",
+        "city_code": "0405647000"
+    },
+    "0405647061": {
+        "code": "0405647061",
+        "name": "Palale Silangan",
+        "city_code": "0405647000"
+    },
+    "0405647062": {
+        "code": "0405647062",
+        "name": "Talolong",
+        "city_code": "0405647000"
+    },
+    "0405647063": {
+        "code": "0405647063",
+        "name": "Tamlong",
+        "city_code": "0405647000"
+    },
+    "0405647064": {
+        "code": "0405647064",
+        "name": "Tongko",
+        "city_code": "0405647000"
+    },
+    "0405647065": {
+        "code": "0405647065",
+        "name": "Valencia",
+        "city_code": "0405647000"
+    },
+    "0405647066": {
+        "code": "0405647066",
+        "name": "Wakas",
+        "city_code": "0405647000"
+    }
+}

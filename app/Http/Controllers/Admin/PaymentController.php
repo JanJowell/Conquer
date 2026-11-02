@@ -29,6 +29,7 @@ class PaymentController extends Controller
         $managedEventIds = $user->managedEventIds();
 
         $events = Event::query()
+            ->visibleToStaff($user)
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($user) {
                 $query->where('manager_id', $user->id);
             })

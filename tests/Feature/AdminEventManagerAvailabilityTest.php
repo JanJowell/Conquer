@@ -38,9 +38,9 @@ function managerAvailabilityPayload(array $overrides = []): array
     ], $overrides);
 }
 
-test('admin cannot assign a manager to overlapping event times', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
-    $manager = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
+test('event manager cannot assign a manager to overlapping event times', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
+    $manager = $admin;
     $existing = managerAvailabilityEvent($manager, ['title' => 'Morning Marathon']);
 
     $response = $this->actingAs($admin)
@@ -57,8 +57,8 @@ test('admin cannot assign a manager to overlapping event times', function () {
 });
 
 test('back to back events do not create a manager conflict', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
-    $manager = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
+    $manager = $admin;
     managerAvailabilityEvent($manager);
 
     $title = 'Back to Back Event '.uniqid();
@@ -77,8 +77,8 @@ test('back to back events do not create a manager conflict', function () {
 });
 
 test('multi day event overlap blocks an assigned manager', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
-    $manager = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
+    $manager = $admin;
     managerAvailabilityEvent($manager, [
         'event_date' => '2030-06-09',
         'event_end_date' => '2030-06-11',
@@ -105,8 +105,8 @@ test('event manager cannot create a conflicting event for themselves', function 
 });
 
 test('editing an event does not conflict with its own schedule', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
-    $manager = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
+    $manager = $admin;
     $event = managerAvailabilityEvent($manager);
 
     $this->actingAs($admin)
@@ -120,9 +120,9 @@ test('editing an event does not conflict with its own schedule', function () {
         ->assertRedirect(route('admin.events.show', $event));
 });
 
-test('editing or reassigning an event cannot introduce a manager conflict', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
-    $manager = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
+test('a manager cannot edit or reassign another managers event', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
+    $manager = $admin;
     $otherManager = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     managerAvailabilityEvent($manager, ['title' => 'Manager Busy Event']);
     $event = managerAvailabilityEvent($otherManager, [
@@ -136,15 +136,15 @@ test('editing or reassigning an event cannot introduce a manager conflict', func
             'title' => $event->title,
             'manager_id' => $manager->id,
         ]))
-        ->assertSessionHasErrors('manager_id');
+        ->assertForbidden();
 
     expect($event->fresh()->manager_id)->toBe($otherManager->id)
         ->and($event->fresh()->event_date->format('Y-m-d'))->toBe('2030-06-12');
 });
 
 test('date overlap is treated conservatively when event times are incomplete', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
-    $manager = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
+    $manager = $admin;
     managerAvailabilityEvent($manager, [
         'start_time' => null,
         'end_time' => null,
@@ -159,19 +159,19 @@ test('date overlap is treated conservatively when event times are incomplete', f
         ->assertSessionHasErrors('manager_id');
 });
 
-test('event form exposes manager availability data and guidance', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+test('event form includes only the current managers schedule and no reassignment selector', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $manager = User::factory()->create([
         'role' => User::ROLE_EVENT_MANAGER,
         'name' => 'Available Test Manager',
     ]);
-    managerAvailabilityEvent($manager, ['title' => 'Visible Schedule Conflict']);
+    managerAvailabilityEvent($manager, ['title' => 'Other Manager Private Schedule']);
+    managerAvailabilityEvent($admin, ['title' => 'Own Schedule Conflict']);
 
     $this->actingAs($admin)
         ->get(route('admin.events.create'))
         ->assertOk()
-        ->assertSee('manager-availability-message', false)
-        ->assertSee('Visible Schedule Conflict')
-        ->assertSee('Unavailable')
-        ->assertSee('Available');
+        ->assertDontSee('name="manager_id"', false)
+        ->assertSee('Own Schedule Conflict')
+        ->assertDontSee('Other Manager Private Schedule');
 });

@@ -1,0 +1,127 @@
+{
+    "0405608001": {
+        "code": "0405608001",
+        "name": "Poblacion",
+        "city_code": "0405608000"
+    },
+    "0405608002": {
+        "code": "0405608002",
+        "name": "Buenavista East",
+        "city_code": "0405608000"
+    },
+    "0405608003": {
+        "code": "0405608003",
+        "name": "Buenavista West",
+        "city_code": "0405608000"
+    },
+    "0405608004": {
+        "code": "0405608004",
+        "name": "Bukal Norte",
+        "city_code": "0405608000"
+    },
+    "0405608005": {
+        "code": "0405608005",
+        "name": "Bukal Sur",
+        "city_code": "0405608000"
+    },
+    "0405608006": {
+        "code": "0405608006",
+        "name": "Kinatihan I",
+        "city_code": "0405608000"
+    },
+    "0405608007": {
+        "code": "0405608007",
+        "name": "Kinatihan II",
+        "city_code": "0405608000"
+    },
+    "0405608008": {
+        "code": "0405608008",
+        "name": "Malabanban Norte",
+        "city_code": "0405608000"
+    },
+    "0405608009": {
+        "code": "0405608009",
+        "name": "Malabanban Sur",
+        "city_code": "0405608000"
+    },
+    "0405608010": {
+        "code": "0405608010",
+        "name": "Mangilag Norte",
+        "city_code": "0405608000"
+    },
+    "0405608011": {
+        "code": "0405608011",
+        "name": "Mangilag Sur",
+        "city_code": "0405608000"
+    },
+    "0405608012": {
+        "code": "0405608012",
+        "name": "Masalukot I",
+        "city_code": "0405608000"
+    },
+    "0405608013": {
+        "code": "0405608013",
+        "name": "Masalukot II",
+        "city_code": "0405608000"
+    },
+    "0405608014": {
+        "code": "0405608014",
+        "name": "Masalukot III",
+        "city_code": "0405608000"
+    },
+    "0405608015": {
+        "code": "0405608015",
+        "name": "Masalukot IV",
+        "city_code": "0405608000"
+    },
+    "0405608016": {
+        "code": "0405608016",
+        "name": "Masin Norte",
+        "city_code": "0405608000"
+    },
+    "0405608017": {
+        "code": "0405608017",
+        "name": "Masin Sur",
+        "city_code": "0405608000"
+    },
+    "0405608018": {
+        "code": "0405608018",
+        "name": "Mayabobo",
+        "city_code": "0405608000"
+    },
+    "0405608019": {
+        "code": "0405608019",
+        "name": "Pahinga Norte",
+        "city_code": "0405608000"
+    },
+    "0405608020": {
+        "code": "0405608020",
+        "name": "Pahinga Sur",
+        "city_code": "0405608000"
+    },
+    "0405608022": {
+        "code": "0405608022",
+        "name": "San Andres",
+        "city_code": "0405608000"
+    },
+    "0405608023": {
+        "code": "0405608023",
+        "name": "San Isidro",
+        "city_code": "0405608000"
+    },
+    "0405608024": {
+        "code": "0405608024",
+        "name": "Santa Catalina Norte",
+        "city_code": "0405608000"
+    },
+    "0405608025": {
+        "code": "0405608025",
+        "name": "Santa Catalina Sur",
+        "city_code": "0405608000"
+    },
+    "0405608026": {
+        "code": "0405608026",
+        "name": "Masalukot V",
+        "city_code": "0405608000"
+    }
+}

@@ -15,7 +15,7 @@ function adminEBadgeUser(): User
 
 function adminEBadgeEvent(): Event
 {
-    return Event::create([
+    return Event::forceCreate(['review_status' => null,
         'title' => 'Night Run',
         'slug' => 'night-run-'.uniqid(),
         'venue' => 'Bacoor City',

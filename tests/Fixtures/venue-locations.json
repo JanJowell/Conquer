@@ -1,0 +1,15 @@
+{
+  "version": "synthetic-test-fixture",
+  "schema_version": 2,
+  "barangay_directory": "barangays-0000000000000000",
+  "areas": {
+    "0402100000": {"code": "0402100000", "name": "Cavite"},
+    "0401000000": {"code": "0401000000", "name": "Batangas"},
+    "1300000000": {"code": "1300000000", "name": "Metro Manila (NCR)"}
+  },
+  "cities": {
+    "0402103000": {"code": "0402103000", "name": "Test City A", "area_code": "0402100000", "barangay_count": 1, "barangays_sha256": "74f503d3e4832f5a0aa33be8c3c0077633b5fecfdb1dd474df44193d3df8c9b3"},
+    "0401029000": {"code": "0401029000", "name": "Test Municipality B", "area_code": "0401000000", "barangay_count": 1, "barangays_sha256": "dee82f3c62a9331dcd2e0a2620c16eacd766602e3bcae40d1d8a2760b7a2bc4c"},
+    "1381300000": {"code": "1381300000", "name": "Quezon City", "area_code": "1300000000", "barangay_count": 1, "barangays_sha256": "198a72e531896e33bd4d393672fcd61a9d1af0c62c3cc4b8577834d7b2f30630"}
+  }
+}

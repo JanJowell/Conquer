@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Arr;
 
 class PushNotification extends Model
 {
@@ -37,17 +36,5 @@ class PushNotification extends Model
     public function targetUser()
     {
         return $this->belongsTo(User::class, 'target_user_id');
-    }
-
-    public function publicData(): array
-    {
-        return Arr::except($this->data ?? [], ['_firebase_delivery']);
-    }
-
-    public function deliveryError(): ?string
-    {
-        $error = data_get($this->data, '_firebase_delivery.error');
-
-        return is_string($error) ? $error : null;
     }
 }

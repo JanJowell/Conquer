@@ -2,10 +2,8 @@
 
 namespace App\Services;
 
-use App\Exceptions\FirebaseAuthenticationException;
 use App\Models\PushNotification;
 use App\Models\UserDeviceToken;
-use Illuminate\Http\Client\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -15,10 +13,7 @@ use RuntimeException;
 class FirebaseCloudMessaging
 {
     private const SCOPE = 'https://www.googleapis.com/auth/firebase.messaging';
-
     private const TOKEN_URL = 'https://oauth2.googleapis.com/token';
-
-    private const AUTH_ERROR = 'Firebase authentication or permissions failed. Delivery is paused. Check the Firebase credentials, project permissions, and platform push credentials, then reactivate this notification to retry.';
 
     public function sendNotification(PushNotification $notification, Collection $users): array
     {
@@ -36,50 +31,24 @@ class FirebaseCloudMessaging
             return $this->result('No saved device tokens found for the target users.', configured: $this->isConfigured(), processed: true);
         }
 
+        if (! $this->isConfigured()) {
+            return $this->result('Firebase Cloud Messaging is not configured.', configured: false, attempted: $deviceTokens->count(), retry: false);
+        }
+
         $sent = 0;
         $failed = 0;
         $retryableFailures = 0;
-        $authRefreshAttempted = false;
-        $paused = false;
-        $fingerprint = hash('sha256', json_encode([$notification->title, $notification->message, $notification->type,
-            $notification->target_audience, $notification->target_user_id, $notification->publicData()]));
-        $previous = data_get($notification->data, '_firebase_delivery', []);
-        $acceptedHashes = ($previous['fingerprint'] ?? null) === $fingerprint
-            ? (array) ($previous['accepted_token_hashes'] ?? []) : [];
-
-        if (! $this->isConfigured()) {
-            $message = 'Firebase Cloud Messaging configuration is missing or invalid. Delivery is paused. Correct the configuration, then reactivate this notification to retry.';
-
-            return $this->result($message, configured: false) + [
-                'paused' => true,
-                'delivery_state' => [
-                    'fingerprint' => $fingerprint,
-                    'accepted_token_hashes' => $acceptedHashes,
-                    'error' => $message,
-                    'paused' => true,
-                ],
-            ];
-        }
 
         foreach ($deviceTokens->unique()->values() as $token) {
-            $tokenHash = hash('sha256', $token);
-            if (in_array($tokenHash, $acceptedHashes, true)) {
-                continue;
-            }
-            $tokenResult = $this->sendToToken($notification, $token, $authRefreshAttempted);
+            $tokenResult = $this->sendToToken($notification, $token);
 
             if ($tokenResult['sent']) {
                 $sent++;
-                $acceptedHashes[] = $tokenHash;
             } else {
                 $failed++;
 
                 if ($tokenResult['retry']) {
                     $retryableFailures++;
-                }
-                if ($tokenResult['paused'] ?? false) {
-                    $paused = true;
-                    break;
                 }
             }
         }
@@ -89,20 +58,13 @@ class FirebaseCloudMessaging
             'attempted' => $sent + $failed,
             'sent' => $sent,
             'failed' => $failed,
-            'processed' => ! $paused && $retryableFailures === 0,
-            'retry' => ! $paused && $retryableFailures > 0,
-            'paused' => $paused,
-            'delivery_state' => [
-                'fingerprint' => $fingerprint,
-                'accepted_token_hashes' => array_values(array_unique($acceptedHashes)),
-                'error' => $paused ? self::AUTH_ERROR : null,
-                'paused' => $paused,
-            ],
-            'message' => $paused ? self::AUTH_ERROR : ($retryableFailures > 0
-                ? 'Firebase delivery failed temporarily. The scheduled notification will be retried without resending to devices already accepted.'
-                : ($sent > 0
+            'processed' => $sent > 0 || $retryableFailures === 0,
+            'retry' => $retryableFailures > 0,
+            'message' => $sent > 0
                 ? "Notification delivered to {$sent} device token(s)."
-                : 'Notification processing completed; no additional devices accepted the notification.')),
+                : ($retryableFailures > 0
+                    ? 'Firebase delivery failed temporarily. The scheduled notification will be retried.'
+                    : 'Firebase was configured, but no device token accepted the notification.'),
         ];
     }
 
@@ -110,46 +72,35 @@ class FirebaseCloudMessaging
     {
         $credentials = $this->credentials();
 
-        return is_string(config('services.firebase.project_id')) && filled(config('services.firebase.project_id'))
-            && is_string($credentials['client_email'] ?? null) && filled($credentials['client_email'])
-            && is_string($credentials['private_key'] ?? null) && filled($credentials['private_key']);
+        return filled(config('services.firebase.project_id'))
+            && filled($credentials['client_email'] ?? null)
+            && filled($credentials['private_key'] ?? null);
     }
 
-    private function sendToToken(PushNotification $notification, string $token, bool &$authRefreshAttempted): array
+    private function sendToToken(PushNotification $notification, string $token): array
     {
         try {
-            $payload = [
-                'message' => [
-                    'token' => $token,
-                    'notification' => [
-                        'title' => $notification->title,
-                        'body' => $notification->message,
+            $response = Http::withToken($this->accessToken())
+                ->acceptJson()
+                ->post($this->sendUrl(), [
+                    'message' => [
+                        'token' => $token,
+                        'notification' => [
+                            'title' => $notification->title,
+                            'body' => $notification->message,
+                        ],
+                        'data' => [
+                            'notification_id' => (string) $notification->id,
+                            'type' => (string) $notification->type,
+                            'target_audience' => (string) $notification->target_audience,
+                            'target_user_id' => (string) $notification->target_user_id,
+                        ] + $this->stringData($notification->data ?? []),
                     ],
-                    'data' => [
-                        'notification_id' => (string) $notification->id,
-                        'type' => (string) $notification->type,
-                        'target_audience' => (string) $notification->target_audience,
-                        'target_user_id' => (string) $notification->target_user_id,
-                    ] + $this->stringData($notification->publicData()),
-                ],
-            ];
-            $response = Http::withToken($this->accessToken())->acceptJson()->timeout(20)->post($this->sendUrl(), $payload);
-            // Only a rejected OAuth bearer token is refreshable. APNs/web-push
-            // credential failures also use HTTP 401 but require operator action.
-            if ($response->status() === 401 && $this->errorCode($response) !== 'THIRD_PARTY_AUTH_ERROR' && ! $authRefreshAttempted) {
-                $authRefreshAttempted = true;
-                Cache::forget('firebase_fcm_access_token');
-                $response = Http::withToken($this->accessToken())->acceptJson()->timeout(20)->post($this->sendUrl(), $payload);
-            }
-        } catch (FirebaseAuthenticationException $e) {
-            Cache::forget('firebase_fcm_access_token');
-            Log::warning('Firebase credential authentication failed; delivery paused.', ['push_notification_id' => $notification->id]);
-
-            return ['sent' => false, 'retry' => false, 'paused' => true];
+                ]);
         } catch (\Throwable $e) {
             Log::error('FCM send request failed.', [
                 'push_notification_id' => $notification->id,
-                'exception_type' => get_class($e),
+                'error' => $e->getMessage(),
             ]);
 
             return ['sent' => false, 'retry' => true];
@@ -159,22 +110,11 @@ class FirebaseCloudMessaging
             return ['sent' => true, 'retry' => false];
         }
 
-        $errorCode = $this->errorCode($response);
+        $body = $response->json();
+        $errorCode = data_get($body, 'error.details.0.errorCode') ?? data_get($body, 'error.status');
 
-        if (in_array($response->status(), [401, 403], true)
-            || in_array($errorCode, ['UNAUTHENTICATED', 'PERMISSION_DENIED', 'THIRD_PARTY_AUTH_ERROR', 'SENDER_ID_MISMATCH'], true)) {
-            if ($response->status() === 401 && $errorCode !== 'THIRD_PARTY_AUTH_ERROR') {
-                Cache::forget('firebase_fcm_access_token');
-            }
-            Log::warning('Firebase authentication or permissions rejected delivery; paused.', [
-                'push_notification_id' => $notification->id, 'status' => $response->status(),
-            ]);
-
-            return ['sent' => false, 'retry' => false, 'paused' => true];
-        }
-
-        $invalidTokenCodes = ['UNREGISTERED'];
-        $retryableCodes = ['UNAVAILABLE', 'INTERNAL', 'RESOURCE_EXHAUSTED', 'DEADLINE_EXCEEDED', 'QUOTA_EXCEEDED'];
+        $invalidTokenCodes = ['UNREGISTERED', 'INVALID_ARGUMENT', 'NOT_FOUND', 'SENDER_ID_MISMATCH'];
+        $retryableCodes = ['UNAVAILABLE', 'INTERNAL', 'RESOURCE_EXHAUSTED', 'DEADLINE_EXCEEDED'];
 
         if (in_array($errorCode, $invalidTokenCodes, true)) {
             UserDeviceToken::where('token', $token)->delete();
@@ -184,25 +124,13 @@ class FirebaseCloudMessaging
             'push_notification_id' => $notification->id,
             'status' => $response->status(),
             'error_code' => $errorCode,
+            'body' => $body,
         ]);
 
         return [
             'sent' => false,
-            'retry' => $response->status() === 429 || $response->serverError() || in_array($errorCode, $retryableCodes, true),
+            'retry' => in_array($errorCode, $retryableCodes, true),
         ];
-    }
-
-    private function errorCode(Response $response): ?string
-    {
-        foreach ((array) $response->json('error.details', []) as $detail) {
-            if (is_array($detail) && ($detail['@type'] ?? '') === 'type.googleapis.com/google.firebase.fcm.v1.FcmError') {
-                return is_string($detail['errorCode'] ?? null) ? $detail['errorCode'] : null;
-            }
-        }
-
-        $status = $response->json('error.status');
-
-        return is_string($status) ? $status : null;
     }
 
     private function stringData(array $data): array
@@ -227,30 +155,19 @@ class FirebaseCloudMessaging
                     'exp' => $now + 3600,
                 ]));
 
-            try {
-                $signed = @openssl_sign($jwt, $signature, $credentials['private_key'], OPENSSL_ALGO_SHA256);
-            } catch (\Throwable $e) {
-                throw new FirebaseAuthenticationException('Firebase credential signing failed.');
-            }
-            if (! $signed) {
-                throw new FirebaseAuthenticationException('Firebase credential signing failed.');
-            }
+            openssl_sign($jwt, $signature, $credentials['private_key'], OPENSSL_ALGO_SHA256);
             $assertion = $jwt.'.'.$this->base64UrlEncode($signature);
 
-            $response = Http::asForm()->timeout(20)->post(self::TOKEN_URL, [
+            $response = Http::asForm()->post(self::TOKEN_URL, [
                 'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
                 'assertion' => $assertion,
             ]);
 
-            $token = $response->json('access_token');
-            if (! $response->successful() || ! is_string($token) || $token === '') {
-                if ($response->clientError() && $response->status() !== 429) {
-                    throw new FirebaseAuthenticationException('Firebase rejected the service-account credentials.');
-                }
+            if (! $response->successful() || ! $response->json('access_token')) {
                 throw new RuntimeException('Unable to obtain Firebase access token.');
             }
 
-            return $token;
+            return $response->json('access_token');
         });
     }
 
@@ -288,9 +205,7 @@ class FirebaseCloudMessaging
 
     private function decodeCredentials(string $credentials): array
     {
-        $decoded = json_decode($credentials, true);
-
-        return is_array($decoded) ? $decoded : [];
+        return json_decode($credentials, true) ?: [];
     }
 
     private function sendUrl(): string

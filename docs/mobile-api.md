@@ -1,5 +1,47 @@
 # Conquer Mobile API
 
+Event venue entry now uses structured address fields in the admin form.
+The public/mobile `venue` key remains a readable string, for example a
+venue name followed by its landmark, barangay, city/municipality and province
+or non-province area. Existing venue text is preserved until deliberately
+replaced. No coordinates or map pin are inferred from this address.
+
+## Feedback and e-certificates
+
+First certificate issuance requires a completed registration, an official result,
+and feedback submitted by the registration owner. Any overall rating from 1 to 5
+qualifies; written comments and the other ratings remain optional. Existing
+issued certificates remain accessible without retroactive feedback, subject to
+the existing revocation rules. E-badges are unchanged.
+
+For a completed registration with a result but no feedback or certificate,
+readiness returns `feedback.required: true`, `next_action.key: submit_feedback`,
+and `certificate.status: waiting_for_feedback` with `available: false` and no
+download URL. The registration certificate endpoint returns HTTP 422 with an
+instruction to submit feedback. Certificate listing and public downloads cannot
+issue a missing certificate.
+
+Submitting feedback through the existing feedback endpoint triggers certificate
+synchronization. Refresh registrations after success to retrieve the issued
+certificate and its download URL. Feedback edits and repeated synchronization
+do not create duplicate certificates. Clients should use `feedback.required`
+for the current action, not `required_after_completion` (a future-policy flag).
+
+Event responses retain the nullable `organized_by` key for compatibility with
+existing mobile clients. It is historical data: new admin-created events leave
+it null, and admin edits preserve existing values. Organizer is no longer an
+event form field or a publication requirement. Clients should hide an empty
+organizer row. Assigned Event Manager remains a separate administrative role.
+
+For Marathon, Trail Run, and Triathlon, `type_details.cutoff_time` remains a
+nullable readable string, such as `6 hours` or `9 hours 30 minutes`. Existing
+values such as `90 minutes` and `9.5 hours` are still readable. Admin
+forms offer duration presets and validated whole-number Hours and Minutes
+fields (minutes 0–59 and a positive total duration); the helper
+fields are not stored or exposed in the API. Existing free-text values are
+preserved unless deliberately replaced. This descriptive duration does not
+calculate or change category gun-start and cutoff/end schedules.
+
 Base URL for local development:
 
 ```text

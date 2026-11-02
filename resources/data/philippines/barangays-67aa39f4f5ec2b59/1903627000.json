@@ -1,0 +1,217 @@
+{
+    "1903627003": {
+        "code": "1903627003",
+        "name": "Bandera Buisan",
+        "city_code": "1903627000"
+    },
+    "1903627006": {
+        "code": "1903627006",
+        "name": "Boriongan",
+        "city_code": "1903627000"
+    },
+    "1903627007": {
+        "code": "1903627007",
+        "name": "Borowa",
+        "city_code": "1903627000"
+    },
+    "1903627008": {
+        "code": "1903627008",
+        "name": "Buadi Dingun",
+        "city_code": "1903627000"
+    },
+    "1903627009": {
+        "code": "1903627009",
+        "name": "Buadi Amao",
+        "city_code": "1903627000"
+    },
+    "1903627010": {
+        "code": "1903627010",
+        "name": "Buadi Amunta",
+        "city_code": "1903627000"
+    },
+    "1903627011": {
+        "code": "1903627011",
+        "name": "Buadi Arorao",
+        "city_code": "1903627000"
+    },
+    "1903627012": {
+        "code": "1903627012",
+        "name": "Buadi Atopa",
+        "city_code": "1903627000"
+    },
+    "1903627013": {
+        "code": "1903627013",
+        "name": "Buadi Dayomangga",
+        "city_code": "1903627000"
+    },
+    "1903627014": {
+        "code": "1903627014",
+        "name": "Buadi Ongcalo",
+        "city_code": "1903627000"
+    },
+    "1903627016": {
+        "code": "1903627016",
+        "name": "Bucalan",
+        "city_code": "1903627000"
+    },
+    "1903627017": {
+        "code": "1903627017",
+        "name": "Cadayonan Bagumbayan",
+        "city_code": "1903627000"
+    },
+    "1903627018": {
+        "code": "1903627018",
+        "name": "Caramat",
+        "city_code": "1903627000"
+    },
+    "1903627019": {
+        "code": "1903627019",
+        "name": "Carandangan Calopaan",
+        "city_code": "1903627000"
+    },
+    "1903627021": {
+        "code": "1903627021",
+        "name": "Datu Ma-as",
+        "city_code": "1903627000"
+    },
+    "1903627022": {
+        "code": "1903627022",
+        "name": "Dilabayan",
+        "city_code": "1903627000"
+    },
+    "1903627024": {
+        "code": "1903627024",
+        "name": "Dimayon",
+        "city_code": "1903627000"
+    },
+    "1903627028": {
+        "code": "1903627028",
+        "name": "Gapao Balindong",
+        "city_code": "1903627000"
+    },
+    "1903627029": {
+        "code": "1903627029",
+        "name": "Ilian",
+        "city_code": "1903627000"
+    },
+    "1903627035": {
+        "code": "1903627035",
+        "name": "Lumasa",
+        "city_code": "1903627000"
+    },
+    "1903627036": {
+        "code": "1903627036",
+        "name": "Lumbac Bagoaingud",
+        "city_code": "1903627000"
+    },
+    "1903627037": {
+        "code": "1903627037",
+        "name": "Lumbac Bubong Maindang",
+        "city_code": "1903627000"
+    },
+    "1903627038": {
+        "code": "1903627038",
+        "name": "Lumbac Pitakus",
+        "city_code": "1903627000"
+    },
+    "1903627042": {
+        "code": "1903627042",
+        "name": "Malungun",
+        "city_code": "1903627000"
+    },
+    "1903627043": {
+        "code": "1903627043",
+        "name": "Maruhom",
+        "city_code": "1903627000"
+    },
+    "1903627046": {
+        "code": "1903627046",
+        "name": "Masolun",
+        "city_code": "1903627000"
+    },
+    "1903627047": {
+        "code": "1903627047",
+        "name": "Moriatao Loksa Datu",
+        "city_code": "1903627000"
+    },
+    "1903627049": {
+        "code": "1903627049",
+        "name": "Pagalamatan",
+        "city_code": "1903627000"
+    },
+    "1903627050": {
+        "code": "1903627050",
+        "name": "Pindolonan",
+        "city_code": "1903627000"
+    },
+    "1903627051": {
+        "code": "1903627051",
+        "name": "Pitakus",
+        "city_code": "1903627000"
+    },
+    "1903627053": {
+        "code": "1903627053",
+        "name": "Ririk",
+        "city_code": "1903627000"
+    },
+    "1903627055": {
+        "code": "1903627055",
+        "name": "Salipongan",
+        "city_code": "1903627000"
+    },
+    "1903627056": {
+        "code": "1903627056",
+        "name": "Lumasa Proper",
+        "city_code": "1903627000"
+    },
+    "1903627057": {
+        "code": "1903627057",
+        "name": "Sambolawan",
+        "city_code": "1903627000"
+    },
+    "1903627058": {
+        "code": "1903627058",
+        "name": "Samporna Salamatollah",
+        "city_code": "1903627000"
+    },
+    "1903627060": {
+        "code": "1903627060",
+        "name": "Somiorang Bandingun",
+        "city_code": "1903627000"
+    },
+    "1903627061": {
+        "code": "1903627061",
+        "name": "Sigayan Proper",
+        "city_code": "1903627000"
+    },
+    "1903627062": {
+        "code": "1903627062",
+        "name": "Sunggod",
+        "city_code": "1903627000"
+    },
+    "1903627063": {
+        "code": "1903627063",
+        "name": "Sunding",
+        "city_code": "1903627000"
+    },
+    "1903627064": {
+        "code": "1903627064",
+        "name": "Supangan",
+        "city_code": "1903627000"
+    },
+    "1903627069": {
+        "code": "1903627069",
+        "name": "Tupa-an Buadiatupa",
+        "city_code": "1903627000"
+    },
+    "1903627070": {
+        "code": "1903627070",
+        "name": "Buadi Amunud",
+        "city_code": "1903627000"
+    },
+    "1903627071": {
+        "code": "1903627071",
+        "name": "Mangayao",
+        "city_code": "1903627000"
+    }
+}

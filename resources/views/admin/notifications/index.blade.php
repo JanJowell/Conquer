@@ -81,7 +81,6 @@
                                 <td class="px-6 py-4">
                                     <p class="font-medium text-slate-700">{{ $notification->title }}</p>
                                     <p class="mt-1 max-w-md text-xs leading-5 text-slate-400">{{ \Illuminate\Support\Str::limit($notification->message, 80) }}</p>
-                                    @include('admin.notifications._delivery-error')
                                 </td>
                                 <td class="px-6 py-4">
                                     <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold {{ $typeClass }}">
@@ -96,8 +95,6 @@
                                 <td class="px-6 py-4">
                                     @if($notification->sent_at)
                                         <span class="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-500">Sent</span>
-                                    @elseif($notification->deliveryError())
-                                        <span class="inline-flex rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-600">{{ $notification->is_active ? 'Retry pending' : 'Paused' }}</span>
                                     @elseif($notification->scheduled_at && $notification->scheduled_at > now())
                                         <span class="inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-500">Scheduled</span>
                                     @elseif($notification->is_active)
@@ -176,10 +173,6 @@
             'Ready' => 'bg-sky-50 text-sky-500',
             'Inactive' => 'bg-slate-100 text-slate-500',
         ][$status];
-        if (!$notification->sent_at && $notification->deliveryError()) {
-            $status = $notification->is_active ? 'Retry pending' : 'Paused';
-            $statusClass = 'bg-rose-50 text-rose-600';
-        }
         $audienceLabel = $audienceOptions[$notification->target_audience]
             ?? str($notification->target_audience)->replace('_', ' ')->title();
     @endphp
@@ -206,7 +199,6 @@
 
                 <div class="max-h-[calc(100vh-16rem)] overflow-y-auto px-6 py-5">
                     <div class="space-y-4">
-                        @include('admin.notifications._delivery-error')
                         <section class="rounded-2xl bg-[#f7f8fc] p-5">
                             <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Message</p>
                             <div class="mt-3 whitespace-pre-line text-sm leading-7 text-slate-600">{{ $notification->message }}</div>
@@ -282,7 +274,6 @@
                     </div>
 
                     <div class="max-h-[calc(100vh-12rem)] overflow-y-auto px-6 py-5">
-                        @include('admin.notifications._delivery-error')
                         @if($editingThisNotification && $errors->any())
                             <div class="mb-5 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-500">
                                 Please review the notification details and try again.

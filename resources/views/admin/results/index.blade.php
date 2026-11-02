@@ -7,7 +7,7 @@
         <div>
             <p class="text-sm font-medium uppercase tracking-[0.24em] text-[#7a8495]">Race Results</p>
             <h1 class="mt-2 text-3xl font-semibold tracking-tight text-[#151b26]">Results Management</h1>
-            <p class="mt-2 max-w-3xl text-sm text-[#6d7685]">Encode finish times, automatically rank finishers, and issue verifiable E-Certificates from official results.</p>
+            <p class="mt-2 max-w-3xl text-sm text-[#6d7685]">Encode finish times and automatically rank finishers. New E-Certificates unlock after official results and participant feedback.</p>
         </div>
 
         <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -30,7 +30,7 @@
         </div>
 
         <div class="rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm leading-6 text-sky-900">
-            Finish scans remain provisional until an administrator reviews them. Use Publish Results on a category to publish its valid scans together, recalculate rankings, and issue E-Certificates.
+            Finish scans remain provisional until an administrator reviews them. Use Publish Results on a category to publish its valid scans together and recalculate rankings. New E-Certificates require participant feedback.
         </div>
 
         <section class="overflow-hidden rounded-2xl border border-[#d9dee7] bg-white shadow-sm">
@@ -85,7 +85,7 @@
                             @endif
                             @if ($raceCategory->provisional_scans_count > 0)
                                 <form method="POST" action="{{ route('admin.results.publish-scans', $raceCategory) }}" class="mt-3"
-                                    onsubmit="return confirm('Publish {{ $raceCategory->provisional_scans_count }} provisional result(s) for this category? Valid scans will become official results, rankings will be recalculated, and E-Certificates will be issued.');">
+                                    onsubmit="return confirm('Publish {{ $raceCategory->provisional_scans_count }} provisional result(s) for this category? Valid scans will become official results and rankings will be recalculated. New E-Certificates require participant feedback.');">
                                     @csrf
                                     <button type="submit" class="inline-flex h-10 items-center justify-center rounded-xl bg-[#151b26] px-4 text-xs font-semibold text-white transition hover:bg-[#232b39]">
                                         Publish Results
@@ -234,6 +234,10 @@
                                             <a href="{{ route('certificates.verify', $registration->certificate->verification_token) }}" target="_blank" class="text-xs font-semibold text-sky-700">Verify certificate</a>
                                         @elseif (! $registration->raceResult)
                                             <p class="text-xs text-[#6d7685]">Save an official result first.</p>
+                                        @elseif ($registration->status !== 'completed')
+                                            <p class="text-xs text-[#6d7685]">Complete the registration first.</p>
+                                        @elseif (! $registration->feedback)
+                                            <p class="text-xs text-[#6d7685]">Waiting for participant feedback.</p>
                                         @else
                                             <form method="POST" action="{{ route('admin.certificates.sync', $registration) }}">@csrf
                                                 <button class="rounded-xl border border-[#d9dee7] px-3 py-2 text-xs font-semibold">Issue E-Certificate</button>

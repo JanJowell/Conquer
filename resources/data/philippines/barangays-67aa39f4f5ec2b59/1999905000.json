@@ -1,0 +1,62 @@
+{
+    "1999905001": {
+        "code": "1999905001",
+        "name": "Balacayon",
+        "city_code": "1999905000"
+    },
+    "1999905002": {
+        "code": "1999905002",
+        "name": "Buricain",
+        "city_code": "1999905000"
+    },
+    "1999905003": {
+        "code": "1999905003",
+        "name": "Datu Binasing",
+        "city_code": "1999905000"
+    },
+    "1999905004": {
+        "code": "1999905004",
+        "name": "Datu Mantil",
+        "city_code": "1999905000"
+    },
+    "1999905005": {
+        "code": "1999905005",
+        "name": "Kadingilan",
+        "city_code": "1999905000"
+    },
+    "1999905006": {
+        "code": "1999905006",
+        "name": "Libungan Torreta",
+        "city_code": "1999905000"
+    },
+    "1999905007": {
+        "code": "1999905007",
+        "name": "Lower Baguer",
+        "city_code": "1999905000"
+    },
+    "1999905008": {
+        "code": "1999905008",
+        "name": "Lower Pangangkalan",
+        "city_code": "1999905000"
+    },
+    "1999905009": {
+        "code": "1999905009",
+        "name": "Matilac",
+        "city_code": "1999905000"
+    },
+    "1999905010": {
+        "code": "1999905010",
+        "name": "Patot",
+        "city_code": "1999905000"
+    },
+    "1999905011": {
+        "code": "1999905011",
+        "name": "Simsiman",
+        "city_code": "1999905000"
+    },
+    "1999905012": {
+        "code": "1999905012",
+        "name": "Upper Pangangkalan",
+        "city_code": "1999905000"
+    }
+}

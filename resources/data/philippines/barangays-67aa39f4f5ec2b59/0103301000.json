@@ -1,0 +1,247 @@
+{
+    "0103301001": {
+        "code": "0103301001",
+        "name": "Ambitacay",
+        "city_code": "0103301000"
+    },
+    "0103301002": {
+        "code": "0103301002",
+        "name": "Balawarte",
+        "city_code": "0103301000"
+    },
+    "0103301003": {
+        "code": "0103301003",
+        "name": "Capas",
+        "city_code": "0103301000"
+    },
+    "0103301004": {
+        "code": "0103301004",
+        "name": "Consolacion",
+        "city_code": "0103301000"
+    },
+    "0103301005": {
+        "code": "0103301005",
+        "name": "Macalva Central",
+        "city_code": "0103301000"
+    },
+    "0103301006": {
+        "code": "0103301006",
+        "name": "Macalva Norte",
+        "city_code": "0103301000"
+    },
+    "0103301007": {
+        "code": "0103301007",
+        "name": "Macalva Sur",
+        "city_code": "0103301000"
+    },
+    "0103301008": {
+        "code": "0103301008",
+        "name": "Nazareno",
+        "city_code": "0103301000"
+    },
+    "0103301009": {
+        "code": "0103301009",
+        "name": "Purok",
+        "city_code": "0103301000"
+    },
+    "0103301010": {
+        "code": "0103301010",
+        "name": "San Agustin East",
+        "city_code": "0103301000"
+    },
+    "0103301011": {
+        "code": "0103301011",
+        "name": "San Agustin Norte",
+        "city_code": "0103301000"
+    },
+    "0103301012": {
+        "code": "0103301012",
+        "name": "San Agustin Sur",
+        "city_code": "0103301000"
+    },
+    "0103301013": {
+        "code": "0103301013",
+        "name": "San Antonino",
+        "city_code": "0103301000"
+    },
+    "0103301014": {
+        "code": "0103301014",
+        "name": "San Antonio",
+        "city_code": "0103301000"
+    },
+    "0103301015": {
+        "code": "0103301015",
+        "name": "San Francisco",
+        "city_code": "0103301000"
+    },
+    "0103301016": {
+        "code": "0103301016",
+        "name": "San Isidro",
+        "city_code": "0103301000"
+    },
+    "0103301017": {
+        "code": "0103301017",
+        "name": "San Joaquin Norte",
+        "city_code": "0103301000"
+    },
+    "0103301018": {
+        "code": "0103301018",
+        "name": "San Joaquin Sur",
+        "city_code": "0103301000"
+    },
+    "0103301019": {
+        "code": "0103301019",
+        "name": "San Jose Norte",
+        "city_code": "0103301000"
+    },
+    "0103301020": {
+        "code": "0103301020",
+        "name": "San Jose Sur",
+        "city_code": "0103301000"
+    },
+    "0103301021": {
+        "code": "0103301021",
+        "name": "San Juan",
+        "city_code": "0103301000"
+    },
+    "0103301022": {
+        "code": "0103301022",
+        "name": "San Julian Central",
+        "city_code": "0103301000"
+    },
+    "0103301023": {
+        "code": "0103301023",
+        "name": "San Julian East",
+        "city_code": "0103301000"
+    },
+    "0103301024": {
+        "code": "0103301024",
+        "name": "San Julian Norte",
+        "city_code": "0103301000"
+    },
+    "0103301025": {
+        "code": "0103301025",
+        "name": "San Julian West",
+        "city_code": "0103301000"
+    },
+    "0103301026": {
+        "code": "0103301026",
+        "name": "San Manuel Norte",
+        "city_code": "0103301000"
+    },
+    "0103301027": {
+        "code": "0103301027",
+        "name": "San Manuel Sur",
+        "city_code": "0103301000"
+    },
+    "0103301028": {
+        "code": "0103301028",
+        "name": "San Marcos",
+        "city_code": "0103301000"
+    },
+    "0103301029": {
+        "code": "0103301029",
+        "name": "San Miguel",
+        "city_code": "0103301000"
+    },
+    "0103301030": {
+        "code": "0103301030",
+        "name": "San Nicolas Central",
+        "city_code": "0103301000"
+    },
+    "0103301031": {
+        "code": "0103301031",
+        "name": "San Nicolas East",
+        "city_code": "0103301000"
+    },
+    "0103301032": {
+        "code": "0103301032",
+        "name": "San Nicolas Norte",
+        "city_code": "0103301000"
+    },
+    "0103301033": {
+        "code": "0103301033",
+        "name": "San Nicolas West",
+        "city_code": "0103301000"
+    },
+    "0103301034": {
+        "code": "0103301034",
+        "name": "San Nicolas Sur",
+        "city_code": "0103301000"
+    },
+    "0103301035": {
+        "code": "0103301035",
+        "name": "San Pedro",
+        "city_code": "0103301000"
+    },
+    "0103301036": {
+        "code": "0103301036",
+        "name": "San Roque West",
+        "city_code": "0103301000"
+    },
+    "0103301037": {
+        "code": "0103301037",
+        "name": "San Roque East",
+        "city_code": "0103301000"
+    },
+    "0103301038": {
+        "code": "0103301038",
+        "name": "San Vicente Norte",
+        "city_code": "0103301000"
+    },
+    "0103301039": {
+        "code": "0103301039",
+        "name": "San Vicente Sur",
+        "city_code": "0103301000"
+    },
+    "0103301040": {
+        "code": "0103301040",
+        "name": "Santa Ana",
+        "city_code": "0103301000"
+    },
+    "0103301041": {
+        "code": "0103301041",
+        "name": "Santa Barbara",
+        "city_code": "0103301000"
+    },
+    "0103301042": {
+        "code": "0103301042",
+        "name": "Santa Fe",
+        "city_code": "0103301000"
+    },
+    "0103301043": {
+        "code": "0103301043",
+        "name": "Santa Maria",
+        "city_code": "0103301000"
+    },
+    "0103301044": {
+        "code": "0103301044",
+        "name": "Santa Monica",
+        "city_code": "0103301000"
+    },
+    "0103301045": {
+        "code": "0103301045",
+        "name": "Santa Rita",
+        "city_code": "0103301000"
+    },
+    "0103301046": {
+        "code": "0103301046",
+        "name": "Santa Rita East",
+        "city_code": "0103301000"
+    },
+    "0103301047": {
+        "code": "0103301047",
+        "name": "Santa Rita Norte",
+        "city_code": "0103301000"
+    },
+    "0103301048": {
+        "code": "0103301048",
+        "name": "Santa Rita Sur",
+        "city_code": "0103301000"
+    },
+    "0103301049": {
+        "code": "0103301049",
+        "name": "Santa Rita West",
+        "city_code": "0103301000"
+    }
+}

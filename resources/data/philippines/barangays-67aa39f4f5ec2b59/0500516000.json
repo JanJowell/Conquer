@@ -1,0 +1,117 @@
+{
+    "0500516001": {
+        "code": "0500516001",
+        "name": "Alimsog",
+        "city_code": "0500516000"
+    },
+    "0500516002": {
+        "code": "0500516002",
+        "name": "Buhatan",
+        "city_code": "0500516000"
+    },
+    "0500516003": {
+        "code": "0500516003",
+        "name": "Calayucay",
+        "city_code": "0500516000"
+    },
+    "0500516004": {
+        "code": "0500516004",
+        "name": "Fidel Surtida",
+        "city_code": "0500516000"
+    },
+    "0500516005": {
+        "code": "0500516005",
+        "name": "Lidong",
+        "city_code": "0500516000"
+    },
+    "0500516006": {
+        "code": "0500516006",
+        "name": "Bagong San Roque",
+        "city_code": "0500516000"
+    },
+    "0500516008": {
+        "code": "0500516008",
+        "name": "San Juan Pob.",
+        "city_code": "0500516000"
+    },
+    "0500516009": {
+        "code": "0500516009",
+        "name": "Santo Domingo Pob.",
+        "city_code": "0500516000"
+    },
+    "0500516010": {
+        "code": "0500516010",
+        "name": "San Pedro Pob.",
+        "city_code": "0500516000"
+    },
+    "0500516011": {
+        "code": "0500516011",
+        "name": "San Vicente Pob.",
+        "city_code": "0500516000"
+    },
+    "0500516012": {
+        "code": "0500516012",
+        "name": "San Rafael Pob.",
+        "city_code": "0500516000"
+    },
+    "0500516013": {
+        "code": "0500516013",
+        "name": "Del Rosario Pob.",
+        "city_code": "0500516000"
+    },
+    "0500516015": {
+        "code": "0500516015",
+        "name": "San Francisco Pob.",
+        "city_code": "0500516000"
+    },
+    "0500516017": {
+        "code": "0500516017",
+        "name": "Nagsiya Pob.",
+        "city_code": "0500516000"
+    },
+    "0500516018": {
+        "code": "0500516018",
+        "name": "Salvacion",
+        "city_code": "0500516000"
+    },
+    "0500516019": {
+        "code": "0500516019",
+        "name": "San Andres",
+        "city_code": "0500516000"
+    },
+    "0500516020": {
+        "code": "0500516020",
+        "name": "San Fernando",
+        "city_code": "0500516000"
+    },
+    "0500516021": {
+        "code": "0500516021",
+        "name": "San Isidro",
+        "city_code": "0500516000"
+    },
+    "0500516022": {
+        "code": "0500516022",
+        "name": "San Roque",
+        "city_code": "0500516000"
+    },
+    "0500516023": {
+        "code": "0500516023",
+        "name": "Santa Misericordia",
+        "city_code": "0500516000"
+    },
+    "0500516024": {
+        "code": "0500516024",
+        "name": "Santo Niño",
+        "city_code": "0500516000"
+    },
+    "0500516025": {
+        "code": "0500516025",
+        "name": "Market Site Pob.",
+        "city_code": "0500516000"
+    },
+    "0500516026": {
+        "code": "0500516026",
+        "name": "Pandayan Pob.",
+        "city_code": "0500516000"
+    }
+}

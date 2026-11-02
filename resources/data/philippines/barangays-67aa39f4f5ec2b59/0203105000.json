@@ -1,0 +1,72 @@
+{
+    "0203105001": {
+        "code": "0203105001",
+        "name": "Bacnor East",
+        "city_code": "0203105000"
+    },
+    "0203105002": {
+        "code": "0203105002",
+        "name": "Bacnor West",
+        "city_code": "0203105000"
+    },
+    "0203105004": {
+        "code": "0203105004",
+        "name": "Caliguian",
+        "city_code": "0203105000"
+    },
+    "0203105005": {
+        "code": "0203105005",
+        "name": "Catabban",
+        "city_code": "0203105000"
+    },
+    "0203105006": {
+        "code": "0203105006",
+        "name": "Cullalabo Del Norte",
+        "city_code": "0203105000"
+    },
+    "0203105007": {
+        "code": "0203105007",
+        "name": "Cullalabo San Antonio",
+        "city_code": "0203105000"
+    },
+    "0203105008": {
+        "code": "0203105008",
+        "name": "Cullalabo Del Sur",
+        "city_code": "0203105000"
+    },
+    "0203105009": {
+        "code": "0203105009",
+        "name": "Dalig",
+        "city_code": "0203105000"
+    },
+    "0203105012": {
+        "code": "0203105012",
+        "name": "Malasin",
+        "city_code": "0203105000"
+    },
+    "0203105013": {
+        "code": "0203105013",
+        "name": "Masigun",
+        "city_code": "0203105000"
+    },
+    "0203105014": {
+        "code": "0203105014",
+        "name": "Raniag",
+        "city_code": "0203105000"
+    },
+    "0203105015": {
+        "code": "0203105015",
+        "name": "San Bonifacio",
+        "city_code": "0203105000"
+    },
+    "0203105016": {
+        "code": "0203105016",
+        "name": "San Miguel",
+        "city_code": "0203105000"
+    },
+    "0203105017": {
+        "code": "0203105017",
+        "name": "San Roque",
+        "city_code": "0203105000"
+    }
+}

@@ -26,6 +26,8 @@ class RegistrationReadiness
         $certificate = $registration->certificate;
         $issuedBadges = $registration->issuedEBadges;
         $registrationStatus = (string) $registration->status;
+        $awaitingCertificateFeedback = $registrationStatus === 'completed'
+            && $result !== null && $feedback === null && $certificate === null;
         $group = $registration->registrationGroup;
         $groupRequired = $category?->usesGroupRegistration() ?? false;
         $groupMemberCount = $group?->activeRegistrations()->count() ?? 0;
@@ -84,7 +86,8 @@ class RegistrationReadiness
                 $firstAidComplete,
                 $bibAssigned,
                 $raceKitReleased,
-                $result !== null
+                $result !== null,
+                $awaitingCertificateFeedback
             ),
             'is_ready_for_event_day' => $readyForEventDay,
             'steps' => [
@@ -154,14 +157,14 @@ class RegistrationReadiness
                     'completed' => $certificate?->isValid() ?? false,
                     'status' => ! $result
                         ? 'upcoming'
-                        : ($certificate?->isValid() ? 'available' : ($certificate ? 'revoked' : 'pending')),
+                        : ($certificate?->isValid() ? 'available' : ($certificate ? 'revoked' : ($awaitingCertificateFeedback ? 'waiting_for_feedback' : 'pending'))),
                 ],
                 'feedback' => [
-                    'required' => false,
+                    'required' => $awaitingCertificateFeedback,
                     'completed' => $feedback !== null,
                     'status' => ! $result
                         ? 'upcoming'
-                        : ($feedback ? 'complete' : 'optional'),
+                        : ($feedback ? 'complete' : ($awaitingCertificateFeedback ? 'action_required' : 'optional')),
                 ],
             ],
             'requirements' => [
@@ -185,7 +188,8 @@ class RegistrationReadiness
                 'remarks' => $result->remarks,
             ] : null,
             'feedback' => [
-                'required_after_completion' => false,
+                'required' => $awaitingCertificateFeedback,
+                'required_after_completion' => $certificate === null,
                 'has_submitted' => $feedback !== null,
                 'can_submit' => $result !== null && $feedback === null,
                 'can_edit' => $feedback?->canEdit() ?? false,
@@ -218,7 +222,10 @@ class RegistrationReadiness
                     : null,
             ] : [
                 'available' => false,
-                'status' => ! $result ? 'waiting_for_result' : 'pending',
+                'status' => ! $result ? 'waiting_for_result' : ($awaitingCertificateFeedback ? 'waiting_for_feedback' : 'pending'),
+                'message' => $awaitingCertificateFeedback
+                    ? 'Submit feedback to unlock your e-certificate. Any valid rating is accepted; written comments are optional.'
+                    : (! $result ? 'Your official result must be recorded before your certificate is available.' : 'Your e-certificate is being prepared.'),
             ],
         ];
     }
@@ -279,10 +286,15 @@ class RegistrationReadiness
         bool $firstAidComplete,
         bool $bibAssigned,
         bool $raceKitReleased,
-        bool $hasResult
+        bool $hasResult,
+        bool $awaitingCertificateFeedback
     ): array {
         if ($isRejected) {
             return $this->action('registration_rejected', 'Registration rejected', $registration->rejection_reason, 'blocked');
+        }
+
+        if ($awaitingCertificateFeedback) {
+            return $this->action('submit_feedback', 'Submit feedback', 'Submit feedback to unlock your e-certificate.', 'action_required');
         }
 
         if (! $groupReady) {

@@ -65,8 +65,8 @@ test('the first two distinct verified reports keep a post visible and send it to
     expect($post->fresh()->is_flagged)->toBeFalse();
     $this->assertDatabaseCount('community_post_reports', 2);
 
-    $moderator = User::factory()->create(['role' => User::ROLE_CONTENT_MODERATOR]);
-    $this->actingAs($moderator)
+    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $this->actingAs($admin)
         ->get(route('admin.content.pending-review'))
         ->assertOk()
         ->assertSee('Reporting Test Post')
@@ -122,13 +122,13 @@ test('a moderator decision resolves pending reports while preserving their histo
     [$owner] = reportingMobileUser('decision-owner');
     [, $reporterToken] = reportingMobileUser('decision-reporter');
     $post = reportingCommunityPost($owner);
-    $moderator = User::factory()->create(['role' => User::ROLE_CONTENT_MODERATOR]);
+    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
 
     $this->withToken($reporterToken)
         ->postJson("/api/community-posts/{$post->id}/report", ['reason' => 'Please review'])
         ->assertOk();
 
-    $this->actingAs($moderator)
+    $this->actingAs($admin)
         ->post(route('admin.content.community-posts.unflag', $post), [
             'moderation_note' => 'Reviewed and allowed to remain.',
         ])
@@ -136,15 +136,15 @@ test('a moderator decision resolves pending reports while preserving their histo
 
     $report = CommunityPostReport::where('community_post_id', $post->id)->sole();
     expect($report->reviewed_at)->not->toBeNull()
-        ->and($report->reviewed_by)->toBe($moderator->id)
+        ->and($report->reviewed_by)->toBe($admin->id)
         ->and($post->fresh()->is_flagged)->toBeFalse();
 
-    $this->actingAs($moderator)
+    $this->actingAs($admin)
         ->get(route('admin.content.pending-review'))
         ->assertOk()
         ->assertDontSee('Reporting Test Post');
 
-    $this->actingAs($moderator)
+    $this->actingAs($admin)
         ->get(route('admin.content.community-posts.show', $post))
         ->assertOk()
         ->assertSee('Reviewed and allowed to remain.')

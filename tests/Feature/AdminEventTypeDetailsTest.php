@@ -3,6 +3,7 @@
 use App\Http\Resources\Api\EventResource;
 use App\Models\Event;
 use App\Models\User;
+use App\Support\CutoffDuration;
 use Illuminate\Http\Request;
 
 function eventTypePayload(string $type, array $details): array
@@ -128,8 +129,8 @@ dataset('event types with optional route details', [
     ], ['elevation_gain_m', 'terrain']],
 ]);
 
-test('admin can store the correct structured details for each event type', function (string $type, array $details, string $categoryLabel) {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+test('event manager can store the correct structured details for each event type', function (string $type, array $details, string $categoryLabel) {
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
 
     $this
         ->actingAs($admin)
@@ -138,6 +139,8 @@ test('admin can store the correct structured details for each event type', funct
         ->assertSessionHasNoErrors();
 
     $event = Event::where('title', $type.' Championship')->firstOrFail();
+    expect($event->review_status)->toBe('draft');
+    $event = approveEventSetupForTest($event);
     $category = $event->categories()->firstOrFail();
     $resource = (new EventResource($event))->toArray(Request::create('/api/events'));
     $expectedEventDetails = collect($details)
@@ -161,8 +164,120 @@ test('admin can store the correct structured details for each event type', funct
     }
 })->with('event type details');
 
+test('cutoff presets keep the existing readable mobile field', function (string $duration) {
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
+    $payload = eventTypePayload('Marathon', ['cutoff_time' => $duration]);
+    // Inactive custom controls and other event types must not affect the selection.
+    $payload['type_details']['Marathon']['cutoff_time_hours'] = 'ignored';
+    $payload['type_details']['Marathon']['cutoff_time_minutes'] = 'ignored';
+    $payload['type_details']['Trail Run'] = ['cutoff_time' => CutoffDuration::CUSTOM];
+    $this->actingAs($admin)->post(route('admin.events.store'), $payload)->assertSessionHasNoErrors();
+    $event = Event::where('title', 'Marathon Championship')->firstOrFail();
+    expect($event->type_details)->toBe(['cutoff_time' => $duration])
+        ->and($event->status)->toBe('draft');
+    approveEventSetupForTest($event);
+    $this->getJson('/api/events/'.$event->id)->assertOk()
+        ->assertJsonPath('data.type_details.cutoff_time', $duration);
+})->with(['30 minutes', '1 hour', '2 hours', '3 hours', '6 hours', '12 hours']);
+
+test('custom cutoff hours and minutes are saved as a readable duration string', function (string $hours, string $minutes, string $expected) {
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
+    $this->actingAs($admin)->post(route('admin.events.store'), eventTypePayload('Marathon', [
+        'cutoff_time' => CutoffDuration::CUSTOM,
+        'cutoff_time_hours' => $hours,
+        'cutoff_time_minutes' => $minutes,
+    ]))->assertSessionHasNoErrors();
+    $event = Event::where('title', 'Marathon Championship')->firstOrFail();
+    expect($event->type_details)->toBe(['cutoff_time' => $expected]);
+    approveEventSetupForTest($event);
+    $this->getJson('/api/events/'.$event->id)->assertOk()
+        ->assertJsonPath('data.type_details.cutoff_time', $expected);
+})->with([
+    ['0', '45', '45 minutes'],
+    ['1', '0', '1 hour'],
+    ['9', '30', '9 hours 30 minutes'],
+    ['9', '45', '9 hours 45 minutes'],
+    ['1', '1', '1 hour 1 minute'],
+    ['0', '1', '1 minute'],
+]);
+
+test('invalid custom cutoffs do not create an event', function (mixed $hours, mixed $minutes, string $field) {
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
+    $this->actingAs($admin)->post(route('admin.events.store'), eventTypePayload('Marathon', [
+        'cutoff_time' => CutoffDuration::CUSTOM,
+        'cutoff_time_hours' => $hours,
+        'cutoff_time_minutes' => $minutes,
+    ]))->assertSessionHasErrors('type_details.Marathon.'.$field);
+    expect(Event::count())->toBe(0);
+})->with([
+    [null, '30', 'cutoff_time_hours'],
+    ['0', '0', 'cutoff_time_minutes'],
+    ['-1', '30', 'cutoff_time_hours'],
+    ['six', '30', 'cutoff_time_hours'],
+    ['9.5', '30', 'cutoff_time_hours'],
+    ['1000001', '30', 'cutoff_time_hours'],
+    ['2', null, 'cutoff_time_minutes'],
+    ['2', '60', 'cutoff_time_minutes'],
+    ['2', '-1', 'cutoff_time_minutes'],
+    ['2', '1.5', 'cutoff_time_minutes'],
+    ['2', 'half', 'cutoff_time_minutes'],
+    [['9'], '30', 'cutoff_time_hours'],
+    ['2', ['30'], 'cutoff_time_minutes'],
+]);
+
+test('legacy cutoff text can be retained or replaced without changing category schedules', function (string $legacy) {
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
+    $this->actingAs($admin)->post(route('admin.events.store'), eventTypePayload('Marathon', ['cutoff_time' => '6 hours']))
+        ->assertSessionHasNoErrors();
+    $event = Event::where('title', 'Marathon Championship')->firstOrFail();
+    $event->update(['type_details' => ['cutoff_time' => $legacy]]);
+    $category = $event->categories()->firstOrFail();
+    $end = $category->scheduledEndAt()->toIso8601String();
+
+    $response = $this->get(route('admin.events.edit', $event))->assertOk()
+        ->assertSee('Existing: '.$legacy)->assertSee('Custom duration');
+    if ($legacy === '9.5 hours') {
+        $document = new DOMDocument;
+        $document->loadHTML($response->getContent(), LIBXML_NOERROR | LIBXML_NOWARNING);
+        $xpath = new DOMXPath($document);
+        expect($xpath->evaluate('string(//input[@id="type-detail-marathon-cutoff-time-hours"]/@value)'))->toBe('9')
+            ->and($xpath->evaluate('string(//input[@id="type-detail-marathon-cutoff-time-minutes"]/@value)'))->toBe('30');
+    }
+    $payload = eventTypePayload('Marathon', ['cutoff_time' => $legacy]);
+    unset($payload['categories']);
+    $this->put(route('admin.events.update', $event), $payload)->assertSessionHasNoErrors();
+    expect($event->fresh()->type_details['cutoff_time'])->toBe($legacy);
+
+    $payload['type_details']['Marathon']['cutoff_time'] = 'some other free text';
+    $this->put(route('admin.events.update', $event), $payload)->assertSessionHasErrors('type_details.Marathon.cutoff_time');
+    expect($event->fresh()->type_details['cutoff_time'])->toBe($legacy);
+
+    $payload['type_details']['Marathon'] = ['cutoff_time' => CutoffDuration::CUSTOM, 'cutoff_time_hours' => '9', 'cutoff_time_minutes' => '30'];
+    $this->put(route('admin.events.update', $event), $payload)->assertSessionHasNoErrors();
+    expect($event->fresh()->type_details)->toBe(['cutoff_time' => '9 hours 30 minutes'])
+        ->and($category->fresh()->scheduledEndAt()->toIso8601String())->toBe($end)
+        ->and($event->categories()->count())->toBe(1);
+
+    $response = $this->get(route('admin.events.edit', $event))->assertOk();
+    $document = new DOMDocument;
+    $document->loadHTML($response->getContent(), LIBXML_NOERROR | LIBXML_NOWARNING);
+    $xpath = new DOMXPath($document);
+    expect($xpath->evaluate('string(//select[@id="type-detail-marathon-cutoff-time"]/option[@selected]/@value)'))->toBe(CutoffDuration::CUSTOM)
+        ->and($xpath->evaluate('string(//input[@id="type-detail-marathon-cutoff-time-hours"]/@value)'))->toBe('9')
+        ->and($xpath->evaluate('string(//input[@id="type-detail-marathon-cutoff-time-minutes"]/@value)'))->toBe('30');
+})->with(['6-8 hours, depending on wave', '9.5 hours', '1.33 hours']);
+
+test('new events reject unstructured cutoff text while empty duration remains a draft', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
+    $this->actingAs($admin)->post(route('admin.events.store'), eventTypePayload('Marathon', ['cutoff_time' => 'at sunset']))
+        ->assertSessionHasErrors('type_details.Marathon.cutoff_time');
+    $this->post(route('admin.events.store'), eventTypePayload('Marathon', ['cutoff_time' => '']))->assertSessionHasNoErrors();
+    $event = Event::where('title', 'Marathon Championship')->firstOrFail();
+    expect($event->status)->toBe('draft')->and($event->type_details['cutoff_time'])->toBeNull();
+});
+
 test('type details reject invalid values for the selected event type', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $payload = eventTypePayload('Cycling', [
         'route_distance_km' => -5,
         'surface_type' => 'Underwater',
@@ -184,7 +299,7 @@ test('type details reject invalid values for the selected event type', function 
 });
 
 test('optional elevation and terrain details do not block publication or appear empty', function (string $type, array $details, array $optionalKeys) {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
 
     $this
         ->actingAs($admin)
@@ -193,6 +308,8 @@ test('optional elevation and terrain details do not block publication or appear 
         ->assertSessionHasNoErrors();
 
     $event = Event::where('title', $type.' Championship')->firstOrFail();
+    expect($event->review_status)->toBe('draft');
+    $event = approveEventSetupForTest($event);
     $formattedKeys = collect($event->formattedTypeDetails())->pluck('key');
 
     expect($event->status)->toBe('upcoming');
@@ -203,8 +320,8 @@ test('optional elevation and terrain details do not block publication or appear 
     }
 })->with('event types with optional route details');
 
-test('admin can create a multi-day event with category dates inside its range', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+test('event manager can create a multi-day event with category dates inside its range', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $payload = eventTypePayload('Marathon', [
         'distances' => '5K and 10K',
         'cutoff_time' => '4 hours',
@@ -230,7 +347,7 @@ test('admin can create a multi-day event with category dates inside its range', 
 });
 
 test('event form renders every type-specific field and dynamic category labels', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
 
     $this
         ->actingAs($admin)
@@ -263,7 +380,7 @@ test('event form renders every type-specific field and dynamic category labels',
 });
 
 test('event edit loads saved event and category details and updates without duplicating the category', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $details = [
         'trail_length_km' => 12,
         'difficulty' => 'Moderate',
@@ -312,8 +429,9 @@ test('event edit loads saved event and category details and updates without dupl
 });
 
 test('category management heading follows the selected event type', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = Event::create([
+        'manager_id' => $admin->id,
         'title' => 'Sunday Ride',
         'slug' => 'sunday-ride',
         'venue' => 'Bacoor City',
@@ -330,7 +448,7 @@ test('category management heading follows the selected event type', function () 
 });
 
 test('legacy events without structured details remain backward compatible', function () {
-    $event = Event::create([
+    $event = Event::forceCreate(['review_status' => null,
         'title' => 'Legacy Marathon',
         'slug' => 'legacy-marathon',
         'description' => 'Created before type-specific event details.',
@@ -355,7 +473,7 @@ test('legacy events without structured details remain backward compatible', func
 });
 
 test('event schedule cannot be moved outside an existing category schedule', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $details = [
         'distances' => '5K, 10K, 21K, 42K',
         'cutoff_time' => '7 hours',
@@ -384,7 +502,7 @@ test('event schedule cannot be moved outside an existing category schedule', fun
 });
 
 test('event end cannot be moved before an existing category cutoff end', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $details = [
         'distances' => '5K, 10K, 21K, 42K',
         'cutoff_time' => '7 hours',

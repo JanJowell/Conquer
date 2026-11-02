@@ -18,7 +18,7 @@ function recommendationMobileUser(string $token = 'recommendation-token', array 
 
 function recommendationEvent(string $title, string $interestType): Event
 {
-    $event = Event::create([
+    $event = Event::forceCreate(['review_status' => null,
         'title' => $title,
         'slug' => Str::slug($title).'-'.Str::random(6),
         'description' => 'A complete public event description.',

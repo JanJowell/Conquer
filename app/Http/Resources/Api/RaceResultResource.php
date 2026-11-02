@@ -16,7 +16,9 @@ class RaceResultResource extends JsonResource
             'rank_overall' => $this->rank_overall,
             'rank_category' => $this->rank_category,
             'remarks' => $this->remarks,
-            'feedback_required' => false,
+            'feedback_required' => $this->registration?->status === 'completed'
+                && $this->registration->feedback === null
+                && $this->registration->certificate === null,
             'can_submit_feedback' => $this->registration?->feedback === null,
             'feedback' => $this->registration?->feedback
                 ? new RegistrationFeedbackResource($this->registration->feedback)

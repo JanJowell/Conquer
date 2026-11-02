@@ -1,0 +1,197 @@
+{
+    "0102934001": {
+        "code": "0102934001",
+        "name": "Ayusan Norte",
+        "city_code": "0102934000"
+    },
+    "0102934002": {
+        "code": "0102934002",
+        "name": "Ayusan Sur",
+        "city_code": "0102934000"
+    },
+    "0102934003": {
+        "code": "0102934003",
+        "name": "Barangay I",
+        "city_code": "0102934000"
+    },
+    "0102934004": {
+        "code": "0102934004",
+        "name": "Barangay II",
+        "city_code": "0102934000"
+    },
+    "0102934005": {
+        "code": "0102934005",
+        "name": "Barangay III",
+        "city_code": "0102934000"
+    },
+    "0102934006": {
+        "code": "0102934006",
+        "name": "Barangay IV",
+        "city_code": "0102934000"
+    },
+    "0102934007": {
+        "code": "0102934007",
+        "name": "Barangay V",
+        "city_code": "0102934000"
+    },
+    "0102934008": {
+        "code": "0102934008",
+        "name": "Barangay VI",
+        "city_code": "0102934000"
+    },
+    "0102934009": {
+        "code": "0102934009",
+        "name": "Barraca",
+        "city_code": "0102934000"
+    },
+    "0102934010": {
+        "code": "0102934010",
+        "name": "Beddeng Laud",
+        "city_code": "0102934000"
+    },
+    "0102934011": {
+        "code": "0102934011",
+        "name": "Beddeng Daya",
+        "city_code": "0102934000"
+    },
+    "0102934012": {
+        "code": "0102934012",
+        "name": "Bongtolan",
+        "city_code": "0102934000"
+    },
+    "0102934013": {
+        "code": "0102934013",
+        "name": "Bulala",
+        "city_code": "0102934000"
+    },
+    "0102934014": {
+        "code": "0102934014",
+        "name": "Cabalangegan",
+        "city_code": "0102934000"
+    },
+    "0102934015": {
+        "code": "0102934015",
+        "name": "Cabaroan Daya",
+        "city_code": "0102934000"
+    },
+    "0102934016": {
+        "code": "0102934016",
+        "name": "Cabaroan Laud",
+        "city_code": "0102934000"
+    },
+    "0102934017": {
+        "code": "0102934017",
+        "name": "Camangaan",
+        "city_code": "0102934000"
+    },
+    "0102934018": {
+        "code": "0102934018",
+        "name": "Capangpangan",
+        "city_code": "0102934000"
+    },
+    "0102934020": {
+        "code": "0102934020",
+        "name": "Mindoro",
+        "city_code": "0102934000"
+    },
+    "0102934021": {
+        "code": "0102934021",
+        "name": "Nagsangalan",
+        "city_code": "0102934000"
+    },
+    "0102934022": {
+        "code": "0102934022",
+        "name": "Pantay Daya",
+        "city_code": "0102934000"
+    },
+    "0102934023": {
+        "code": "0102934023",
+        "name": "Pantay Fatima",
+        "city_code": "0102934000"
+    },
+    "0102934024": {
+        "code": "0102934024",
+        "name": "Pantay Laud",
+        "city_code": "0102934000"
+    },
+    "0102934025": {
+        "code": "0102934025",
+        "name": "Paoa",
+        "city_code": "0102934000"
+    },
+    "0102934026": {
+        "code": "0102934026",
+        "name": "Paratong",
+        "city_code": "0102934000"
+    },
+    "0102934027": {
+        "code": "0102934027",
+        "name": "Pong-ol",
+        "city_code": "0102934000"
+    },
+    "0102934028": {
+        "code": "0102934028",
+        "name": "Purok-a-bassit",
+        "city_code": "0102934000"
+    },
+    "0102934029": {
+        "code": "0102934029",
+        "name": "Purok-a-dackel",
+        "city_code": "0102934000"
+    },
+    "0102934030": {
+        "code": "0102934030",
+        "name": "Raois",
+        "city_code": "0102934000"
+    },
+    "0102934031": {
+        "code": "0102934031",
+        "name": "Rugsuanan",
+        "city_code": "0102934000"
+    },
+    "0102934032": {
+        "code": "0102934032",
+        "name": "Salindeg",
+        "city_code": "0102934000"
+    },
+    "0102934033": {
+        "code": "0102934033",
+        "name": "San Jose",
+        "city_code": "0102934000"
+    },
+    "0102934034": {
+        "code": "0102934034",
+        "name": "San Julian Norte",
+        "city_code": "0102934000"
+    },
+    "0102934035": {
+        "code": "0102934035",
+        "name": "San Julian Sur",
+        "city_code": "0102934000"
+    },
+    "0102934036": {
+        "code": "0102934036",
+        "name": "San Pedro",
+        "city_code": "0102934000"
+    },
+    "0102934037": {
+        "code": "0102934037",
+        "name": "Tamag",
+        "city_code": "0102934000"
+    },
+    "0102934038": {
+        "code": "0102934038",
+        "name": "Barangay VII",
+        "city_code": "0102934000"
+    },
+    "0102934039": {
+        "code": "0102934039",
+        "name": "Barangay VIII",
+        "city_code": "0102934000"
+    },
+    "0102934040": {
+        "code": "0102934040",
+        "name": "Barangay IX",
+        "city_code": "0102934000"
+    }
+}

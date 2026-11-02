@@ -1,0 +1,57 @@
+{
+    "1400116002": {
+        "code": "1400116002",
+        "name": "Catacdegan Viejo",
+        "city_code": "1400116000"
+    },
+    "1400116003": {
+        "code": "1400116003",
+        "name": "Luzong",
+        "city_code": "1400116000"
+    },
+    "1400116004": {
+        "code": "1400116004",
+        "name": "Ayyeng",
+        "city_code": "1400116000"
+    },
+    "1400116005": {
+        "code": "1400116005",
+        "name": "San Jose Norte",
+        "city_code": "1400116000"
+    },
+    "1400116006": {
+        "code": "1400116006",
+        "name": "San Jose Sur",
+        "city_code": "1400116000"
+    },
+    "1400116007": {
+        "code": "1400116007",
+        "name": "San Juan Norte",
+        "city_code": "1400116000"
+    },
+    "1400116008": {
+        "code": "1400116008",
+        "name": "San Juan Sur",
+        "city_code": "1400116000"
+    },
+    "1400116011": {
+        "code": "1400116011",
+        "name": "San Ramon East",
+        "city_code": "1400116000"
+    },
+    "1400116012": {
+        "code": "1400116012",
+        "name": "San Ramon West",
+        "city_code": "1400116000"
+    },
+    "1400116013": {
+        "code": "1400116013",
+        "name": "Santo Tomas",
+        "city_code": "1400116000"
+    },
+    "1400116014": {
+        "code": "1400116014",
+        "name": "Catacdegan Nuevo",
+        "city_code": "1400116000"
+    }
+}

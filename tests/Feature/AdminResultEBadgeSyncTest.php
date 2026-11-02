@@ -27,7 +27,7 @@ function resultBadgeRunner(string $name): User
 
 function resultBadgeEvent(): Event
 {
-    return Event::create([
+    return Event::forceCreate(['review_status' => null,
         'title' => 'Race Day Sync Test',
         'slug' => 'race-day-sync-test-'.uniqid(),
         'description' => 'A test race.',
@@ -113,7 +113,7 @@ test('saving and updating results keeps automatic e-badges in sync with recalcul
         ->assertSessionHasNoErrors();
 
     expect($firstPlaceBadge->issuedBadges()->where('registration_id', $firstRegistration->id)->exists())->toBeTrue();
-    expect(Certificate::where('registration_id', $firstRegistration->id)->count())->toBe(1);
+    expect(Certificate::where('registration_id', $firstRegistration->id)->count())->toBe(0);
 
     $this
         ->actingAs($admin)
@@ -132,6 +132,6 @@ test('saving and updating results keeps automatic e-badges in sync with recalcul
         ->and($firstPlaceBadge->issuedBadges()->where('registration_id', $secondRegistration->id)->exists())->toBeTrue()
         ->and($firstPlaceBadge->issuedBadges()->where('registration_id', $firstRegistration->id)->exists())->toBeFalse()
         ->and($secondPlaceBadge->issuedBadges()->where('registration_id', $firstRegistration->id)->exists())->toBeTrue()
-        ->and(Certificate::where('registration_id', $firstRegistration->id)->count())->toBe(1)
-        ->and(Certificate::where('registration_id', $secondRegistration->id)->count())->toBe(1);
+        ->and(Certificate::where('registration_id', $firstRegistration->id)->count())->toBe(0)
+        ->and(Certificate::where('registration_id', $secondRegistration->id)->count())->toBe(0);
 });

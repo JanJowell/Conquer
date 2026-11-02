@@ -6,48 +6,48 @@ use Illuminate\Support\Facades\Notification;
 
 test('pending suspended and banned administrators all consume their role capacity', function () {
     Notification::fake();
-    config(['admin_accounts.limits.executive' => 3]);
+    config(['admin_accounts.limits.event_manager' => 3]);
 
     $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
 
-    User::factory()->unverified()->create(['role' => User::ROLE_EXECUTIVE]);
+    User::factory()->unverified()->create(['role' => User::ROLE_EVENT_MANAGER]);
     User::factory()->create([
-        'role' => User::ROLE_EXECUTIVE,
+        'role' => User::ROLE_EVENT_MANAGER,
         'suspended_at' => now(),
     ]);
     User::factory()->create([
-        'role' => User::ROLE_EXECUTIVE,
+        'role' => User::ROLE_EVENT_MANAGER,
         'banned_at' => now(),
     ]);
 
     $this->actingAs($admin)
         ->from(route('admin.users.create'))
         ->post(route('admin.users.store'), [
-            'name' => 'Fourth Executive',
-            'email' => 'fourth.executive@example.com',
-            'role' => User::ROLE_EXECUTIVE,
+            'name' => 'Fourth Manager',
+            'email' => 'fourth.manager@example.com',
+            'role' => User::ROLE_EVENT_MANAGER,
         ])
         ->assertRedirect(route('admin.users.create'))
         ->assertSessionHasErrors([
-            'role' => 'The Executive (CEO/COO) account limit of 3 has been reached. Delete an existing Executive (CEO/COO) account or change its role before adding another.',
+            'role' => 'The Event Manager account limit of 3 has been reached. Delete an existing Event Manager account or change its role before adding another.',
         ]);
 
-    $this->assertDatabaseMissing('users', ['email' => 'fourth.executive@example.com']);
+    $this->assertDatabaseMissing('users', ['email' => 'fourth.manager@example.com']);
 });
 
 test('an account cannot be promoted into a role that is already at capacity', function () {
     Notification::fake();
-    config(['admin_accounts.limits.content_moderator' => 2]);
+    config(['admin_accounts.limits.event_manager' => 2]);
 
     $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
-    User::factory()->count(2)->create(['role' => User::ROLE_CONTENT_MODERATOR]);
+    User::factory()->count(2)->create(['role' => User::ROLE_EVENT_MANAGER]);
     $participant = User::factory()->create(['role' => User::ROLE_RUNNER]);
 
     $this->actingAs($admin)
         ->put(route('admin.users.update', $participant), [
             'name' => $participant->name,
             'email' => $participant->email,
-            'role' => User::ROLE_CONTENT_MODERATOR,
+            'role' => User::ROLE_EVENT_MANAGER,
         ])
         ->assertSessionHasErrors('role');
 
@@ -56,21 +56,21 @@ test('an account cannot be promoted into a role that is already at capacity', fu
 
 test('an existing account remains editable when its unchanged role is at capacity', function () {
     Notification::fake();
-    config(['admin_accounts.limits.executive' => 1]);
+    config(['admin_accounts.limits.event_manager' => 1]);
 
     $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
-    $executive = User::factory()->create(['role' => User::ROLE_EXECUTIVE]);
+    $manager = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
 
     $this->actingAs($admin)
-        ->put(route('admin.users.update', $executive), [
-            'name' => 'Updated Executive',
-            'email' => $executive->email,
-            'role' => User::ROLE_EXECUTIVE,
+        ->put(route('admin.users.update', $manager), [
+            'name' => 'Updated Manager',
+            'email' => $manager->email,
+            'role' => User::ROLE_EVENT_MANAGER,
         ])
         ->assertRedirect(route('admin.users.index'))
         ->assertSessionHas('success');
 
-    expect($executive->fresh()->name)->toBe('Updated Executive');
+    expect($manager->fresh()->name)->toBe('Updated Manager');
 });
 
 test('event manager accounts are unlimited by default', function () {
@@ -182,8 +182,6 @@ test('the last active admin cannot be demoted deleted suspended or banned', func
 test('user management shows role counts remaining slots and full roles', function () {
     config([
         'admin_accounts.limits.super_admin' => 1,
-        'admin_accounts.limits.executive' => 3,
-        'admin_accounts.limits.content_moderator' => 5,
         'admin_accounts.limits.event_manager' => null,
     ]);
 

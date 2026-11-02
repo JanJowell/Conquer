@@ -1,0 +1,87 @@
+{
+    "0102907001": {
+        "code": "0102907001",
+        "name": "Anonang Mayor",
+        "city_code": "0102907000"
+    },
+    "0102907002": {
+        "code": "0102907002",
+        "name": "Anonang Menor",
+        "city_code": "0102907000"
+    },
+    "0102907003": {
+        "code": "0102907003",
+        "name": "Baggoc",
+        "city_code": "0102907000"
+    },
+    "0102907004": {
+        "code": "0102907004",
+        "name": "Callaguip",
+        "city_code": "0102907000"
+    },
+    "0102907005": {
+        "code": "0102907005",
+        "name": "Caparacadan",
+        "city_code": "0102907000"
+    },
+    "0102907006": {
+        "code": "0102907006",
+        "name": "Fuerte",
+        "city_code": "0102907000"
+    },
+    "0102907007": {
+        "code": "0102907007",
+        "name": "Manangat",
+        "city_code": "0102907000"
+    },
+    "0102907008": {
+        "code": "0102907008",
+        "name": "Naguilian",
+        "city_code": "0102907000"
+    },
+    "0102907009": {
+        "code": "0102907009",
+        "name": "Nansuagao",
+        "city_code": "0102907000"
+    },
+    "0102907010": {
+        "code": "0102907010",
+        "name": "Pandan",
+        "city_code": "0102907000"
+    },
+    "0102907011": {
+        "code": "0102907011",
+        "name": "Pantay-Quitiquit",
+        "city_code": "0102907000"
+    },
+    "0102907012": {
+        "code": "0102907012",
+        "name": "Don Dimas Querubin",
+        "city_code": "0102907000"
+    },
+    "0102907013": {
+        "code": "0102907013",
+        "name": "Puro",
+        "city_code": "0102907000"
+    },
+    "0102907014": {
+        "code": "0102907014",
+        "name": "Pantay Tamurong",
+        "city_code": "0102907000"
+    },
+    "0102907015": {
+        "code": "0102907015",
+        "name": "Villamar",
+        "city_code": "0102907000"
+    },
+    "0102907016": {
+        "code": "0102907016",
+        "name": "Don Alejandro Quirolgico",
+        "city_code": "0102907000"
+    },
+    "0102907017": {
+        "code": "0102907017",
+        "name": "Don Lorenzo Querubin",
+        "city_code": "0102907000"
+    }
+}

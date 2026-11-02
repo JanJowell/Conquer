@@ -1,0 +1,47 @@
+{
+    "0502005001": {
+        "code": "0502005001",
+        "name": "Biong",
+        "city_code": "0502005000"
+    },
+    "0502005002": {
+        "code": "0502005002",
+        "name": "Dororian",
+        "city_code": "0502005000"
+    },
+    "0502005003": {
+        "code": "0502005003",
+        "name": "Poblacion District I",
+        "city_code": "0502005000"
+    },
+    "0502005004": {
+        "code": "0502005004",
+        "name": "Poblacion District II",
+        "city_code": "0502005000"
+    },
+    "0502005005": {
+        "code": "0502005005",
+        "name": "Poblacion District III",
+        "city_code": "0502005000"
+    },
+    "0502005006": {
+        "code": "0502005006",
+        "name": "San Pedro",
+        "city_code": "0502005000"
+    },
+    "0502005007": {
+        "code": "0502005007",
+        "name": "San Vicente",
+        "city_code": "0502005000"
+    },
+    "0502005008": {
+        "code": "0502005008",
+        "name": "Sicmil",
+        "city_code": "0502005000"
+    },
+    "0502005009": {
+        "code": "0502005009",
+        "name": "Sioron",
+        "city_code": "0502005000"
+    }
+}

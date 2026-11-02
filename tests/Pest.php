@@ -1,5 +1,9 @@
 <?php
 
+use App\Models\Event;
+use App\Models\User;
+use App\Services\EventReviewWorkflow;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /*
@@ -14,7 +18,7 @@ use Tests\TestCase;
 */
 
 pest()->extend(TestCase::class)
-    ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
+    ->use(RefreshDatabase::class)
     ->in('Feature');
 
 /*
@@ -46,4 +50,16 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+// Public-event feature fixtures go through real review transitions.
+// Pre-workflow fixtures explicitly set review_status to NULL instead.
+function approveEventSetupForTest(Event $event): Event
+{
+    $event = $event->fresh();
+    $workflow = app(EventReviewWorkflow::class);
+    $event = $workflow->transition($event, $event->manager, 'submit', $event->review_version);
+    $reviewer = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+
+    return $workflow->transition($event, $reviewer, 'approve', $event->review_version);
 }

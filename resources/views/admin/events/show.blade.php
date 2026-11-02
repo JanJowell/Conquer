@@ -5,7 +5,8 @@
 @section('content')
 @php
     $canManage = auth()->user()->hasAdminRole([\App\Models\User::ROLE_SUPER_ADMIN, \App\Models\User::ROLE_EVENT_MANAGER]);
-    $canViewAnalytics = auth()->user()->hasAdminRole([\App\Models\User::ROLE_SUPER_ADMIN, \App\Models\User::ROLE_EXECUTIVE]);
+    $canViewAnalytics = auth()->user()->hasAdminRole([\App\Models\User::ROLE_SUPER_ADMIN]);
+    $canEditSetup = $event->canEditSetup(auth()->user());
     $statusItems = collect([
         ['label' => 'Pending', 'value' => $participantStatusCounts['pending'] ?? 0],
         ['label' => 'Approved', 'value' => $participantStatusCounts['approved'] ?? 0],
@@ -26,7 +27,7 @@
                 : 'Add race distances first',
             'href' => $event->categories_count > 0
                 ? route('admin.categories.index', ['event_id' => $event->id])
-                : route('admin.events.edit', $event),
+                : route('admin.categories.index', ['event_id' => $event->id]),
             'enabled' => $canManage,
             'tone' => $event->categories_count > 0 ? 'ready' : 'attention',
         ],
@@ -58,6 +59,7 @@
 @endphp
 
 <div class="mx-auto max-w-[1400px] space-y-6">
+    @include('admin.events.partials.review')
     @if ($event->banner_image)
         <section class="overflow-hidden rounded-[1.75rem] bg-white shadow-[0_8px_24px_rgba(148,163,184,0.12)]">
             <button type="button" class="block w-full text-left" aria-label="Open full banner preview" data-banner-preview-open>
@@ -87,7 +89,7 @@
                     {{ $event->interest_type ?: 'Type not set' }}
                 </span>
                 <span class="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    {{ str($event->effective_status)->replace('_', ' ')->title() }}
+                                    {{ $event->revision_of_id ? $event->reviewLabel() : str($event->effective_status)->replace('_', ' ')->title() }}
                 </span>
             </div>
             <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-500">{{ $event->description ?: 'No description provided.' }}</p>
@@ -103,7 +105,7 @@
     <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <article class="rounded-[1.5rem] bg-white p-5 shadow-[0_8px_24px_rgba(148,163,184,0.12)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_14px_32px_rgba(148,163,184,0.22)]">
             <p class="text-sm font-medium text-slate-500">Status</p>
-            <p class="mt-3 text-2xl font-bold tracking-tight text-slate-700">{{ str($event->effective_status)->replace('_', ' ')->title() }}</p>
+            <p class="mt-3 text-2xl font-bold tracking-tight text-slate-700">{{ $event->revision_of_id ? $event->reviewLabel() : str($event->effective_status)->replace('_', ' ')->title() }}</p>
         </article>
         <article class="rounded-[1.5rem] bg-white p-5 shadow-[0_8px_24px_rgba(148,163,184,0.12)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_14px_32px_rgba(148,163,184,0.22)]">
             <p class="text-sm font-medium text-slate-500">Event Type</p>
@@ -123,7 +125,7 @@
         <section class="rounded-[1.75rem] {{ $readinessErrors === [] ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600' }} p-5 text-sm leading-6">
             <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div>
-                    <p class="font-semibold">{{ $readinessErrors === [] ? 'This event is ready for mobile registration.' : 'This event is not ready for mobile registration yet.' }}</p>
+                    <p class="font-semibold">{{ $readinessErrors === [] ? 'Required setup is complete. Publication still depends on approval.' : 'Required setup is incomplete.' }}</p>
                     @if ($readinessErrors === [])
                         <p class="mt-1">All required public details, category, and payment setup are complete.</p>
                     @else
@@ -137,7 +139,7 @@
                         </ul>
                     @endif
                 </div>
-                @if ($readinessErrors !== [])
+                @if ($readinessErrors !== [] && $canEditSetup)
                     <div class="flex flex-wrap gap-3">
                         <a href="{{ route('admin.events.edit', $event) }}" class="inline-flex h-11 items-center justify-center rounded-full bg-white px-5 text-sm font-semibold text-amber-600 transition hover:bg-amber-100">
                             Edit Event
@@ -231,10 +233,6 @@
                         <p class="mt-2 text-sm text-slate-600">{{ $event->registration_deadline?->format('F d, Y') ?: 'No deadline set' }}</p>
                     </div>
                     <div>
-                        <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Organizer</p>
-                        <p class="mt-2 text-sm text-slate-600">{{ $event->organized_by ?: 'Not set' }}</p>
-                    </div>
-                    <div>
                         <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Manager</p>
                         <p class="mt-2 text-sm text-slate-600">{{ $event->manager?->name ?: 'Unassigned' }}</p>
                     </div>
@@ -261,7 +259,7 @@
                         <h2 class="text-xl font-bold tracking-tight text-slate-700">Event Payment Options</h2>
                         <p class="mt-1 text-sm text-slate-500">Available to every paid category in this event.</p>
                     </div>
-                    @if ($canManage)
+                    @if ($canEditSetup)
                         <a href="{{ route('admin.events.edit', $event) }}" class="text-sm font-semibold text-indigo-400">Manage options</a>
                     @endif
                 </div>

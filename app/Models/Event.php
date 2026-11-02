@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -10,11 +11,14 @@ class Event extends Model
 {
     use HasFactory;
 
+    protected $attributes = ['review_status' => 'draft', 'review_version' => 0];
+
     protected $fillable = [
         'title',
         'slug',
         'description',
         'venue',
+        'venue_id',
         'event_date',
         'event_end_date',
         'start_time',
@@ -39,12 +43,18 @@ class Event extends Model
             'end_time' => 'datetime:H:i',
             'type_details' => 'array',
             'payment_setup_needs_review' => 'boolean',
+            'review_version' => 'integer',
+            'submitted_at' => 'datetime',
+            'approved_at' => 'datetime',
         ];
     }
 
     protected static function booted(): void
     {
         static::saving(function (Event $event) {
+            if (! $event->isReviewPublished()) {
+                $event->status = 'draft';
+            }
             $event->status = static::statusForDate(
                 $event->status,
                 $event->event_date,
@@ -115,6 +125,9 @@ class Event extends Model
 
     public function automaticStatus(array $overrides = [], bool $hasBannerUpload = false): string
     {
+        if (! $this->isReviewPublished()) {
+            return 'draft';
+        }
         if ($this->publicReadinessErrors($overrides, $hasBannerUpload) !== []) {
             return 'draft';
         }
@@ -156,7 +169,6 @@ class Event extends Model
             'event_date' => 'set an event date',
             'start_time' => 'set a start time',
             'registration_deadline' => 'set a registration deadline',
-            'organized_by' => 'add the organizer',
             'interest_type' => 'choose an event type',
             'banner_image' => 'upload a banner image',
         ];
@@ -180,8 +192,10 @@ class Event extends Model
             : $this->type_details;
         $interestType = $overrides['interest_type'] ?? $this->interest_type;
 
-        // Null identifies a legacy event created before structured details existed.
-        if ($typeDetails !== null) {
+        // Only pre-workflow events can retain the old unstructured contract.
+        // New submissions and revisions must not bypass required fields by omission.
+        if ($typeDetails !== null || $this->review_status !== null) {
+            $typeDetails = is_array($typeDetails) ? $typeDetails : [];
             foreach (static::typeDetailSchema($interestType) as $key => $definition) {
                 if (! ($definition['required_for_publication'] ?? false)) {
                     continue;
@@ -357,7 +371,7 @@ class Event extends Model
             ->where('is_auto_generated', true)
             ->first();
 
-        $isPublished = $this->publicReadinessErrors() === [];
+        $isPublished = $this->isReviewPublished() && $this->publicReadinessErrors() === [];
         $publishedAt = $isPublished
             ? ($announcement?->published_at ?? now())
             : null;
@@ -433,5 +447,62 @@ class Event extends Model
     public function manager()
     {
         return $this->belongsTo(User::class, 'manager_id');
+    }
+
+    public function savedVenue()
+    {
+        return $this->belongsTo(Venue::class, 'venue_id');
+    }
+
+    public function isReviewPublished(): bool
+    {
+        return ! $this->revision_of_id && in_array($this->review_status, [null, 'approved'], true);
+    }
+
+    public function canEditSetup(User $user): bool
+    {
+        return $user->managesAssignedEventsOnly() && $user->canManageEvent($this)
+            && (in_array($this->review_status, ['draft', 'changes_requested'], true)
+                || ($this->review_status === null && $this->effective_status === 'draft'));
+    }
+
+    public function scopeVisibleToStaff(Builder $query, User $user): void
+    {
+        if ($user->managesAssignedEventsOnly()) {
+            $query->where($query->qualifyColumn('manager_id'), $user->id);
+        } elseif ($user->isSuperAdmin()) {
+            $query->where(fn (Builder $inner) => $inner->whereNull($query->qualifyColumn('revision_of_id'))
+                ->orWhereIn($query->qualifyColumn('review_status'), ['pending_review', 'approved']));
+        } else {
+            $query->whereRaw('1 = 0');
+        }
+    }
+
+    public function revisions()
+    {
+        return $this->hasMany(self::class, 'revision_of_id');
+    }
+
+    public function activeRevision()
+    {
+        return $this->hasOne(self::class, 'revision_of_id')
+            ->whereIn('review_status', ['draft', 'changes_requested', 'pending_review'])->latest('id');
+    }
+
+    public function reviewLabel(): string
+    {
+        return match ($this->review_status) {
+            null => 'Existing event (pre-review workflow)',
+            'pending_review' => 'Pending Review',
+            'changes_requested' => 'Changes Requested',
+            'discarded' => 'Discarded Revision',
+            'approved' => $this->revision_of_id ? 'Revision Published' : 'Approved & Published',
+            default => $this->revision_of_id ? 'Draft revision' : 'Draft',
+        };
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(EventReview::class)->latest('id');
     }
 }

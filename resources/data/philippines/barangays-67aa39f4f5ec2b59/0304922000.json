@@ -1,0 +1,82 @@
+{
+    "0304922001": {
+        "code": "0304922001",
+        "name": "Bertese",
+        "city_code": "0304922000"
+    },
+    "0304922004": {
+        "code": "0304922004",
+        "name": "Doña Lucia",
+        "city_code": "0304922000"
+    },
+    "0304922005": {
+        "code": "0304922005",
+        "name": "Dulong Bayan",
+        "city_code": "0304922000"
+    },
+    "0304922006": {
+        "code": "0304922006",
+        "name": "Ilog Baliwag",
+        "city_code": "0304922000"
+    },
+    "0304922010": {
+        "code": "0304922010",
+        "name": "Barangay I",
+        "city_code": "0304922000"
+    },
+    "0304922011": {
+        "code": "0304922011",
+        "name": "Barangay II",
+        "city_code": "0304922000"
+    },
+    "0304922012": {
+        "code": "0304922012",
+        "name": "Pulong Bahay",
+        "city_code": "0304922000"
+    },
+    "0304922013": {
+        "code": "0304922013",
+        "name": "San Alejandro",
+        "city_code": "0304922000"
+    },
+    "0304922014": {
+        "code": "0304922014",
+        "name": "San Andres I",
+        "city_code": "0304922000"
+    },
+    "0304922015": {
+        "code": "0304922015",
+        "name": "San Andres II",
+        "city_code": "0304922000"
+    },
+    "0304922017": {
+        "code": "0304922017",
+        "name": "San Manuel",
+        "city_code": "0304922000"
+    },
+    "0304922018": {
+        "code": "0304922018",
+        "name": "Santa Clara",
+        "city_code": "0304922000"
+    },
+    "0304922019": {
+        "code": "0304922019",
+        "name": "Santa Rita",
+        "city_code": "0304922000"
+    },
+    "0304922020": {
+        "code": "0304922020",
+        "name": "Santo Cristo",
+        "city_code": "0304922000"
+    },
+    "0304922022": {
+        "code": "0304922022",
+        "name": "Santo Tomas Feria",
+        "city_code": "0304922000"
+    },
+    "0304922024": {
+        "code": "0304922024",
+        "name": "San Miguel",
+        "city_code": "0304922000"
+    }
+}

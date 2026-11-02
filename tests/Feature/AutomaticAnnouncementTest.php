@@ -27,7 +27,7 @@ test('event keeps one synced automatic announcement', function () {
     Carbon::setTestNow('2026-06-05 10:00:00');
 
     try {
-        $event = Event::create(automaticAnnouncementReadyEventPayload());
+        $event = Event::forceCreate(['review_status' => null, ...automaticAnnouncementReadyEventPayload()]);
 
         $announcement = Announcement::where('event_id', $event->id)
             ->where('is_auto_generated', true)
@@ -69,7 +69,7 @@ test('event announcements expose a mobile event action', function () {
     Carbon::setTestNow('2026-06-05 10:00:00');
 
     try {
-        $event = Event::create(automaticAnnouncementReadyEventPayload());
+        $event = Event::forceCreate(['review_status' => null, ...automaticAnnouncementReadyEventPayload()]);
 
         Category::create([
             'event_id' => $event->id,

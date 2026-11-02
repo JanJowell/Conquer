@@ -1,0 +1,122 @@
+{
+    "0102821001": {
+        "code": "0102821001",
+        "name": "San Agustin",
+        "city_code": "0102821000"
+    },
+    "0102821002": {
+        "code": "0102821002",
+        "name": "San Andres",
+        "city_code": "0102821000"
+    },
+    "0102821003": {
+        "code": "0102821003",
+        "name": "San Antonio",
+        "city_code": "0102821000"
+    },
+    "0102821004": {
+        "code": "0102821004",
+        "name": "San Bernabe",
+        "city_code": "0102821000"
+    },
+    "0102821005": {
+        "code": "0102821005",
+        "name": "San Cristobal",
+        "city_code": "0102821000"
+    },
+    "0102821006": {
+        "code": "0102821006",
+        "name": "San Felipe",
+        "city_code": "0102821000"
+    },
+    "0102821007": {
+        "code": "0102821007",
+        "name": "San Francisco",
+        "city_code": "0102821000"
+    },
+    "0102821008": {
+        "code": "0102821008",
+        "name": "San Isidro",
+        "city_code": "0102821000"
+    },
+    "0102821009": {
+        "code": "0102821009",
+        "name": "San Joaquin",
+        "city_code": "0102821000"
+    },
+    "0102821010": {
+        "code": "0102821010",
+        "name": "San Jose",
+        "city_code": "0102821000"
+    },
+    "0102821011": {
+        "code": "0102821011",
+        "name": "San Juan",
+        "city_code": "0102821000"
+    },
+    "0102821012": {
+        "code": "0102821012",
+        "name": "San Leandro",
+        "city_code": "0102821000"
+    },
+    "0102821014": {
+        "code": "0102821014",
+        "name": "San Lorenzo",
+        "city_code": "0102821000"
+    },
+    "0102821015": {
+        "code": "0102821015",
+        "name": "San Manuel",
+        "city_code": "0102821000"
+    },
+    "0102821016": {
+        "code": "0102821016",
+        "name": "San Marcos",
+        "city_code": "0102821000"
+    },
+    "0102821017": {
+        "code": "0102821017",
+        "name": "San Nicolas",
+        "city_code": "0102821000"
+    },
+    "0102821018": {
+        "code": "0102821018",
+        "name": "San Pedro",
+        "city_code": "0102821000"
+    },
+    "0102821019": {
+        "code": "0102821019",
+        "name": "San Roque",
+        "city_code": "0102821000"
+    },
+    "0102821020": {
+        "code": "0102821020",
+        "name": "San Vicente",
+        "city_code": "0102821000"
+    },
+    "0102821021": {
+        "code": "0102821021",
+        "name": "Santa Barbara",
+        "city_code": "0102821000"
+    },
+    "0102821022": {
+        "code": "0102821022",
+        "name": "Santa Magdalena",
+        "city_code": "0102821000"
+    },
+    "0102821023": {
+        "code": "0102821023",
+        "name": "Santa Rosa",
+        "city_code": "0102821000"
+    },
+    "0102821024": {
+        "code": "0102821024",
+        "name": "Santo Santiago",
+        "city_code": "0102821000"
+    },
+    "0102821025": {
+        "code": "0102821025",
+        "name": "Santo Tomas",
+        "city_code": "0102821000"
+    }
+}

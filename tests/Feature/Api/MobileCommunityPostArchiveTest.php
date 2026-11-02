@@ -118,10 +118,10 @@ test('only the owner can restore a post they moved to archive', function () {
 
 test('owners cannot restore posts deleted by a moderator or after retention expires', function () {
     [$owner, $ownerToken] = archiveMobileUser('moderated-owner');
-    $moderator = User::factory()->create(['role' => User::ROLE_CONTENT_MODERATOR]);
+    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
 
     $moderatedPost = archiveCommunityPost($owner);
-    $moderatedPost->forceFill(['deleted_by_user_id' => $moderator->id])->save();
+    $moderatedPost->forceFill(['deleted_by_user_id' => $admin->id])->save();
     $moderatedPost->delete();
 
     $this

@@ -18,7 +18,7 @@ function mobileUserWithToken(string $token = 'mobile-token'): User
 
 function openEventWithCategory(): array
 {
-    $event = Event::create([
+    $event = Event::forceCreate(['review_status' => null,
         'title' => 'City Fun Run',
         'slug' => 'city-fun-run',
         'description' => 'A complete public event description.',
@@ -47,7 +47,7 @@ function openEventWithCategory(): array
 }
 
 test('mobile event list hides draft events', function () {
-    Event::create([
+    Event::forceCreate(['review_status' => null,
         'title' => 'Incomplete Draft Run',
         'slug' => 'incomplete-draft-run',
         'venue' => 'Bacoor City',

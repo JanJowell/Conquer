@@ -41,8 +41,8 @@ function qualificationNotesCategoryPayload(Event $event, ?string $notes): array
     ];
 }
 
-test('admin stores optional qualification notes and exposes them to mobile', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+test('event manager stores optional qualification notes and exposes them to mobile', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = qualificationNotesEvent($admin);
     $notes = 'Participants must be at least 18 and comfortable riding in a group.';
 
@@ -60,7 +60,7 @@ test('admin stores optional qualification notes and exposes them to mobile', fun
 });
 
 test('qualification notes are optional and reject excessive text', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = qualificationNotesEvent($admin);
 
     $this
@@ -77,7 +77,7 @@ test('qualification notes are optional and reject excessive text', function () {
 });
 
 test('embedded event creation stores category qualification notes', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $eventDate = now()->addMonth()->toDateString();
     $notes = 'Open only to riders who can maintain a 20 km/h average pace.';
 
@@ -116,8 +116,8 @@ test('embedded event creation stores category qualification notes', function () 
     expect($category->qualification_notes)->toBe($notes);
 });
 
-test('admin can update qualification notes after a participant has registered', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+test('event manager can update qualification notes after a participant has registered', function () {
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $runner = User::factory()->create(['role' => User::ROLE_RUNNER]);
     $event = qualificationNotesEvent($admin);
     $category = Category::create([
@@ -154,7 +154,7 @@ test('admin can update qualification notes after a participant has registered', 
 });
 
 test('category forms display qualification notes fields', function () {
-    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $admin = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $event = qualificationNotesEvent($admin);
     $category = Category::create([
         'event_id' => $event->id,

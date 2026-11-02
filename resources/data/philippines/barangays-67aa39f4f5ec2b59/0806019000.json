@@ -1,0 +1,57 @@
+{
+    "0806019001": {
+        "code": "0806019001",
+        "name": "Bo. Independencia",
+        "city_code": "0806019000"
+    },
+    "0806019002": {
+        "code": "0806019002",
+        "name": "Malaguining",
+        "city_code": "0806019000"
+    },
+    "0806019003": {
+        "code": "0806019003",
+        "name": "Mallorga",
+        "city_code": "0806019000"
+    },
+    "0806019004": {
+        "code": "0806019004",
+        "name": "Navatas Daku",
+        "city_code": "0806019000"
+    },
+    "0806019005": {
+        "code": "0806019005",
+        "name": "Navatas Guti",
+        "city_code": "0806019000"
+    },
+    "0806019006": {
+        "code": "0806019006",
+        "name": "Placer",
+        "city_code": "0806019000"
+    },
+    "0806019007": {
+        "code": "0806019007",
+        "name": "Poblacion Barangay 1",
+        "city_code": "0806019000"
+    },
+    "0806019008": {
+        "code": "0806019008",
+        "name": "Poblacion Barangay 2",
+        "city_code": "0806019000"
+    },
+    "0806019009": {
+        "code": "0806019009",
+        "name": "San Juan",
+        "city_code": "0806019000"
+    },
+    "0806019010": {
+        "code": "0806019010",
+        "name": "Tatabunan",
+        "city_code": "0806019000"
+    },
+    "0806019011": {
+        "code": "0806019011",
+        "name": "Victory",
+        "city_code": "0806019000"
+    }
+}

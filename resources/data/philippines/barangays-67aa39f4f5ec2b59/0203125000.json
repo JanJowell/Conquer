@@ -1,0 +1,102 @@
+{
+    "0203125001": {
+        "code": "0203125001",
+        "name": "Banquero",
+        "city_code": "0203125000"
+    },
+    "0203125002": {
+        "code": "0203125002",
+        "name": "Binarsang",
+        "city_code": "0203125000"
+    },
+    "0203125003": {
+        "code": "0203125003",
+        "name": "Cutog Grande",
+        "city_code": "0203125000"
+    },
+    "0203125004": {
+        "code": "0203125004",
+        "name": "Cutog Pequeño",
+        "city_code": "0203125000"
+    },
+    "0203125005": {
+        "code": "0203125005",
+        "name": "Dangan",
+        "city_code": "0203125000"
+    },
+    "0203125006": {
+        "code": "0203125006",
+        "name": "District I",
+        "city_code": "0203125000"
+    },
+    "0203125007": {
+        "code": "0203125007",
+        "name": "District II",
+        "city_code": "0203125000"
+    },
+    "0203125008": {
+        "code": "0203125008",
+        "name": "Labinab Grande",
+        "city_code": "0203125000"
+    },
+    "0203125009": {
+        "code": "0203125009",
+        "name": "Labinab Pequeño",
+        "city_code": "0203125000"
+    },
+    "0203125010": {
+        "code": "0203125010",
+        "name": "Mallalatang Grande",
+        "city_code": "0203125000"
+    },
+    "0203125011": {
+        "code": "0203125011",
+        "name": "Mallalatang Tunggui",
+        "city_code": "0203125000"
+    },
+    "0203125012": {
+        "code": "0203125012",
+        "name": "Nappaccu Grande",
+        "city_code": "0203125000"
+    },
+    "0203125013": {
+        "code": "0203125013",
+        "name": "Nappaccu Pequeño",
+        "city_code": "0203125000"
+    },
+    "0203125014": {
+        "code": "0203125014",
+        "name": "Sallucong",
+        "city_code": "0203125000"
+    },
+    "0203125015": {
+        "code": "0203125015",
+        "name": "Santor",
+        "city_code": "0203125000"
+    },
+    "0203125016": {
+        "code": "0203125016",
+        "name": "Sinippil",
+        "city_code": "0203125000"
+    },
+    "0203125017": {
+        "code": "0203125017",
+        "name": "Tallungan",
+        "city_code": "0203125000"
+    },
+    "0203125019": {
+        "code": "0203125019",
+        "name": "Turod",
+        "city_code": "0203125000"
+    },
+    "0203125020": {
+        "code": "0203125020",
+        "name": "Villador",
+        "city_code": "0203125000"
+    },
+    "0203125021": {
+        "code": "0203125021",
+        "name": "Santiago",
+        "city_code": "0203125000"
+    }
+}

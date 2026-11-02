@@ -8,22 +8,27 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EBadgeController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\EventOperationsController;
+use App\Http\Controllers\Admin\EventReviewController;
 use App\Http\Controllers\Admin\FinishScanController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\SearchController;
 use App\Http\Controllers\Admin\SecurityController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Admin\VenueLocationController;
 use App\Http\Controllers\Auth\AdminInvitationController;
+use App\Http\Controllers\Auth\CancelTwoFactorLoginController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\CertificateController as PublicCertificateController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Middleware\EventSetupAccess;
 use App\Models\Announcement;
 use App\Models\Event;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    $events = Event::latest()->take(3)->get();
+    $events = Event::whereNull('revision_of_id')->where(fn ($query) => $query->whereNull('review_status')->orWhere('review_status', 'approved'))
+        ->latest()->get()->filter(fn (Event $event) => $event->effective_status !== 'draft')->take(3);
     $announcements = Announcement::active()->with('event')->latest()->take(5)->get();
 
     return view('welcome', compact('events', 'announcements'));
@@ -52,6 +57,10 @@ Route::post('/admin/password/email', [ForgotPasswordController::class, 'store'])
     ->middleware('guest')
     ->name('admin.password.email');
 
+Route::post('/two-factor-challenge/cancel', CancelTwoFactorLoginController::class)
+    ->middleware('guest')
+    ->name('two-factor.cancel');
+
 Route::get('/admin/invitations/{user}/{token}', [AdminInvitationController::class, 'show'])
     ->middleware(['guest', 'throttle:20,1'])
     ->name('admin.invitations.show');
@@ -77,16 +86,16 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/analytics', [DashboardController::class, 'analytics'])
-        ->middleware('role:super_admin,executive')
+        ->middleware('role:super_admin')
         ->name('analytics');
     Route::get('/reports', [DashboardController::class, 'reports'])
-        ->middleware('role:super_admin,executive,event_manager')
+        ->middleware('role:super_admin,event_manager')
         ->name('reports');
     Route::get('/reports/export/{type}', [DashboardController::class, 'export'])
-        ->middleware('role:super_admin,executive,event_manager')
+        ->middleware('role:super_admin,event_manager')
         ->name('reports.export');
     Route::get('/feedback-insights', [DashboardController::class, 'feedbackInsights'])
-        ->middleware('role:super_admin,executive,content_moderator,event_manager')
+        ->middleware('role:super_admin,event_manager')
         ->name('feedback-insights');
     Route::get('/participants', [EventOperationsController::class, 'participants'])
         ->middleware('role:super_admin,event_manager')
@@ -163,7 +172,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // User Management
     Route::get('/users', [UserController::class, 'index'])
-        ->middleware('role:super_admin,executive')
+        ->middleware('role:super_admin')
         ->name('users.index');
     Route::resource('users', UserController::class)
         ->except(['index'])
@@ -175,66 +184,79 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/users/{user}/resend-invitation', [UserController::class, 'resendInvitation'])->middleware('role:super_admin')->name('users.resend-invitation');
 
     // Event Management
+    Route::get('/venue-locations', VenueLocationController::class)
+        ->middleware(['role:super_admin,event_manager', 'throttle:120,1'])
+        ->name('venue-locations');
     Route::get('/events', [EventController::class, 'index'])
-        ->middleware('role:super_admin,executive,event_manager')
+        ->middleware('role:super_admin,event_manager')
         ->name('events.index');
     Route::resource('events', EventController::class)
         ->except(['index', 'show'])
-        ->middleware('role:super_admin,event_manager');
+        ->middleware(['role:event_manager', EventSetupAccess::class]);
+    Route::post('/events/{event}/review/{action}', [EventReviewController::class, 'transition'])
+        ->whereIn('action', ['submit', 'withdraw', 'discard', 'approve', 'return'])
+        ->middleware('role:super_admin,event_manager')->name('events.review');
+    Route::post('/events/{event}/revisions', [EventReviewController::class, 'revision'])
+        ->middleware('role:event_manager')->name('events.revision');
+    Route::get('/events/{event}/review-history', [EventReviewController::class, 'history'])
+        ->middleware('role:super_admin,event_manager')->name('events.review-history');
     Route::get('/events/{event}', [EventController::class, 'show'])
-        ->middleware('role:super_admin,executive,event_manager')
+        ->middleware('role:super_admin,event_manager')
         ->name('events.show');
     Route::post('/categories/{category}/start', [CategoryController::class, 'start'])
         ->middleware('role:super_admin,event_manager')
         ->name('categories.start');
     Route::resource('categories', CategoryController::class)
         ->middleware('role:super_admin,event_manager')
-        ->except(['show']);
+        ->only(['index']);
+    Route::resource('categories', CategoryController::class)
+        ->middleware(['role:event_manager', EventSetupAccess::class])
+        ->except(['index', 'show']);
     Route::resource('announcements', AnnouncementController::class)
-        ->middleware('role:super_admin,content_moderator,event_manager')
+        ->middleware('role:super_admin,event_manager')
         ->except(['show']);
     Route::patch('/announcements/{announcement}/publish', [AnnouncementController::class, 'publish'])
-        ->middleware('role:super_admin,content_moderator,event_manager')
+        ->middleware('role:super_admin,event_manager')
         ->name('announcements.publish');
     Route::patch('/announcements/{announcement}/unpublish', [AnnouncementController::class, 'unpublish'])
-        ->middleware('role:super_admin,content_moderator,event_manager')
+        ->middleware('role:super_admin,event_manager')
         ->name('announcements.unpublish');
 
     // Content Management
     Route::prefix('content')->name('content.')->group(function () {
-        Route::get('/pending-review', [ContentController::class, 'pendingReview'])->middleware('role:super_admin,content_moderator')->name('pending-review');
-        Route::get('/community-posts', [ContentController::class, 'communityPosts'])->middleware('role:super_admin,content_moderator')->name('community-posts');
-        Route::get('/community-posts/{post}', [ContentController::class, 'showCommunityPost'])->middleware('role:super_admin,content_moderator')->name('community-posts.show');
-        Route::delete('/community-posts/{post}', [ContentController::class, 'deleteCommunityPost'])->middleware('role:super_admin,content_moderator')->name('community-posts.delete');
-        Route::post('/community-posts/{post}/restore', [ContentController::class, 'restoreCommunityPost'])->middleware('role:super_admin,content_moderator')->name('community-posts.restore');
-        Route::post('/community-posts/{post}/flag', [ContentController::class, 'flagCommunityPost'])->middleware('role:super_admin,content_moderator')->name('community-posts.flag');
-        Route::post('/community-posts/{post}/unflag', [ContentController::class, 'unflagCommunityPost'])->middleware('role:super_admin,content_moderator')->name('community-posts.unflag');
-        Route::delete('/community-comments/{comment}', [ContentController::class, 'deleteCommunityComment'])->middleware('role:super_admin,content_moderator')->name('community-comments.delete');
-        Route::post('/community-comments/{comment}/restore', [ContentController::class, 'restoreCommunityComment'])->middleware('role:super_admin,content_moderator')->name('community-comments.restore');
-        Route::post('/community-comments/{comment}/flag', [ContentController::class, 'flagCommunityComment'])->middleware('role:super_admin,content_moderator')->name('community-comments.flag');
-        Route::post('/community-comments/{comment}/unflag', [ContentController::class, 'unflagCommunityComment'])->middleware('role:super_admin,content_moderator')->name('community-comments.unflag');
+        Route::get('/pending-review', [ContentController::class, 'pendingReview'])->middleware('role:super_admin')->name('pending-review');
+        Route::get('/community-posts', [ContentController::class, 'communityPosts'])->middleware('role:super_admin')->name('community-posts');
+        Route::get('/community-posts/{post}', [ContentController::class, 'showCommunityPost'])->middleware('role:super_admin')->name('community-posts.show');
+        Route::delete('/community-posts/{post}', [ContentController::class, 'deleteCommunityPost'])->middleware('role:super_admin')->name('community-posts.delete');
+        Route::post('/community-posts/{post}/restore', [ContentController::class, 'restoreCommunityPost'])->middleware('role:super_admin')->name('community-posts.restore');
+        Route::post('/community-posts/{post}/flag', [ContentController::class, 'flagCommunityPost'])->middleware('role:super_admin')->name('community-posts.flag');
+        Route::post('/community-posts/{post}/unflag', [ContentController::class, 'unflagCommunityPost'])->middleware('role:super_admin')->name('community-posts.unflag');
+        Route::delete('/community-comments/{comment}', [ContentController::class, 'deleteCommunityComment'])->middleware('role:super_admin')->name('community-comments.delete');
+        Route::post('/community-comments/{comment}/restore', [ContentController::class, 'restoreCommunityComment'])->middleware('role:super_admin')->name('community-comments.restore');
+        Route::post('/community-comments/{comment}/flag', [ContentController::class, 'flagCommunityComment'])->middleware('role:super_admin')->name('community-comments.flag');
+        Route::post('/community-comments/{comment}/unflag', [ContentController::class, 'unflagCommunityComment'])->middleware('role:super_admin')->name('community-comments.unflag');
 
-        Route::get('/training-modules', [ContentController::class, 'trainingModules'])->middleware('role:super_admin,content_moderator')->name('training-modules');
-        Route::get('/training-modules/create', [ContentController::class, 'createTrainingModule'])->middleware('role:super_admin,content_moderator')->name('training-modules.create');
-        Route::post('/training-modules', [ContentController::class, 'storeTrainingModule'])->middleware('role:super_admin,content_moderator')->name('training-modules.store');
-        Route::get('/training-modules/{module}', [ContentController::class, 'showTrainingModule'])->middleware('role:super_admin,content_moderator')->name('training-modules.show');
-        Route::get('/training-modules/{module}/edit', [ContentController::class, 'editTrainingModule'])->middleware('role:super_admin,content_moderator')->name('training-modules.edit');
-        Route::put('/training-modules/{module}', [ContentController::class, 'updateTrainingModule'])->middleware('role:super_admin,content_moderator')->name('training-modules.update');
-        Route::delete('/training-modules/{module}', [ContentController::class, 'destroyTrainingModule'])->middleware('role:super_admin,content_moderator')->name('training-modules.destroy');
+        Route::get('/training-modules', [ContentController::class, 'trainingModules'])->middleware('role:super_admin')->name('training-modules');
+        Route::get('/training-modules/create', [ContentController::class, 'createTrainingModule'])->middleware('role:super_admin')->name('training-modules.create');
+        Route::post('/training-modules', [ContentController::class, 'storeTrainingModule'])->middleware('role:super_admin')->name('training-modules.store');
+        Route::get('/training-modules/{module}', [ContentController::class, 'showTrainingModule'])->middleware('role:super_admin')->name('training-modules.show');
+        Route::get('/training-modules/{module}/edit', [ContentController::class, 'editTrainingModule'])->middleware('role:super_admin')->name('training-modules.edit');
+        Route::put('/training-modules/{module}', [ContentController::class, 'updateTrainingModule'])->middleware('role:super_admin')->name('training-modules.update');
+        Route::delete('/training-modules/{module}', [ContentController::class, 'destroyTrainingModule'])->middleware('role:super_admin')->name('training-modules.destroy');
 
         Route::get('/checkpoints', [ContentController::class, 'checkpoints'])->middleware('role:super_admin,event_manager')->name('checkpoints');
-        Route::get('/checkpoints/create', [ContentController::class, 'createCheckpoint'])->middleware('role:super_admin,event_manager')->name('checkpoints.create');
-        Route::post('/checkpoints', [ContentController::class, 'storeCheckpoint'])->middleware('role:super_admin,event_manager')->name('checkpoints.store');
-        Route::get('/checkpoints/{checkpoint}/edit', [ContentController::class, 'editCheckpoint'])->middleware('role:super_admin,event_manager')->name('checkpoints.edit');
-        Route::put('/checkpoints/{checkpoint}', [ContentController::class, 'updateCheckpoint'])->middleware('role:super_admin,event_manager')->name('checkpoints.update');
-        Route::delete('/checkpoints/{checkpoint}', [ContentController::class, 'destroyCheckpoint'])->middleware('role:super_admin,event_manager')->name('checkpoints.destroy');
+        Route::get('/checkpoints/create', [ContentController::class, 'createCheckpoint'])->middleware(['role:event_manager', EventSetupAccess::class])->name('checkpoints.create');
+        Route::post('/checkpoints', [ContentController::class, 'storeCheckpoint'])->middleware(['role:event_manager', EventSetupAccess::class])->name('checkpoints.store');
+        Route::get('/checkpoints/{checkpoint}/edit', [ContentController::class, 'editCheckpoint'])->middleware(['role:event_manager', EventSetupAccess::class])->name('checkpoints.edit');
+        Route::put('/checkpoints/{checkpoint}', [ContentController::class, 'updateCheckpoint'])->middleware(['role:event_manager', EventSetupAccess::class])->name('checkpoints.update');
+        Route::delete('/checkpoints/{checkpoint}', [ContentController::class, 'destroyCheckpoint'])->middleware(['role:event_manager', EventSetupAccess::class])->name('checkpoints.destroy');
     });
 
     // Notifications
     Route::resource('notifications', NotificationController::class)
-        ->middleware('role:super_admin,content_moderator,event_manager');
+        ->middleware('role:super_admin,event_manager');
     Route::post('/notifications/{notification}/send-now', [NotificationController::class, 'sendNow'])
-        ->middleware('role:super_admin,content_moderator,event_manager')
+        ->middleware('role:super_admin,event_manager')
         ->name('notifications.send-now');
 
     // Security

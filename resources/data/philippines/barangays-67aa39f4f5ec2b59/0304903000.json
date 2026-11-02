@@ -1,0 +1,447 @@
+{
+    "0304903002": {
+        "code": "0304903002",
+        "name": "Aduas Centro",
+        "city_code": "0304903000"
+    },
+    "0304903003": {
+        "code": "0304903003",
+        "name": "Bagong Sikat",
+        "city_code": "0304903000"
+    },
+    "0304903005": {
+        "code": "0304903005",
+        "name": "Bagong Buhay",
+        "city_code": "0304903000"
+    },
+    "0304903006": {
+        "code": "0304903006",
+        "name": "Bakero",
+        "city_code": "0304903000"
+    },
+    "0304903007": {
+        "code": "0304903007",
+        "name": "Bakod Bayan",
+        "city_code": "0304903000"
+    },
+    "0304903008": {
+        "code": "0304903008",
+        "name": "Balite",
+        "city_code": "0304903000"
+    },
+    "0304903009": {
+        "code": "0304903009",
+        "name": "Bangad",
+        "city_code": "0304903000"
+    },
+    "0304903010": {
+        "code": "0304903010",
+        "name": "Bantug Bulalo",
+        "city_code": "0304903000"
+    },
+    "0304903011": {
+        "code": "0304903011",
+        "name": "Bantug Norte",
+        "city_code": "0304903000"
+    },
+    "0304903012": {
+        "code": "0304903012",
+        "name": "Barlis",
+        "city_code": "0304903000"
+    },
+    "0304903013": {
+        "code": "0304903013",
+        "name": "Barrera District",
+        "city_code": "0304903000"
+    },
+    "0304903015": {
+        "code": "0304903015",
+        "name": "Bernardo District",
+        "city_code": "0304903000"
+    },
+    "0304903016": {
+        "code": "0304903016",
+        "name": "Bitas",
+        "city_code": "0304903000"
+    },
+    "0304903017": {
+        "code": "0304903017",
+        "name": "Bonifacio District",
+        "city_code": "0304903000"
+    },
+    "0304903018": {
+        "code": "0304903018",
+        "name": "Buliran",
+        "city_code": "0304903000"
+    },
+    "0304903019": {
+        "code": "0304903019",
+        "name": "Caalibangbangan",
+        "city_code": "0304903000"
+    },
+    "0304903020": {
+        "code": "0304903020",
+        "name": "Cabu",
+        "city_code": "0304903000"
+    },
+    "0304903022": {
+        "code": "0304903022",
+        "name": "Campo Tinio",
+        "city_code": "0304903000"
+    },
+    "0304903023": {
+        "code": "0304903023",
+        "name": "Kapitan Pepe",
+        "city_code": "0304903000"
+    },
+    "0304903024": {
+        "code": "0304903024",
+        "name": "Cinco-Cinco",
+        "city_code": "0304903000"
+    },
+    "0304903025": {
+        "code": "0304903025",
+        "name": "City Supermarket",
+        "city_code": "0304903000"
+    },
+    "0304903026": {
+        "code": "0304903026",
+        "name": "Caudillo",
+        "city_code": "0304903000"
+    },
+    "0304903027": {
+        "code": "0304903027",
+        "name": "Communal",
+        "city_code": "0304903000"
+    },
+    "0304903028": {
+        "code": "0304903028",
+        "name": "Cruz Roja",
+        "city_code": "0304903000"
+    },
+    "0304903029": {
+        "code": "0304903029",
+        "name": "Daang Sarile",
+        "city_code": "0304903000"
+    },
+    "0304903030": {
+        "code": "0304903030",
+        "name": "Dalampang",
+        "city_code": "0304903000"
+    },
+    "0304903031": {
+        "code": "0304903031",
+        "name": "Dicarma",
+        "city_code": "0304903000"
+    },
+    "0304903032": {
+        "code": "0304903032",
+        "name": "Dimasalang",
+        "city_code": "0304903000"
+    },
+    "0304903033": {
+        "code": "0304903033",
+        "name": "Dionisio S. Garcia",
+        "city_code": "0304903000"
+    },
+    "0304903035": {
+        "code": "0304903035",
+        "name": "Fatima",
+        "city_code": "0304903000"
+    },
+    "0304903036": {
+        "code": "0304903036",
+        "name": "General Luna",
+        "city_code": "0304903000"
+    },
+    "0304903037": {
+        "code": "0304903037",
+        "name": "Ibabao Bana",
+        "city_code": "0304903000"
+    },
+    "0304903038": {
+        "code": "0304903038",
+        "name": "Imelda District",
+        "city_code": "0304903000"
+    },
+    "0304903039": {
+        "code": "0304903039",
+        "name": "Isla",
+        "city_code": "0304903000"
+    },
+    "0304903040": {
+        "code": "0304903040",
+        "name": "Calawagan",
+        "city_code": "0304903000"
+    },
+    "0304903041": {
+        "code": "0304903041",
+        "name": "Kalikid Norte",
+        "city_code": "0304903000"
+    },
+    "0304903042": {
+        "code": "0304903042",
+        "name": "Kalikid Sur",
+        "city_code": "0304903000"
+    },
+    "0304903043": {
+        "code": "0304903043",
+        "name": "Lagare",
+        "city_code": "0304903000"
+    },
+    "0304903044": {
+        "code": "0304903044",
+        "name": "M. S. Garcia",
+        "city_code": "0304903000"
+    },
+    "0304903046": {
+        "code": "0304903046",
+        "name": "Mabini Extension",
+        "city_code": "0304903000"
+    },
+    "0304903047": {
+        "code": "0304903047",
+        "name": "Mabini Homesite",
+        "city_code": "0304903000"
+    },
+    "0304903048": {
+        "code": "0304903048",
+        "name": "Macatbong",
+        "city_code": "0304903000"
+    },
+    "0304903049": {
+        "code": "0304903049",
+        "name": "Magsaysay District",
+        "city_code": "0304903000"
+    },
+    "0304903050": {
+        "code": "0304903050",
+        "name": "Matadero",
+        "city_code": "0304903000"
+    },
+    "0304903051": {
+        "code": "0304903051",
+        "name": "Lourdes",
+        "city_code": "0304903000"
+    },
+    "0304903052": {
+        "code": "0304903052",
+        "name": "Mayapyap Norte",
+        "city_code": "0304903000"
+    },
+    "0304903053": {
+        "code": "0304903053",
+        "name": "Mayapyap Sur",
+        "city_code": "0304903000"
+    },
+    "0304903054": {
+        "code": "0304903054",
+        "name": "Melojavilla",
+        "city_code": "0304903000"
+    },
+    "0304903055": {
+        "code": "0304903055",
+        "name": "Obrero",
+        "city_code": "0304903000"
+    },
+    "0304903056": {
+        "code": "0304903056",
+        "name": "Padre Crisostomo",
+        "city_code": "0304903000"
+    },
+    "0304903057": {
+        "code": "0304903057",
+        "name": "Pagas",
+        "city_code": "0304903000"
+    },
+    "0304903058": {
+        "code": "0304903058",
+        "name": "Palagay",
+        "city_code": "0304903000"
+    },
+    "0304903059": {
+        "code": "0304903059",
+        "name": "Pamaldan",
+        "city_code": "0304903000"
+    },
+    "0304903060": {
+        "code": "0304903060",
+        "name": "Pangatian",
+        "city_code": "0304903000"
+    },
+    "0304903061": {
+        "code": "0304903061",
+        "name": "Patalac",
+        "city_code": "0304903000"
+    },
+    "0304903063": {
+        "code": "0304903063",
+        "name": "Polilio",
+        "city_code": "0304903000"
+    },
+    "0304903064": {
+        "code": "0304903064",
+        "name": "Pula",
+        "city_code": "0304903000"
+    },
+    "0304903065": {
+        "code": "0304903065",
+        "name": "Quezon District",
+        "city_code": "0304903000"
+    },
+    "0304903066": {
+        "code": "0304903066",
+        "name": "Rizdelis",
+        "city_code": "0304903000"
+    },
+    "0304903067": {
+        "code": "0304903067",
+        "name": "Samon",
+        "city_code": "0304903000"
+    },
+    "0304903068": {
+        "code": "0304903068",
+        "name": "San Isidro",
+        "city_code": "0304903000"
+    },
+    "0304903071": {
+        "code": "0304903071",
+        "name": "San Josef Norte",
+        "city_code": "0304903000"
+    },
+    "0304903072": {
+        "code": "0304903072",
+        "name": "San Josef Sur",
+        "city_code": "0304903000"
+    },
+    "0304903073": {
+        "code": "0304903073",
+        "name": "San Juan Pob.",
+        "city_code": "0304903000"
+    },
+    "0304903074": {
+        "code": "0304903074",
+        "name": "San Roque Norte",
+        "city_code": "0304903000"
+    },
+    "0304903075": {
+        "code": "0304903075",
+        "name": "San Roque Sur",
+        "city_code": "0304903000"
+    },
+    "0304903076": {
+        "code": "0304903076",
+        "name": "Sanbermicristi",
+        "city_code": "0304903000"
+    },
+    "0304903077": {
+        "code": "0304903077",
+        "name": "Sangitan",
+        "city_code": "0304903000"
+    },
+    "0304903078": {
+        "code": "0304903078",
+        "name": "Santa Arcadia",
+        "city_code": "0304903000"
+    },
+    "0304903079": {
+        "code": "0304903079",
+        "name": "Sumacab Norte",
+        "city_code": "0304903000"
+    },
+    "0304903082": {
+        "code": "0304903082",
+        "name": "Valdefuente",
+        "city_code": "0304903000"
+    },
+    "0304903083": {
+        "code": "0304903083",
+        "name": "Valle Cruz",
+        "city_code": "0304903000"
+    },
+    "0304903084": {
+        "code": "0304903084",
+        "name": "Vijandre District",
+        "city_code": "0304903000"
+    },
+    "0304903085": {
+        "code": "0304903085",
+        "name": "Villa Ofelia-Caridad",
+        "city_code": "0304903000"
+    },
+    "0304903086": {
+        "code": "0304903086",
+        "name": "Zulueta District",
+        "city_code": "0304903000"
+    },
+    "0304903087": {
+        "code": "0304903087",
+        "name": "Nabao",
+        "city_code": "0304903000"
+    },
+    "0304903088": {
+        "code": "0304903088",
+        "name": "Padre Burgos",
+        "city_code": "0304903000"
+    },
+    "0304903089": {
+        "code": "0304903089",
+        "name": "Talipapa",
+        "city_code": "0304903000"
+    },
+    "0304903090": {
+        "code": "0304903090",
+        "name": "Aduas Norte",
+        "city_code": "0304903000"
+    },
+    "0304903091": {
+        "code": "0304903091",
+        "name": "Aduas Sur",
+        "city_code": "0304903000"
+    },
+    "0304903092": {
+        "code": "0304903092",
+        "name": "Hermogenes C. Concepcion, Sr.",
+        "city_code": "0304903000"
+    },
+    "0304903093": {
+        "code": "0304903093",
+        "name": "Sapang",
+        "city_code": "0304903000"
+    },
+    "0304903094": {
+        "code": "0304903094",
+        "name": "Sumacab Este",
+        "city_code": "0304903000"
+    },
+    "0304903095": {
+        "code": "0304903095",
+        "name": "Sumacab South",
+        "city_code": "0304903000"
+    },
+    "0304903096": {
+        "code": "0304903096",
+        "name": "Caridad",
+        "city_code": "0304903000"
+    },
+    "0304903097": {
+        "code": "0304903097",
+        "name": "Magsaysay South",
+        "city_code": "0304903000"
+    },
+    "0304903098": {
+        "code": "0304903098",
+        "name": "Maria Theresa",
+        "city_code": "0304903000"
+    },
+    "0304903099": {
+        "code": "0304903099",
+        "name": "Sangitan East",
+        "city_code": "0304903000"
+    },
+    "0304903100": {
+        "code": "0304903100",
+        "name": "Santo Niño",
+        "city_code": "0304903000"
+    }
+}

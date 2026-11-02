@@ -1,0 +1,117 @@
+{
+    "0403412001": {
+        "code": "0403412001",
+        "name": "De La Paz",
+        "city_code": "0403412000"
+    },
+    "0403412002": {
+        "code": "0403412002",
+        "name": "Barangay Zone I",
+        "city_code": "0403412000"
+    },
+    "0403412003": {
+        "code": "0403412003",
+        "name": "Barangay Zone II",
+        "city_code": "0403412000"
+    },
+    "0403412004": {
+        "code": "0403412004",
+        "name": "Barangay Zone III",
+        "city_code": "0403412000"
+    },
+    "0403412005": {
+        "code": "0403412005",
+        "name": "Barangay Zone IV",
+        "city_code": "0403412000"
+    },
+    "0403412006": {
+        "code": "0403412006",
+        "name": "Barangay Zone V",
+        "city_code": "0403412000"
+    },
+    "0403412007": {
+        "code": "0403412007",
+        "name": "Barangay Zone VI",
+        "city_code": "0403412000"
+    },
+    "0403412008": {
+        "code": "0403412008",
+        "name": "Barangay Zone VII",
+        "city_code": "0403412000"
+    },
+    "0403412009": {
+        "code": "0403412009",
+        "name": "Barangay Zone VIII",
+        "city_code": "0403412000"
+    },
+    "0403412010": {
+        "code": "0403412010",
+        "name": "San Antonio",
+        "city_code": "0403412000"
+    },
+    "0403412011": {
+        "code": "0403412011",
+        "name": "San Buenaventura",
+        "city_code": "0403412000"
+    },
+    "0403412012": {
+        "code": "0403412012",
+        "name": "San Diego",
+        "city_code": "0403412000"
+    },
+    "0403412013": {
+        "code": "0403412013",
+        "name": "San Isidro",
+        "city_code": "0403412000"
+    },
+    "0403412014": {
+        "code": "0403412014",
+        "name": "San Jose",
+        "city_code": "0403412000"
+    },
+    "0403412015": {
+        "code": "0403412015",
+        "name": "San Juan",
+        "city_code": "0403412000"
+    },
+    "0403412016": {
+        "code": "0403412016",
+        "name": "San Luis",
+        "city_code": "0403412000"
+    },
+    "0403412017": {
+        "code": "0403412017",
+        "name": "San Pablo",
+        "city_code": "0403412000"
+    },
+    "0403412018": {
+        "code": "0403412018",
+        "name": "San Pedro",
+        "city_code": "0403412000"
+    },
+    "0403412019": {
+        "code": "0403412019",
+        "name": "San Rafael",
+        "city_code": "0403412000"
+    },
+    "0403412020": {
+        "code": "0403412020",
+        "name": "San Roque",
+        "city_code": "0403412000"
+    },
+    "0403412021": {
+        "code": "0403412021",
+        "name": "San Salvador",
+        "city_code": "0403412000"
+    },
+    "0403412022": {
+        "code": "0403412022",
+        "name": "Santo Domingo",
+        "city_code": "0403412000"
+    },
+    "0403412023": {
+        "code": "0403412023",
+        "name": "Santo Tomas",
+        "city_code": "0403412000"
+    }
+}

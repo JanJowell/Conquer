@@ -20,7 +20,7 @@
 
             @if(in_array(($pageTitle ?? ''), ['Reports', 'Analytics Dashboard', 'Analytics & Reports'], true))
                 <div class="flex flex-wrap gap-2">
-                    @if(auth()->user()->hasAdminRole([\App\Models\User::ROLE_SUPER_ADMIN, \App\Models\User::ROLE_EXECUTIVE]))
+                    @if(auth()->user()->hasAdminRole([\App\Models\User::ROLE_SUPER_ADMIN]))
                         <a href="{{ route('admin.reports.export', 'users') }}" class="inline-flex items-center justify-center rounded-full bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-500 transition hover:bg-slate-100">
                             <i class="fas fa-download mr-2 text-xs"></i>Export Users
                         </a>

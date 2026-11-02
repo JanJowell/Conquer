@@ -24,6 +24,7 @@ class CategoryController extends Controller
         $paymentMethods = Category::paymentMethods();
 
         $categories = Category::with(['event.paymentMethods', 'startedBy'])
+            ->whereHas('event', fn ($query) => $query->visibleToStaff($user))
             ->withCount(['registrations', 'raceResults'])
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($accessibleEventIds) {
                 $query->whereIn('event_id', $accessibleEventIds);
@@ -36,11 +37,12 @@ class CategoryController extends Controller
             ->withQueryString();
 
         $events = Event::query()
+            ->visibleToStaff($user)
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($user) {
                 $query->where('manager_id', $user->id);
             })
             ->orderBy('event_date')
-            ->get(['id', 'title', 'interest_type']);
+            ->get();
 
         $selectedEvent = $request->filled('event_id')
             ? $events->firstWhere('id', $request->integer('event_id'))
@@ -54,11 +56,12 @@ class CategoryController extends Controller
         $user = auth()->user();
         $paymentMethods = Category::paymentMethods();
         $events = Event::query()
+            ->visibleToStaff($user)
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($user) {
                 $query->where('manager_id', $user->id);
             })
             ->orderBy('event_date')
-            ->get();
+            ->get()->filter(fn (Event $event) => $event->canEditSetup($user));
 
         return view('admin.categories.create', compact('events', 'paymentMethods'));
     }
@@ -67,6 +70,7 @@ class CategoryController extends Controller
     {
         $accessibleEventIds = $this->accessibleEventIds($request);
         $selectedEvent = Event::query()
+            ->visibleToStaff($request->user())
             ->whereIn('id', $accessibleEventIds)
             ->find($request->input('event_id'));
 
@@ -358,7 +362,8 @@ class CategoryController extends Controller
             throw $exception;
         }
 
-        if ($oldCheckpointMapPath && $oldCheckpointMapPath !== $category->fresh()->checkpoint_map_image) {
+        if ($oldCheckpointMapPath && $oldCheckpointMapPath !== $category->fresh()->checkpoint_map_image
+            && ! Category::where('checkpoint_map_image', $oldCheckpointMapPath)->exists()) {
             Storage::disk('public')->delete($oldCheckpointMapPath);
         }
 
@@ -383,7 +388,7 @@ class CategoryController extends Controller
 
         $category->delete();
 
-        if ($checkpointMapPath) {
+        if ($checkpointMapPath && ! Category::where('checkpoint_map_image', $checkpointMapPath)->exists()) {
             Storage::disk('public')->delete($checkpointMapPath);
         }
 
@@ -399,6 +404,8 @@ class CategoryController extends Controller
         abort_unless($this->canAccessCategory($category), 403);
 
         $category->load('event');
+
+        abort_unless($category->event?->isReviewPublished(), 403, 'An unpublished event cannot be started.');
 
         if ($category->started_at) {
             return back()->with('error', "{$category->name} already started at {$category->started_at->format('M j, Y g:i:s A')}.");
@@ -440,7 +447,7 @@ class CategoryController extends Controller
         $user = $request->user();
 
         if (! $user->managesAssignedEventsOnly()) {
-            return Event::pluck('id')->all();
+            return Event::visibleToStaff($user)->pluck('id')->all();
         }
 
         return $user->managedEventIds();

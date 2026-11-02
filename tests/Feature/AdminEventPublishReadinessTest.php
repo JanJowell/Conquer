@@ -4,16 +4,17 @@ use App\Models\Category;
 use App\Models\Event;
 use App\Models\User;
 
-function superAdminUser(): User
+function eventSetupManager(): User
 {
     return User::factory()->create([
-        'role' => User::ROLE_SUPER_ADMIN,
+        'role' => User::ROLE_EVENT_MANAGER,
     ]);
 }
 
-function draftEvent(array $overrides = []): Event
+function draftEvent(User $manager, array $overrides = []): Event
 {
     return Event::create(array_merge([
+        'manager_id' => $manager->id,
         'title' => 'City Fun Run',
         'slug' => 'city-fun-run-'.uniqid(),
         'venue' => 'Bacoor City',
@@ -57,7 +58,6 @@ function completeEventPayload(Event $event, array $overrides = []): array
         'end_time' => '',
         'registration_deadline' => now()->addWeek()->toDateString(),
         'banner_image' => 'events/banners/sample.jpg',
-        'organized_by' => 'Conquer Events Team',
         'interest_type' => config('conquer.event_interest_types.0'),
         'type_details' => [
             'Cycling' => [
@@ -72,8 +72,8 @@ function completeEventPayload(Event $event, array $overrides = []): array
 }
 
 test('an event stays draft until mobile-facing details are complete', function () {
-    $admin = superAdminUser();
-    $event = draftEvent();
+    $admin = eventSetupManager();
+    $event = draftEvent($admin);
     openCategoryFor($event);
 
     $this
@@ -83,7 +83,6 @@ test('an event stays draft until mobile-facing details are complete', function (
             'start_time' => '',
             'registration_deadline' => '',
             'banner_image' => '',
-            'organized_by' => '',
         ]))
         ->assertRedirect()
         ->assertSessionHasNoErrors();
@@ -92,8 +91,8 @@ test('an event stays draft until mobile-facing details are complete', function (
 });
 
 test('an event stays draft until it has an open category', function () {
-    $admin = superAdminUser();
-    $event = draftEvent();
+    $admin = eventSetupManager();
+    $event = draftEvent($admin);
 
     $this
         ->actingAs($admin)
@@ -105,8 +104,8 @@ test('an event stays draft until it has an open category', function () {
 });
 
 test('an event stays draft until its selected type details are complete', function () {
-    $admin = superAdminUser();
-    $event = draftEvent();
+    $admin = eventSetupManager();
+    $event = draftEvent($admin);
     openCategoryFor($event);
 
     $this
@@ -130,8 +129,8 @@ test('an event stays draft until its selected type details are complete', functi
 });
 
 test('a paid event stays draft until payment details are complete', function () {
-    $admin = superAdminUser();
-    $event = draftEvent();
+    $admin = eventSetupManager();
+    $event = draftEvent($admin);
     paidOpenCategoryFor($event);
 
     $this
@@ -144,8 +143,8 @@ test('a paid event stays draft until payment details are complete', function () 
 });
 
 test('an event can be opened when details and an open category are ready', function () {
-    $admin = superAdminUser();
-    $event = draftEvent();
+    $admin = eventSetupManager();
+    $event = draftEvent($admin);
     openCategoryFor($event);
 
     $this
@@ -154,12 +153,14 @@ test('an event can be opened when details and an open category are ready', funct
         ->assertRedirect(route('admin.events.show', $event))
         ->assertSessionHasNoErrors();
 
+    expect($event->fresh()->status)->toBe('draft');
+    approveEventSetupForTest($event);
     expect($event->fresh()->status)->toBe('upcoming');
 });
 
 test('a paid event can be opened when payment details are ready', function () {
-    $admin = superAdminUser();
-    $event = draftEvent();
+    $admin = eventSetupManager();
+    $event = draftEvent($admin);
     paidOpenCategoryFor($event, [
         'payment_provider' => 'GCash',
         'payment_account_name' => 'Conquer Events',
@@ -172,11 +173,14 @@ test('a paid event can be opened when payment details are ready', function () {
         ->assertRedirect(route('admin.events.show', $event))
         ->assertSessionHasNoErrors();
 
+    expect($event->fresh()->status)->toBe('draft');
+    approveEventSetupForTest($event);
     expect($event->fresh()->status)->toBe('upcoming');
 });
 
-test('an event can be created with embedded open categories', function () {
-    $admin = superAdminUser();
+test('an event can be created and published without an organizer while assigning a manager', function (array $legacyInput) {
+    $admin = eventSetupManager();
+    $manager = $admin;
 
     $payload = completeEventPayload(new Event([
         'title' => 'Racetech Night Run',
@@ -184,6 +188,7 @@ test('an event can be created with embedded open categories', function () {
         'event_date' => now()->addMonth(),
     ]), [
         'title' => 'Racetech Night Run',
+        'manager_id' => $manager->id,
         'categories' => [
             [
                 'category_type' => 'open',
@@ -209,7 +214,7 @@ test('an event can be created with embedded open categories', function () {
                 'status' => 'open',
             ],
         ],
-    ]);
+    ] + $legacyInput);
 
     $this
         ->actingAs($admin)
@@ -219,14 +224,68 @@ test('an event can be created with embedded open categories', function () {
 
     $event = Event::where('title', 'Racetech Night Run')->first();
 
+    expect($event->fresh()->status)->toBe('draft');
+    approveEventSetupForTest($event);
     expect($event)->not->toBeNull()
         ->and($event->fresh()->status)->toBe('upcoming')
+        ->and($event->fresh()->organized_by)->toBeNull()
+        ->and($event->fresh()->manager_id)->toBe($manager->id)
         ->and($event->categories()->count())->toBe(2)
         ->and($event->categories()->pluck('name')->all())->toContain('5K Open', '10K Female');
+
+    $this->getJson('/api/events/'.$event->id)->assertOk()
+        ->assertJsonStructure(['data' => ['organized_by']])
+        ->assertJsonPath('data.organized_by', null);
+})->with([
+    'current form' => [[]],
+    'older form with retired field' => [['organized_by' => 'Ignored organizer input']],
+]);
+
+test('event updates preserve historical organizer data and the mobile response', function (array $legacyInput) {
+    $admin = eventSetupManager();
+    $manager = $admin;
+    $event = draftEvent($admin, ['organized_by' => 'Historical organizer', 'manager_id' => $manager->id]);
+    openCategoryFor($event);
+
+    $this->actingAs($admin)
+        ->put(route('admin.events.update', $event), completeEventPayload($event, $legacyInput))
+        ->assertRedirect(route('admin.events.show', $event))
+        ->assertSessionHasNoErrors();
+
+    approveEventSetupForTest($event);
+    expect($event->fresh()->organized_by)->toBe('Historical organizer')
+        ->and($event->fresh()->manager_id)->toBe($manager->id)
+        ->and($event->fresh()->status)->toBe('upcoming');
+    $this->getJson('/api/events/'.$event->id)->assertOk()
+        ->assertJsonPath('data.organized_by', 'Historical organizer');
+})->with([
+    'field omitted' => [[]],
+    'older form attempts replacement' => [['organized_by' => 'Replacement organizer']],
+]);
+
+test('event manager event forms and displays omit the retired organizer and retain manager assignment', function () {
+    $admin = eventSetupManager();
+    $manager = $admin;
+    $manager->update(['name' => 'Assigned Test Manager']);
+    $event = draftEvent($admin, ['organized_by' => 'Historical organizer', 'manager_id' => $manager->id]);
+    $this->actingAs($admin);
+
+    foreach ([route('admin.events.create'), route('admin.events.edit', $event)] as $url) {
+        $this->get($url)->assertOk()
+            ->assertDontSee('name="organized_by"', false)->assertDontSee('Organized By')
+            ->assertDontSee('Historical organizer')->assertDontSee('add the organizer')
+            ->assertDontSee('name="manager_id"', false);
+    }
+    foreach ([route('admin.events.index'), route('admin.events.show', $event)] as $url) {
+        $this->get($url)->assertOk()
+            ->assertDontSee('name="organized_by"', false)->assertDontSee('Organized By')
+            ->assertDontSee('Organizer')->assertDontSee('Historical organizer')
+            ->assertDontSee('add the organizer')->assertSee('Assigned Test Manager');
+    }
 });
 
 test('an event can be created with an embedded group category', function () {
-    $admin = superAdminUser();
+    $admin = eventSetupManager();
 
     $payload = completeEventPayload(new Event([
         'title' => 'Racetech Group Run',

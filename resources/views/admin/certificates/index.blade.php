@@ -9,7 +9,7 @@
         <div>
             <p class="text-xs font-semibold uppercase tracking-wide text-indigo-400">Official completion records</p>
             <h1 class="mt-1 text-2xl font-bold text-slate-700">E-Certificates</h1>
-            <p class="mt-1 max-w-3xl text-sm text-slate-400">Certificates are issued automatically once a participant has a completed registration with an official result. Feedback remains optional.</p>
+            <p class="mt-1 max-w-3xl text-sm text-slate-400">New certificates require a completed registration, an official result, and submitted participant feedback. Any valid rating qualifies; written comments are optional. Already-issued certificates remain accessible.</p>
         </div>
 
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

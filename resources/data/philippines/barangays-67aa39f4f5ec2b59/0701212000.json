@@ -1,0 +1,147 @@
+{
+    "0701212001": {
+        "code": "0701212001",
+        "name": "Alegria",
+        "city_code": "0701212000"
+    },
+    "0701212002": {
+        "code": "0701212002",
+        "name": "Bicao",
+        "city_code": "0701212000"
+    },
+    "0701212003": {
+        "code": "0701212003",
+        "name": "Buenavista",
+        "city_code": "0701212000"
+    },
+    "0701212004": {
+        "code": "0701212004",
+        "name": "Buenos Aires",
+        "city_code": "0701212000"
+    },
+    "0701212005": {
+        "code": "0701212005",
+        "name": "Calatrava",
+        "city_code": "0701212000"
+    },
+    "0701212006": {
+        "code": "0701212006",
+        "name": "El Progreso",
+        "city_code": "0701212000"
+    },
+    "0701212007": {
+        "code": "0701212007",
+        "name": "El Salvador",
+        "city_code": "0701212000"
+    },
+    "0701212008": {
+        "code": "0701212008",
+        "name": "Guadalupe",
+        "city_code": "0701212000"
+    },
+    "0701212009": {
+        "code": "0701212009",
+        "name": "Katipunan",
+        "city_code": "0701212000"
+    },
+    "0701212010": {
+        "code": "0701212010",
+        "name": "La Libertad",
+        "city_code": "0701212000"
+    },
+    "0701212011": {
+        "code": "0701212011",
+        "name": "La Paz",
+        "city_code": "0701212000"
+    },
+    "0701212012": {
+        "code": "0701212012",
+        "name": "La Salvacion",
+        "city_code": "0701212000"
+    },
+    "0701212013": {
+        "code": "0701212013",
+        "name": "La Victoria",
+        "city_code": "0701212000"
+    },
+    "0701212014": {
+        "code": "0701212014",
+        "name": "Matin-ao",
+        "city_code": "0701212000"
+    },
+    "0701212015": {
+        "code": "0701212015",
+        "name": "Montehermoso",
+        "city_code": "0701212000"
+    },
+    "0701212016": {
+        "code": "0701212016",
+        "name": "Montesuerte",
+        "city_code": "0701212000"
+    },
+    "0701212017": {
+        "code": "0701212017",
+        "name": "Montesunting",
+        "city_code": "0701212000"
+    },
+    "0701212018": {
+        "code": "0701212018",
+        "name": "Montevideo",
+        "city_code": "0701212000"
+    },
+    "0701212019": {
+        "code": "0701212019",
+        "name": "Nueva Fuerza",
+        "city_code": "0701212000"
+    },
+    "0701212020": {
+        "code": "0701212020",
+        "name": "Nueva Vida Este",
+        "city_code": "0701212000"
+    },
+    "0701212021": {
+        "code": "0701212021",
+        "name": "Nueva Vida Sur",
+        "city_code": "0701212000"
+    },
+    "0701212022": {
+        "code": "0701212022",
+        "name": "Nueva Vida Norte",
+        "city_code": "0701212000"
+    },
+    "0701212023": {
+        "code": "0701212023",
+        "name": "Poblacion Norte",
+        "city_code": "0701212000"
+    },
+    "0701212024": {
+        "code": "0701212024",
+        "name": "Poblacion Sur",
+        "city_code": "0701212000"
+    },
+    "0701212025": {
+        "code": "0701212025",
+        "name": "Tambo-an",
+        "city_code": "0701212000"
+    },
+    "0701212026": {
+        "code": "0701212026",
+        "name": "Vallehermoso",
+        "city_code": "0701212000"
+    },
+    "0701212027": {
+        "code": "0701212027",
+        "name": "Villaflor",
+        "city_code": "0701212000"
+    },
+    "0701212028": {
+        "code": "0701212028",
+        "name": "Villafuerte",
+        "city_code": "0701212000"
+    },
+    "0701212029": {
+        "code": "0701212029",
+        "name": "Villarcayo",
+        "city_code": "0701212000"
+    }
+}

@@ -1,0 +1,222 @@
+{
+    "0305408001": {
+        "code": "0305408001",
+        "name": "Balantacan",
+        "city_code": "0305408000"
+    },
+    "0305408002": {
+        "code": "0305408002",
+        "name": "Bancal Sinubli",
+        "city_code": "0305408000"
+    },
+    "0305408003": {
+        "code": "0305408003",
+        "name": "Bancal Pugad",
+        "city_code": "0305408000"
+    },
+    "0305408004": {
+        "code": "0305408004",
+        "name": "Baruya",
+        "city_code": "0305408000"
+    },
+    "0305408005": {
+        "code": "0305408005",
+        "name": "Calangain",
+        "city_code": "0305408000"
+    },
+    "0305408006": {
+        "code": "0305408006",
+        "name": "Concepcion",
+        "city_code": "0305408000"
+    },
+    "0305408007": {
+        "code": "0305408007",
+        "name": "Del Carmen",
+        "city_code": "0305408000"
+    },
+    "0305408008": {
+        "code": "0305408008",
+        "name": "De La Paz",
+        "city_code": "0305408000"
+    },
+    "0305408009": {
+        "code": "0305408009",
+        "name": "Don Ignacio Dimson",
+        "city_code": "0305408000"
+    },
+    "0305408010": {
+        "code": "0305408010",
+        "name": "Lourdes",
+        "city_code": "0305408000"
+    },
+    "0305408011": {
+        "code": "0305408011",
+        "name": "Prado Siongco",
+        "city_code": "0305408000"
+    },
+    "0305408012": {
+        "code": "0305408012",
+        "name": "Remedios",
+        "city_code": "0305408000"
+    },
+    "0305408013": {
+        "code": "0305408013",
+        "name": "San Agustin",
+        "city_code": "0305408000"
+    },
+    "0305408014": {
+        "code": "0305408014",
+        "name": "San Antonio",
+        "city_code": "0305408000"
+    },
+    "0305408015": {
+        "code": "0305408015",
+        "name": "San Francisco",
+        "city_code": "0305408000"
+    },
+    "0305408016": {
+        "code": "0305408016",
+        "name": "San Isidro",
+        "city_code": "0305408000"
+    },
+    "0305408017": {
+        "code": "0305408017",
+        "name": "San Jose Apunan",
+        "city_code": "0305408000"
+    },
+    "0305408018": {
+        "code": "0305408018",
+        "name": "San Jose Gumi",
+        "city_code": "0305408000"
+    },
+    "0305408019": {
+        "code": "0305408019",
+        "name": "San Juan",
+        "city_code": "0305408000"
+    },
+    "0305408020": {
+        "code": "0305408020",
+        "name": "San Matias",
+        "city_code": "0305408000"
+    },
+    "0305408021": {
+        "code": "0305408021",
+        "name": "San Miguel",
+        "city_code": "0305408000"
+    },
+    "0305408022": {
+        "code": "0305408022",
+        "name": "San Nicolas 1st",
+        "city_code": "0305408000"
+    },
+    "0305408023": {
+        "code": "0305408023",
+        "name": "San Nicolas 2nd",
+        "city_code": "0305408000"
+    },
+    "0305408024": {
+        "code": "0305408024",
+        "name": "San Pablo 1st",
+        "city_code": "0305408000"
+    },
+    "0305408025": {
+        "code": "0305408025",
+        "name": "San Pablo 2nd",
+        "city_code": "0305408000"
+    },
+    "0305408026": {
+        "code": "0305408026",
+        "name": "San Pedro Palcarangan",
+        "city_code": "0305408000"
+    },
+    "0305408027": {
+        "code": "0305408027",
+        "name": "San Pedro Saug",
+        "city_code": "0305408000"
+    },
+    "0305408029": {
+        "code": "0305408029",
+        "name": "San Roque Arbol",
+        "city_code": "0305408000"
+    },
+    "0305408030": {
+        "code": "0305408030",
+        "name": "San Roque Dau",
+        "city_code": "0305408000"
+    },
+    "0305408031": {
+        "code": "0305408031",
+        "name": "San Vicente",
+        "city_code": "0305408000"
+    },
+    "0305408032": {
+        "code": "0305408032",
+        "name": "Santa Barbara",
+        "city_code": "0305408000"
+    },
+    "0305408033": {
+        "code": "0305408033",
+        "name": "Santa Catalina",
+        "city_code": "0305408000"
+    },
+    "0305408034": {
+        "code": "0305408034",
+        "name": "Santa Cruz",
+        "city_code": "0305408000"
+    },
+    "0305408035": {
+        "code": "0305408035",
+        "name": "Santa Lucia",
+        "city_code": "0305408000"
+    },
+    "0305408036": {
+        "code": "0305408036",
+        "name": "Santa Maria",
+        "city_code": "0305408000"
+    },
+    "0305408037": {
+        "code": "0305408037",
+        "name": "Santa Monica",
+        "city_code": "0305408000"
+    },
+    "0305408038": {
+        "code": "0305408038",
+        "name": "Santa Rita",
+        "city_code": "0305408000"
+    },
+    "0305408040": {
+        "code": "0305408040",
+        "name": "Santa Teresa 1st",
+        "city_code": "0305408000"
+    },
+    "0305408041": {
+        "code": "0305408041",
+        "name": "Santa Teresa 2nd",
+        "city_code": "0305408000"
+    },
+    "0305408042": {
+        "code": "0305408042",
+        "name": "Santiago",
+        "city_code": "0305408000"
+    },
+    "0305408043": {
+        "code": "0305408043",
+        "name": "Santo Domingo",
+        "city_code": "0305408000"
+    },
+    "0305408044": {
+        "code": "0305408044",
+        "name": "Santo Niño",
+        "city_code": "0305408000"
+    },
+    "0305408045": {
+        "code": "0305408045",
+        "name": "Santo Tomas",
+        "city_code": "0305408000"
+    },
+    "0305408046": {
+        "code": "0305408046",
+        "name": "Santo Cristo",
+        "city_code": "0305408000"
+    }
+}

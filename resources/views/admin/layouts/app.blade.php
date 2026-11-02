@@ -696,22 +696,6 @@
                     ],
                 ],
             ],
-            \App\Models\User::ROLE_EXECUTIVE => [
-                ['route' => route('admin.dashboard'), 'match' => 'admin.dashboard', 'icon' => 'fa-house', 'label' => 'Executive Dashboard'],
-                ['route' => route('admin.analytics'), 'match' => 'admin.analytics', 'icon' => 'fa-chart-column', 'label' => 'Analytics & Reports'],
-                ['route' => route('admin.events.index'), 'match' => 'admin.events.index', 'icon' => 'fa-calendar-days', 'label' => 'Events Overview'],
-                ['route' => route('admin.users.index'), 'match' => 'admin.users.*', 'icon' => 'fa-user', 'label' => 'Users Overview'],
-                ['route' => route('admin.feedback-insights'), 'match' => 'admin.feedback-insights', 'icon' => 'fa-message', 'label' => 'Feedback Insights'],
-            ],
-            \App\Models\User::ROLE_CONTENT_MODERATOR => [
-                ['route' => route('admin.dashboard'), 'match' => 'admin.dashboard', 'icon' => 'fa-house', 'label' => 'Dashboard'],
-                ['route' => route('admin.announcements.index'), 'match' => 'admin.announcements.*', 'icon' => 'fa-bullhorn', 'label' => 'Announcements'],
-                ['route' => route('admin.notifications.index'), 'match' => 'admin.notifications.*', 'icon' => 'fa-bell', 'label' => 'Notifications'],
-                ['route' => route('admin.content.pending-review'), 'match' => 'admin.content.pending-review', 'icon' => 'fa-list-check', 'label' => 'Pending Review'],
-                ['route' => route('admin.content.training-modules'), 'match' => 'admin.content.training-modules*', 'icon' => 'fa-file-pen', 'label' => 'Training Content'],
-                ['route' => route('admin.content.community-posts'), 'match' => 'admin.content.community-posts*', 'icon' => 'fa-comments', 'label' => 'Community Queue'],
-                ['route' => route('admin.feedback-insights'), 'match' => 'admin.feedback-insights', 'icon' => 'fa-flag', 'label' => 'Feedback Insights'],
-            ],
             \App\Models\User::ROLE_EVENT_MANAGER => [
                 ['route' => route('admin.dashboard'), 'match' => 'admin.dashboard', 'icon' => 'fa-house', 'label' => 'Dashboard'],
                 ['route' => route('admin.events.index'), 'match' => 'admin.events.*', 'icon' => 'fa-calendar-days', 'label' => 'My Events'],
@@ -732,10 +716,9 @@
         $successCreateAction = null;
         $canManageUsers = $user->hasAdminRole(\App\Models\User::ROLE_SUPER_ADMIN);
         $canManageEvents = $user->hasAdminRole([\App\Models\User::ROLE_SUPER_ADMIN, \App\Models\User::ROLE_EVENT_MANAGER]);
-        $canManageContent = $user->hasAdminRole([\App\Models\User::ROLE_SUPER_ADMIN, \App\Models\User::ROLE_CONTENT_MODERATOR]);
+        $canManageContent = $user->hasAdminRole(\App\Models\User::ROLE_SUPER_ADMIN);
         $canPublishCommunications = $user->hasAdminRole([
             \App\Models\User::ROLE_SUPER_ADMIN,
-            \App\Models\User::ROLE_CONTENT_MODERATOR,
             \App\Models\User::ROLE_EVENT_MANAGER,
         ]);
 
@@ -745,9 +728,9 @@
             $successCreateAction = ['label' => 'Create another notification', 'target' => 'create-notification'];
         } elseif ($currentRouteName === 'admin.users.index' && $canManageUsers && \Illuminate\Support\Facades\Route::has('admin.users.create')) {
             $successCreateAction = ['label' => 'Create another user', 'url' => route('admin.users.create')];
-        } elseif ($currentRouteName === 'admin.events.index' && $canManageEvents && \Illuminate\Support\Facades\Route::has('admin.events.create')) {
+        } elseif ($currentRouteName === 'admin.events.index' && $user->managesAssignedEventsOnly() && \Illuminate\Support\Facades\Route::has('admin.events.create')) {
             $successCreateAction = ['label' => 'Create another event', 'url' => route('admin.events.create')];
-        } elseif ($currentRouteName === 'admin.categories.index' && $canManageEvents && \Illuminate\Support\Facades\Route::has('admin.categories.create')) {
+        } elseif ($currentRouteName === 'admin.categories.index' && $user->managesAssignedEventsOnly() && \Illuminate\Support\Facades\Route::has('admin.categories.create')) {
             $successCreateAction = ['label' => 'Create another category', 'url' => route('admin.categories.create')];
         } elseif ($currentRouteName === 'admin.content.training-modules' && $canManageContent && \Illuminate\Support\Facades\Route::has('admin.content.training-modules.create')) {
             $successCreateAction = ['label' => 'Create another training module', 'url' => route('admin.content.training-modules.create')];

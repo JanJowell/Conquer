@@ -21,7 +21,7 @@ function feedbackTestRunner(array $overrides = []): array
 
 function feedbackTestEvent(?User $manager = null, array $overrides = []): Event
 {
-    return Event::create(array_merge([
+    return Event::forceCreate(array_merge(['review_status' => null,
         'title' => 'Feedback Event '.uniqid(),
         'slug' => 'feedback-event-'.uniqid(),
         'description' => 'Tests verified post-event feedback.',

@@ -1,0 +1,82 @@
+{
+    "0402116001": {
+        "code": "0402116001",
+        "name": "Magdiwang",
+        "city_code": "0402116000"
+    },
+    "0402116002": {
+        "code": "0402116002",
+        "name": "Poblacion",
+        "city_code": "0402116000"
+    },
+    "0402116003": {
+        "code": "0402116003",
+        "name": "Salcedo I",
+        "city_code": "0402116000"
+    },
+    "0402116004": {
+        "code": "0402116004",
+        "name": "San Antonio I",
+        "city_code": "0402116000"
+    },
+    "0402116005": {
+        "code": "0402116005",
+        "name": "San Juan I",
+        "city_code": "0402116000"
+    },
+    "0402116006": {
+        "code": "0402116006",
+        "name": "San Rafael I",
+        "city_code": "0402116000"
+    },
+    "0402116007": {
+        "code": "0402116007",
+        "name": "San Rafael II",
+        "city_code": "0402116000"
+    },
+    "0402116008": {
+        "code": "0402116008",
+        "name": "San Jose I",
+        "city_code": "0402116000"
+    },
+    "0402116009": {
+        "code": "0402116009",
+        "name": "Santa Rosa I",
+        "city_code": "0402116000"
+    },
+    "0402116010": {
+        "code": "0402116010",
+        "name": "Salcedo II",
+        "city_code": "0402116000"
+    },
+    "0402116011": {
+        "code": "0402116011",
+        "name": "San Antonio II",
+        "city_code": "0402116000"
+    },
+    "0402116012": {
+        "code": "0402116012",
+        "name": "San Jose II",
+        "city_code": "0402116000"
+    },
+    "0402116013": {
+        "code": "0402116013",
+        "name": "San Juan II",
+        "city_code": "0402116000"
+    },
+    "0402116014": {
+        "code": "0402116014",
+        "name": "San Rafael III",
+        "city_code": "0402116000"
+    },
+    "0402116015": {
+        "code": "0402116015",
+        "name": "San Rafael IV",
+        "city_code": "0402116000"
+    },
+    "0402116016": {
+        "code": "0402116016",
+        "name": "Santa Rosa II",
+        "city_code": "0402116000"
+    }
+}

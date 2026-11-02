@@ -1,0 +1,187 @@
+{
+    "0105531001": {
+        "code": "0105531001",
+        "name": "Acop",
+        "city_code": "0105531000"
+    },
+    "0105531002": {
+        "code": "0105531002",
+        "name": "Bakit-Bakit",
+        "city_code": "0105531000"
+    },
+    "0105531003": {
+        "code": "0105531003",
+        "name": "Balingcanaway",
+        "city_code": "0105531000"
+    },
+    "0105531004": {
+        "code": "0105531004",
+        "name": "Cabalaoangan Norte",
+        "city_code": "0105531000"
+    },
+    "0105531005": {
+        "code": "0105531005",
+        "name": "Cabalaoangan Sur",
+        "city_code": "0105531000"
+    },
+    "0105531006": {
+        "code": "0105531006",
+        "name": "Camangaan",
+        "city_code": "0105531000"
+    },
+    "0105531007": {
+        "code": "0105531007",
+        "name": "Capitan Tomas",
+        "city_code": "0105531000"
+    },
+    "0105531008": {
+        "code": "0105531008",
+        "name": "Carmay West",
+        "city_code": "0105531000"
+    },
+    "0105531009": {
+        "code": "0105531009",
+        "name": "Carmen East",
+        "city_code": "0105531000"
+    },
+    "0105531010": {
+        "code": "0105531010",
+        "name": "Carmen West",
+        "city_code": "0105531000"
+    },
+    "0105531012": {
+        "code": "0105531012",
+        "name": "Casanicolasan",
+        "city_code": "0105531000"
+    },
+    "0105531013": {
+        "code": "0105531013",
+        "name": "Coliling",
+        "city_code": "0105531000"
+    },
+    "0105531014": {
+        "code": "0105531014",
+        "name": "Calanutan",
+        "city_code": "0105531000"
+    },
+    "0105531015": {
+        "code": "0105531015",
+        "name": "Guiling",
+        "city_code": "0105531000"
+    },
+    "0105531016": {
+        "code": "0105531016",
+        "name": "Palakipak",
+        "city_code": "0105531000"
+    },
+    "0105531017": {
+        "code": "0105531017",
+        "name": "Pangaoan",
+        "city_code": "0105531000"
+    },
+    "0105531018": {
+        "code": "0105531018",
+        "name": "Rabago",
+        "city_code": "0105531000"
+    },
+    "0105531019": {
+        "code": "0105531019",
+        "name": "Rizal",
+        "city_code": "0105531000"
+    },
+    "0105531020": {
+        "code": "0105531020",
+        "name": "Salvacion",
+        "city_code": "0105531000"
+    },
+    "0105531021": {
+        "code": "0105531021",
+        "name": "San Antonio",
+        "city_code": "0105531000"
+    },
+    "0105531022": {
+        "code": "0105531022",
+        "name": "San Bartolome",
+        "city_code": "0105531000"
+    },
+    "0105531023": {
+        "code": "0105531023",
+        "name": "San Isidro",
+        "city_code": "0105531000"
+    },
+    "0105531024": {
+        "code": "0105531024",
+        "name": "San Luis",
+        "city_code": "0105531000"
+    },
+    "0105531025": {
+        "code": "0105531025",
+        "name": "San Pedro East",
+        "city_code": "0105531000"
+    },
+    "0105531026": {
+        "code": "0105531026",
+        "name": "San Pedro West",
+        "city_code": "0105531000"
+    },
+    "0105531027": {
+        "code": "0105531027",
+        "name": "San Vicente",
+        "city_code": "0105531000"
+    },
+    "0105531028": {
+        "code": "0105531028",
+        "name": "San Angel",
+        "city_code": "0105531000"
+    },
+    "0105531029": {
+        "code": "0105531029",
+        "name": "Station District",
+        "city_code": "0105531000"
+    },
+    "0105531031": {
+        "code": "0105531031",
+        "name": "Tomana East",
+        "city_code": "0105531000"
+    },
+    "0105531032": {
+        "code": "0105531032",
+        "name": "Tomana West",
+        "city_code": "0105531000"
+    },
+    "0105531033": {
+        "code": "0105531033",
+        "name": "Zone I",
+        "city_code": "0105531000"
+    },
+    "0105531034": {
+        "code": "0105531034",
+        "name": "Zone IV",
+        "city_code": "0105531000"
+    },
+    "0105531035": {
+        "code": "0105531035",
+        "name": "Carmay East",
+        "city_code": "0105531000"
+    },
+    "0105531036": {
+        "code": "0105531036",
+        "name": "Don Antonio Village",
+        "city_code": "0105531000"
+    },
+    "0105531037": {
+        "code": "0105531037",
+        "name": "Zone II",
+        "city_code": "0105531000"
+    },
+    "0105531038": {
+        "code": "0105531038",
+        "name": "Zone III",
+        "city_code": "0105531000"
+    },
+    "0105531039": {
+        "code": "0105531039",
+        "name": "Zone V",
+        "city_code": "0105531000"
+    }
+}

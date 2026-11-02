@@ -16,6 +16,7 @@ class EventManagerAvailability
         }
 
         return Event::query()
+            ->whereNull('revision_of_id')
             ->where('manager_id', $managerId)
             ->when($exceptEventId, fn ($query) => $query->whereKeyNot($exceptEventId))
             ->whereDate('event_date', '<=', $candidate['end_date']->toDateString())

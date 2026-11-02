@@ -1,0 +1,102 @@
+{
+    "1380200001": {
+        "code": "1380200001",
+        "name": "Almanza Uno",
+        "city_code": "1380200000"
+    },
+    "1380200002": {
+        "code": "1380200002",
+        "name": "Daniel Fajardo",
+        "city_code": "1380200000"
+    },
+    "1380200003": {
+        "code": "1380200003",
+        "name": "Elias Aldana",
+        "city_code": "1380200000"
+    },
+    "1380200004": {
+        "code": "1380200004",
+        "name": "Ilaya",
+        "city_code": "1380200000"
+    },
+    "1380200005": {
+        "code": "1380200005",
+        "name": "Manuyo Uno",
+        "city_code": "1380200000"
+    },
+    "1380200006": {
+        "code": "1380200006",
+        "name": "Pamplona Uno",
+        "city_code": "1380200000"
+    },
+    "1380200007": {
+        "code": "1380200007",
+        "name": "Pulang Lupa Uno",
+        "city_code": "1380200000"
+    },
+    "1380200008": {
+        "code": "1380200008",
+        "name": "Talon Uno",
+        "city_code": "1380200000"
+    },
+    "1380200009": {
+        "code": "1380200009",
+        "name": "Zapote",
+        "city_code": "1380200000"
+    },
+    "1380200010": {
+        "code": "1380200010",
+        "name": "Almanza Dos",
+        "city_code": "1380200000"
+    },
+    "1380200011": {
+        "code": "1380200011",
+        "name": "B. F. International Village",
+        "city_code": "1380200000"
+    },
+    "1380200012": {
+        "code": "1380200012",
+        "name": "Manuyo Dos",
+        "city_code": "1380200000"
+    },
+    "1380200013": {
+        "code": "1380200013",
+        "name": "Pamplona Dos",
+        "city_code": "1380200000"
+    },
+    "1380200014": {
+        "code": "1380200014",
+        "name": "Pamplona Tres",
+        "city_code": "1380200000"
+    },
+    "1380200015": {
+        "code": "1380200015",
+        "name": "Pilar",
+        "city_code": "1380200000"
+    },
+    "1380200016": {
+        "code": "1380200016",
+        "name": "Pulang Lupa Dos",
+        "city_code": "1380200000"
+    },
+    "1380200017": {
+        "code": "1380200017",
+        "name": "Talon Dos",
+        "city_code": "1380200000"
+    },
+    "1380200018": {
+        "code": "1380200018",
+        "name": "Talon Tres",
+        "city_code": "1380200000"
+    },
+    "1380200019": {
+        "code": "1380200019",
+        "name": "Talon Kuatro",
+        "city_code": "1380200000"
+    },
+    "1380200020": {
+        "code": "1380200020",
+        "name": "Talon Singko",
+        "city_code": "1380200000"
+    }
+}

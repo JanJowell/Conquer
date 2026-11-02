@@ -1,0 +1,72 @@
+{
+    "0506215001": {
+        "code": "0506215001",
+        "name": "La Esperanza",
+        "city_code": "0506215000"
+    },
+    "0506215002": {
+        "code": "0506215002",
+        "name": "Peñafrancia",
+        "city_code": "0506215000"
+    },
+    "0506215003": {
+        "code": "0506215003",
+        "name": "Barangay Poblacion I",
+        "city_code": "0506215000"
+    },
+    "0506215004": {
+        "code": "0506215004",
+        "name": "Barangay Poblacion II",
+        "city_code": "0506215000"
+    },
+    "0506215005": {
+        "code": "0506215005",
+        "name": "Barangay Poblacion III",
+        "city_code": "0506215000"
+    },
+    "0506215006": {
+        "code": "0506215006",
+        "name": "Barangay Poblacion IV",
+        "city_code": "0506215000"
+    },
+    "0506215007": {
+        "code": "0506215007",
+        "name": "Salvacion",
+        "city_code": "0506215000"
+    },
+    "0506215008": {
+        "code": "0506215008",
+        "name": "San Antonio",
+        "city_code": "0506215000"
+    },
+    "0506215009": {
+        "code": "0506215009",
+        "name": "San Bartolome",
+        "city_code": "0506215000"
+    },
+    "0506215010": {
+        "code": "0506215010",
+        "name": "San Eugenio",
+        "city_code": "0506215000"
+    },
+    "0506215011": {
+        "code": "0506215011",
+        "name": "San Isidro",
+        "city_code": "0506215000"
+    },
+    "0506215012": {
+        "code": "0506215012",
+        "name": "San Rafael",
+        "city_code": "0506215000"
+    },
+    "0506215013": {
+        "code": "0506215013",
+        "name": "San Roque",
+        "city_code": "0506215000"
+    },
+    "0506215014": {
+        "code": "0506215014",
+        "name": "San Sebastian",
+        "city_code": "0506215000"
+    }
+}

@@ -22,7 +22,7 @@ function readinessRunner(): array
 
 function readinessEvent(string $eventType = 'Trail Run'): Event
 {
-    return Event::create([
+    return Event::forceCreate(['review_status' => null,
         'title' => 'Readiness Event '.uniqid(),
         'slug' => 'readiness-event-'.uniqid(),
         'description' => 'Tests the participant readiness API.',
@@ -197,7 +197,7 @@ test('completed registration exposes its result and issued e badges', function (
         ->getJson('/api/my-registrations')
         ->assertOk()
         ->assertJsonPath('data.0.readiness.overall_status', 'completed')
-        ->assertJsonPath('data.0.readiness.next_action.key', 'view_results')
+        ->assertJsonPath('data.0.readiness.next_action.key', 'submit_feedback')
         ->assertJsonPath('data.0.readiness.result.id', $result->id)
         ->assertJsonPath('data.0.readiness.result.finish_time', '00:48:15')
         ->assertJsonPath('data.0.readiness.e_badges.available', true)

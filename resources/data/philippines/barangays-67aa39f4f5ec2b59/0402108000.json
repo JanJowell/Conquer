@@ -1,0 +1,167 @@
+{
+    "0402108001": {
+        "code": "0402108001",
+        "name": "Alingaro",
+        "city_code": "0402108000"
+    },
+    "0402108002": {
+        "code": "0402108002",
+        "name": "Bacao I",
+        "city_code": "0402108000"
+    },
+    "0402108003": {
+        "code": "0402108003",
+        "name": "Gov. Ferrer Pob.",
+        "city_code": "0402108000"
+    },
+    "0402108004": {
+        "code": "0402108004",
+        "name": "Sampalucan Pob.",
+        "city_code": "0402108000"
+    },
+    "0402108005": {
+        "code": "0402108005",
+        "name": "Dulong Bayan Pob.",
+        "city_code": "0402108000"
+    },
+    "0402108006": {
+        "code": "0402108006",
+        "name": "San Gabriel Pob.",
+        "city_code": "0402108000"
+    },
+    "0402108007": {
+        "code": "0402108007",
+        "name": "Bagumbayan Pob.",
+        "city_code": "0402108000"
+    },
+    "0402108008": {
+        "code": "0402108008",
+        "name": "Vibora Pob.",
+        "city_code": "0402108000"
+    },
+    "0402108009": {
+        "code": "0402108009",
+        "name": "Ninety Sixth Pob.",
+        "city_code": "0402108000"
+    },
+    "0402108010": {
+        "code": "0402108010",
+        "name": "Prinza Pob.",
+        "city_code": "0402108000"
+    },
+    "0402108011": {
+        "code": "0402108011",
+        "name": "Biclatan",
+        "city_code": "0402108000"
+    },
+    "0402108012": {
+        "code": "0402108012",
+        "name": "Buenavista I",
+        "city_code": "0402108000"
+    },
+    "0402108013": {
+        "code": "0402108013",
+        "name": "Corregidor Pob.",
+        "city_code": "0402108000"
+    },
+    "0402108014": {
+        "code": "0402108014",
+        "name": "Javalera",
+        "city_code": "0402108000"
+    },
+    "0402108015": {
+        "code": "0402108015",
+        "name": "Manggahan",
+        "city_code": "0402108000"
+    },
+    "0402108016": {
+        "code": "0402108016",
+        "name": "Navarro",
+        "city_code": "0402108000"
+    },
+    "0402108017": {
+        "code": "0402108017",
+        "name": "Panungyanan",
+        "city_code": "0402108000"
+    },
+    "0402108018": {
+        "code": "0402108018",
+        "name": "Pasong Camachile I",
+        "city_code": "0402108000"
+    },
+    "0402108020": {
+        "code": "0402108020",
+        "name": "Pasong Kawayan I",
+        "city_code": "0402108000"
+    },
+    "0402108021": {
+        "code": "0402108021",
+        "name": "Pasong Kawayan II",
+        "city_code": "0402108000"
+    },
+    "0402108022": {
+        "code": "0402108022",
+        "name": "Pinagtipunan",
+        "city_code": "0402108000"
+    },
+    "0402108023": {
+        "code": "0402108023",
+        "name": "San Francisco",
+        "city_code": "0402108000"
+    },
+    "0402108025": {
+        "code": "0402108025",
+        "name": "San Juan I",
+        "city_code": "0402108000"
+    },
+    "0402108026": {
+        "code": "0402108026",
+        "name": "Santa Clara",
+        "city_code": "0402108000"
+    },
+    "0402108027": {
+        "code": "0402108027",
+        "name": "Santiago",
+        "city_code": "0402108000"
+    },
+    "0402108028": {
+        "code": "0402108028",
+        "name": "Tapia",
+        "city_code": "0402108000"
+    },
+    "0402108029": {
+        "code": "0402108029",
+        "name": "Tejero",
+        "city_code": "0402108000"
+    },
+    "0402108030": {
+        "code": "0402108030",
+        "name": "Arnaldo Pob.",
+        "city_code": "0402108000"
+    },
+    "0402108031": {
+        "code": "0402108031",
+        "name": "Bacao II",
+        "city_code": "0402108000"
+    },
+    "0402108032": {
+        "code": "0402108032",
+        "name": "Buenavista II",
+        "city_code": "0402108000"
+    },
+    "0402108033": {
+        "code": "0402108033",
+        "name": "Buenavista III",
+        "city_code": "0402108000"
+    },
+    "0402108034": {
+        "code": "0402108034",
+        "name": "Pasong Camachile II",
+        "city_code": "0402108000"
+    },
+    "0402108035": {
+        "code": "0402108035",
+        "name": "San Juan II",
+        "city_code": "0402108000"
+    }
+}

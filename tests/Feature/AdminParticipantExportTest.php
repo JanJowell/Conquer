@@ -7,7 +7,7 @@ use App\Models\User;
 
 function participantExportEvent(User $manager, string $title): Event
 {
-    return Event::create([
+    return Event::forceCreate(['review_status' => null,
         'title' => $title,
         'slug' => str($title)->slug().'-'.uniqid(),
         'description' => 'Participant export test event.',

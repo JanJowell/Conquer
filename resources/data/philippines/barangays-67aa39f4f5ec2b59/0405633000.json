@@ -1,0 +1,72 @@
+{
+    "0405633001": {
+        "code": "0405633001",
+        "name": "Maabot",
+        "city_code": "0405633000"
+    },
+    "0405633002": {
+        "code": "0405633002",
+        "name": "Mainit Norte",
+        "city_code": "0405633000"
+    },
+    "0405633003": {
+        "code": "0405633003",
+        "name": "Mainit Sur",
+        "city_code": "0405633000"
+    },
+    "0405633004": {
+        "code": "0405633004",
+        "name": "Pambuhan",
+        "city_code": "0405633000"
+    },
+    "0405633005": {
+        "code": "0405633005",
+        "name": "Pinagtubigan Este",
+        "city_code": "0405633000"
+    },
+    "0405633006": {
+        "code": "0405633006",
+        "name": "Pinagtubigan Weste",
+        "city_code": "0405633000"
+    },
+    "0405633007": {
+        "code": "0405633007",
+        "name": "Pagkakaisa Pob.",
+        "city_code": "0405633000"
+    },
+    "0405633008": {
+        "code": "0405633008",
+        "name": "Mapagmahal Pob.",
+        "city_code": "0405633000"
+    },
+    "0405633009": {
+        "code": "0405633009",
+        "name": "Bagong Pag-Asa Pob.",
+        "city_code": "0405633000"
+    },
+    "0405633010": {
+        "code": "0405633010",
+        "name": "Bagong Silang Pob.",
+        "city_code": "0405633000"
+    },
+    "0405633011": {
+        "code": "0405633011",
+        "name": "Rizal",
+        "city_code": "0405633000"
+    },
+    "0405633012": {
+        "code": "0405633012",
+        "name": "Sangirin",
+        "city_code": "0405633000"
+    },
+    "0405633013": {
+        "code": "0405633013",
+        "name": "Villamanzano Norte",
+        "city_code": "0405633000"
+    },
+    "0405633014": {
+        "code": "0405633014",
+        "name": "Villamanzano Sur",
+        "city_code": "0405633000"
+    }
+}

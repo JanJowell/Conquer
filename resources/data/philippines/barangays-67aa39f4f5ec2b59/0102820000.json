@@ -1,0 +1,122 @@
+{
+    "0102820001": {
+        "code": "0102820001",
+        "name": "San Francisco",
+        "city_code": "0102820000"
+    },
+    "0102820002": {
+        "code": "0102820002",
+        "name": "San Ildefonso",
+        "city_code": "0102820000"
+    },
+    "0102820003": {
+        "code": "0102820003",
+        "name": "San Agustin",
+        "city_code": "0102820000"
+    },
+    "0102820004": {
+        "code": "0102820004",
+        "name": "San Baltazar",
+        "city_code": "0102820000"
+    },
+    "0102820005": {
+        "code": "0102820005",
+        "name": "San Bartolome",
+        "city_code": "0102820000"
+    },
+    "0102820006": {
+        "code": "0102820006",
+        "name": "San Cayetano",
+        "city_code": "0102820000"
+    },
+    "0102820007": {
+        "code": "0102820007",
+        "name": "San Eugenio",
+        "city_code": "0102820000"
+    },
+    "0102820008": {
+        "code": "0102820008",
+        "name": "San Fernando",
+        "city_code": "0102820000"
+    },
+    "0102820009": {
+        "code": "0102820009",
+        "name": "San Gregorio",
+        "city_code": "0102820000"
+    },
+    "0102820010": {
+        "code": "0102820010",
+        "name": "San Guillermo",
+        "city_code": "0102820000"
+    },
+    "0102820011": {
+        "code": "0102820011",
+        "name": "San Jose",
+        "city_code": "0102820000"
+    },
+    "0102820012": {
+        "code": "0102820012",
+        "name": "San Juan Bautista",
+        "city_code": "0102820000"
+    },
+    "0102820013": {
+        "code": "0102820013",
+        "name": "San Lorenzo",
+        "city_code": "0102820000"
+    },
+    "0102820014": {
+        "code": "0102820014",
+        "name": "San Lucas",
+        "city_code": "0102820000"
+    },
+    "0102820015": {
+        "code": "0102820015",
+        "name": "San Marcos",
+        "city_code": "0102820000"
+    },
+    "0102820016": {
+        "code": "0102820016",
+        "name": "San Miguel",
+        "city_code": "0102820000"
+    },
+    "0102820017": {
+        "code": "0102820017",
+        "name": "San Pablo",
+        "city_code": "0102820000"
+    },
+    "0102820018": {
+        "code": "0102820018",
+        "name": "San Paulo",
+        "city_code": "0102820000"
+    },
+    "0102820019": {
+        "code": "0102820019",
+        "name": "San Pedro",
+        "city_code": "0102820000"
+    },
+    "0102820020": {
+        "code": "0102820020",
+        "name": "San Rufino",
+        "city_code": "0102820000"
+    },
+    "0102820021": {
+        "code": "0102820021",
+        "name": "San Silvestre",
+        "city_code": "0102820000"
+    },
+    "0102820022": {
+        "code": "0102820022",
+        "name": "Santa Asuncion",
+        "city_code": "0102820000"
+    },
+    "0102820023": {
+        "code": "0102820023",
+        "name": "Santa Cecilia",
+        "city_code": "0102820000"
+    },
+    "0102820024": {
+        "code": "0102820024",
+        "name": "Santa Monica",
+        "city_code": "0102820000"
+    }
+}

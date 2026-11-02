@@ -313,6 +313,7 @@ class ContentController extends Controller
     {
         $user = auth()->user();
         $events = Event::query()
+            ->visibleToStaff($user)
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($user) {
                 $query->where('manager_id', $user->id);
             })
@@ -320,6 +321,7 @@ class ContentController extends Controller
             ->get(['id', 'title', 'event_date']);
 
         $checkpoints = Checkpoint::with('event')
+            ->whereHas('event', fn ($query) => $query->visibleToStaff($user))
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($user) {
                 $query->whereHas('event', function ($eventQuery) use ($user) {
                     $eventQuery->where('manager_id', $user->id);
@@ -357,11 +359,12 @@ class ContentController extends Controller
     {
         $user = auth()->user();
         $events = Event::query()
+            ->visibleToStaff($user)
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($user) {
                 $query->where('manager_id', $user->id);
             })
             ->orderBy('event_date')
-            ->get();
+            ->get()->filter(fn (Event $event) => $event->canEditSetup($user));
 
         return view('admin.content.checkpoints-create', compact('events'));
     }
@@ -393,6 +396,7 @@ class ContentController extends Controller
 
         $user = auth()->user();
         $events = Event::query()
+            ->visibleToStaff($user)
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($user) {
                 $query->where('manager_id', $user->id);
             })
@@ -439,7 +443,7 @@ class ContentController extends Controller
         $user = $request->user();
 
         if (! $user->managesAssignedEventsOnly()) {
-            return Event::pluck('id')->all();
+            return Event::visibleToStaff($user)->pluck('id')->all();
         }
 
         return $user->managedEventIds();
