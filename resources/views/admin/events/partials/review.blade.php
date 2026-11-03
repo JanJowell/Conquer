@@ -67,10 +67,9 @@
     @if ($event->review_status === 'pending_review' && ! $event->revision_of_id)
         <details class="rounded-xl border border-slate-100 p-4">
             <summary class="cursor-pointer font-semibold text-slate-700">Complete submitted setup, routes and payment options</summary>
-            @foreach ($reviewSnapshot as $section => $items)
-                <h3 class="mt-4 font-medium text-slate-700">{{ str($section)->headline() }}</h3>
-                <pre class="mt-2 max-h-80 overflow-auto whitespace-pre-wrap break-words rounded-xl bg-slate-50 p-3 text-xs text-slate-700">{{ json_encode($items, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
-            @endforeach
+            @include('admin.events.partials.submitted-setup', [
+                'submittedSetup' => app(\App\Services\EventRevisionComparison::class)->submittedSetup($reviewSnapshot),
+            ])
         </details>
     @endif
     @if ($revisionComparison ?? null)

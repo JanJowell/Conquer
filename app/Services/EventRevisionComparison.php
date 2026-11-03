@@ -70,6 +70,38 @@ class EventRevisionComparison
         return $sections;
     }
 
+    /** Read-only formatting of the same complete setup used by the review page. */
+    public function submittedSetup(array $snapshot): array
+    {
+        $type = $snapshot['event']['interest_type'] ?? null;
+        $groups = [];
+        foreach (['event' => 'Event details', 'categories' => 'Categories',
+            'paymentMethods' => 'Payment options', 'checkpoints' => 'Checkpoints'] as $relation => $title) {
+            $items = $relation === 'event' ? [$snapshot['event'] ?? []] : ($snapshot[$relation] ?? []);
+            $formatted = [];
+            foreach ($items as $item) {
+                $rows = [];
+                foreach ($item as $field => $raw) {
+                    $value = $this->normalize($raw, $field);
+                    if ($field === 'type_details' && is_array($value)) {
+                        $schema = $relation === 'event' ? 'event_type_details' : 'event_category_type_details';
+                        foreach ($value as $key => $detail) {
+                            $definition = config("conquer.{$schema}.{$type}.{$key}", []);
+                            $rows[] = ['field' => $definition['label'] ?? Str::headline($key),
+                                'value' => $this->display($detail, $key, $item, $definition)];
+                        }
+                    } else {
+                        $rows[] = ['field' => $this->label($field), 'value' => $this->display($value, $field, $item)];
+                    }
+                }
+                $formatted[] = ['title' => $relation === 'event' ? $title : $this->itemTitle($relation, $item), 'rows' => $rows];
+            }
+            $groups[] = ['key' => $relation, 'title' => $title, 'items' => $formatted];
+        }
+
+        return $groups;
+    }
+
     private function itemTitle(string $relation, array $item): string
     {
         return match ($relation) {
