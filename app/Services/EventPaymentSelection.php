@@ -7,10 +7,39 @@ use App\Models\EventPaymentMethod;
 use App\Models\SavedPaymentOption;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
 class EventPaymentSelection
 {
+    /** Display choices only: never rewrite saved accounts or submitted tokens. */
+    public static function formChoices(iterable $eventCopies, iterable $libraryOptions, array $selectedTokens): Collection
+    {
+        $copies = collect($eventCopies)->map(fn ($copy) => [
+            'choice' => $copy, 'token' => self::eventToken($copy), 'isEventCopy' => true,
+        ]);
+        $options = collect($libraryOptions)->map(fn ($option) => [
+            'choice' => $option, 'token' => $option->selectionToken(), 'isEventCopy' => false,
+        ]);
+
+        return $copies->concat($options)->groupBy(function ($entry) {
+            $choice = $entry['choice'];
+
+            // Compare every participant-facing account detail exactly, not just
+            // its name/provider. Changed instructions must remain selectable.
+            return hash('sha256', json_encode([
+                $choice->provider, $choice->account_name, $choice->account_number, $choice->instructions,
+            ], JSON_THROW_ON_ERROR));
+        })->flatMap(function ($duplicates) use ($selectedTokens) {
+            $selected = $duplicates->filter(fn ($entry) => in_array($entry['token'], $selectedTokens, true));
+
+            // Prefer the saved event copy by default, but retain the exact choice
+            // restored after validation. Keep conflicting old selections visible
+            // so the user can resolve an error; never silently change their tokens.
+            return $selected->isNotEmpty() ? $selected : $duplicates->take(1);
+        })->values();
+    }
+
     public static function eventToken(EventPaymentMethod $method): string
     {
         return 'event:'.$method->id.':'.hash('sha256', json_encode($method->only([

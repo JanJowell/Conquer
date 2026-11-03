@@ -41,6 +41,25 @@ function libraryEvent(User $manager): Event
     return $event;
 }
 
+function renderedPaymentChoices(string $html): array
+{
+    $document = new DOMDocument;
+    $previous = libxml_use_internal_errors(true);
+    try {
+        $document->loadHTML('<?xml encoding="UTF-8">'.$html);
+    } finally {
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+    }
+    $choices = [];
+    foreach ((new DOMXPath($document))->query('//section[@data-event-payment-selection]//input[@type="checkbox"]') as $input) {
+        $choices[$input->getAttribute('id')] = ['token' => $input->getAttribute('value'),
+            'checked' => $input->hasAttribute('checked'), 'provider' => $input->getAttribute('data-payment-provider')];
+    }
+
+    return $choices;
+}
+
 test('payment library visibility separates shared and personal account details', function () {
     $admin = User::factory()->create();
     $manager = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
@@ -486,6 +505,128 @@ test('compact payment list preserves saved checked states and explicit empty old
             ->and($xpath->query('//input[@id="event-payment-copy-'.$disabled->id.'" and not(@checked)]')->length)->toBe(1);
     }
     expect($copy->fresh()->is_enabled)->toBeTrue()->and($disabled->fresh()->is_enabled)->toBeFalse();
+});
+
+test('saved account duplicates render once and unchanged saves preserve the event copy and library row', function () {
+    $manager = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
+    $option = libraryOption($manager);
+    $event = libraryEvent($manager);
+    DB::transaction(fn () => app(EventPaymentSelection::class)->sync($event, [$option->selectionToken()], $manager));
+    $copy = $event->paymentMethods()->sole();
+    $copyBefore = $copy->getAttributes();
+    $optionBefore = $option->fresh()->getAttributes();
+    $this->actingAs($manager);
+    $choices = renderedPaymentChoices($this->get(route('admin.events.edit', $event))->assertOk()->getContent());
+    expect($choices)->toBe(['event-payment-copy-'.$copy->id => [
+        'token' => EventPaymentSelection::eventToken($copy), 'checked' => true, 'provider' => 'GCash',
+    ]]);
+    $this->put(route('admin.events.update', $event), libraryPayload(['payment_choices' => array_column($choices, 'token')]))
+        ->assertSessionHasNoErrors();
+    expect(renderedPaymentChoices($this->get(route('admin.events.edit', $event))->assertOk()->getContent()))->toBe($choices)
+        ->and($copy->fresh()->getAttributes())->toBe($copyBefore)
+        ->and($option->fresh()->getAttributes())->toBe($optionBefore)
+        ->and($event->paymentMethods()->count())->toBe(1);
+});
+
+test('different account details remain separate even when the provider and display name match', function (array $changes) {
+    $manager = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
+    $option = libraryOption($manager);
+    $event = libraryEvent($manager);
+    DB::transaction(fn () => app(EventPaymentSelection::class)->sync($event, [$option->selectionToken()], $manager));
+    $copy = $event->paymentMethods()->sole();
+    $before = $copy->getAttributes();
+    $option->update([...$changes, 'version' => 2]);
+    $choices = renderedPaymentChoices($this->actingAs($manager)->get(route('admin.events.edit', $event))->assertOk()->getContent());
+    expect($choices)->toHaveCount(2)
+        ->and($choices['event-payment-copy-'.$copy->id]['checked'])->toBeTrue()
+        ->and($choices['event-payment-option-'.$option->id]['checked'])->toBeFalse()
+        ->and($choices['event-payment-option-'.$option->id]['token'])->toBe($option->selectionToken())
+        ->and($copy->fresh()->getAttributes())->toBe($before);
+})->with([
+    'provider' => [['provider' => 'Maya']],
+    'account name' => [['account_name' => 'Another holder']],
+    'account number' => [['account_number' => '09220000000']],
+    'instructions' => [['instructions' => 'New transfer instructions']],
+    'missing instructions' => [['instructions' => null]],
+]);
+
+test('deduplication does not normalize empty instructions or change leading zeros', function () {
+    $manager = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
+    $option = libraryOption($manager, ['provider' => 'Bank', 'account_number' => '001234', 'instructions' => null]);
+    $event = libraryEvent($manager);
+    DB::transaction(fn () => app(EventPaymentSelection::class)->sync($event, [$option->selectionToken()], $manager));
+    $copy = $event->paymentMethods()->sole();
+    foreach ([['instructions' => ''], ['instructions' => null, 'account_number' => '1234']] as $changes) {
+        $option->update($changes);
+        expect(renderedPaymentChoices($this->actingAs($manager)->get(route('admin.events.edit', $event))->assertOk()->getContent()))->toHaveCount(2);
+    }
+    expect($copy->fresh()->account_number)->toBe('001234')->and($copy->fresh()->instructions)->toBeNull();
+});
+
+test('disabled event copies are not automatically reenabled by an identical enabled library option', function () {
+    $manager = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
+    $option = libraryOption($manager);
+    $event = libraryEvent($manager);
+    DB::transaction(fn () => app(EventPaymentSelection::class)->sync($event, [$option->selectionToken()], $manager));
+    $copy = $event->paymentMethods()->sole();
+    $copy->update(['is_enabled' => false]);
+    $choices = renderedPaymentChoices($this->actingAs($manager)->get(route('admin.events.edit', $event))->assertOk()->getContent());
+    expect($choices)->toHaveCount(1)->and($choices['event-payment-copy-'.$copy->id]['checked'])->toBeFalse()
+        ->and($copy->fresh()->is_enabled)->toBeFalse()->and($option->fresh()->is_enabled)->toBeTrue();
+});
+
+test('identical library entries collapse without discarding the selected token restored after validation', function () {
+    $manager = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
+    $first = libraryOption($manager, ['label' => 'First label']);
+    $second = libraryOption(User::factory()->create(), ['label' => 'Second label']);
+    $this->actingAs($manager);
+    $choices = renderedPaymentChoices($this->get(route('admin.events.create'))->assertOk()->getContent());
+    expect($choices)->toHaveCount(1)->and($choices['event-payment-option-'.$first->id]['checked'])->toBeFalse();
+    $this->withSession(['_old_input' => ['payment_selection_submitted' => '1', 'payment_choices' => [$second->selectionToken()]]]);
+    $choices = renderedPaymentChoices($this->get(route('admin.events.create'))->assertOk()->getContent());
+    expect($choices)->toBe(['event-payment-option-'.$second->id => [
+        'token' => $second->selectionToken(), 'checked' => true, 'provider' => 'GCash',
+    ]]);
+});
+
+test('invalid restored selections stay visible and backend rejects simultaneous saved and library accounts', function () {
+    $manager = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
+    $option = libraryOption($manager);
+    $event = libraryEvent($manager);
+    DB::transaction(fn () => app(EventPaymentSelection::class)->sync($event, [$option->selectionToken()], $manager));
+    $copy = $event->paymentMethods()->sole();
+    $before = $copy->getAttributes();
+    $tokens = [EventPaymentSelection::eventToken($copy), $option->selectionToken()];
+    $this->actingAs($manager)->from(route('admin.events.edit', $event))
+        ->put(route('admin.events.update', $event), libraryPayload(['payment_choices' => $tokens]))
+        ->assertRedirect(route('admin.events.edit', $event))->assertSessionHasErrors('payment_choices');
+    expect(session('errors')->first('payment_choices'))->toBe('Choose only one payment account per provider for this event.');
+    // Carry the browser's session identity across the failed POST and redirect.
+    $this->withCookie(config('session.cookie'), session()->getId());
+    $response = $this->get(route('admin.events.edit', $event))->assertOk();
+    expect(str_contains($response->getContent(), 'Choose only one payment account per provider'))->toBeTrue();
+    $choices = renderedPaymentChoices($response->getContent());
+    expect(array_column($choices, 'token'))->toBe($tokens)
+        ->and(array_column($choices, 'checked'))->toBe([true, true])
+        ->and($copy->fresh()->getAttributes())->toBe($before);
+});
+
+test('replacing a draft account preserves its payment method id and restores the replacement only once', function () {
+    $manager = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
+    $original = libraryOption($manager);
+    $replacement = libraryOption($manager, ['account_number' => '09220000000', 'instructions' => 'Replacement instructions']);
+    $event = libraryEvent($manager);
+    DB::transaction(fn () => app(EventPaymentSelection::class)->sync($event, [$original->selectionToken()], $manager));
+    $id = $event->paymentMethods()->sole()->id;
+    $this->actingAs($manager)->put(route('admin.events.update', $event), libraryPayload(['payment_choices' => [$replacement->selectionToken()]]))
+        ->assertSessionHasNoErrors();
+    $copy = $event->paymentMethods()->sole();
+    $choices = renderedPaymentChoices($this->get(route('admin.events.edit', $event))->assertOk()->getContent());
+    expect($copy->id)->toBe($id)->and($copy->account_number)->toBe('09220000000')
+        ->and($choices)->toHaveCount(2)->and($choices)->not->toHaveKey('event-payment-option-'.$replacement->id)
+        ->and($choices['event-payment-copy-'.$id]['checked'])->toBeTrue()
+        ->and($choices['event-payment-option-'.$original->id]['checked'])->toBeFalse()
+        ->and($original->fresh()->account_number)->toBe('09170000000');
 });
 
 test('foreign disabled missing stale and malformed selections cannot be copied into drafts', function (string $case) {

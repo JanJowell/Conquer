@@ -1,7 +1,9 @@
 # Saved payment options
 
-Implemented locally, November 3, 2026 (Asia/Manila). Not deployed to Railway.
-No provider keys, real `.env`, Flutter source or APK were changed.
+Base library deployed and verified November 3, 2026 (Asia/Manila); see
+`docs/payment-options-release-review-2026-11-03.md`. The November 4 selector
+follow-up below is verified; that review records its release status. No provider keys,
+real `.env`, Flutter source or APK were changed.
 
 ## User flow
 
@@ -55,8 +57,8 @@ Create/Edit Event now uses checkboxes instead of editable payment-account rows.
 Available shared/personal options show provider and account name in a compact
 list. Account numbers, instructions and library labels are available in native,
 keyboard-accessible "View account details" disclosures, collapsed by default.
-Saved event copies are labelled in the same list; selection tokens and default
-checked states are unchanged. A small management link and short paid-event note
+Saved event copies are labelled in the same list. Selection tokens and default
+checked states are preserved. A small management link and short paid-event note
 replace the previous explanatory paragraphs and separate list headings.
 Fees stay on categories. The current checkout/database limit remains **one
 account per provider per event**. Managers may save an incomplete private draft;
@@ -108,9 +110,28 @@ is introduced.
 
 Selecting a library option copies its provider/account/instructions into the
 existing event-owned payment-method table. There is no live catalog join or
-automatic update. On edit, current saved copies appear separately from library
-options. To replace an account, uncheck its event copy and select a library option
-for that provider. Library edits/disabling never update existing copies.
+automatic update. On edit, the selector collapses identical choices using an exact
+comparison of provider, account name, account number and instructions. It prefers
+the saved event copy, keeping its selected state and token. It does not compare
+only labels, strip leading zeros or treat different instructions as equivalent.
+Library edits/disabling never update existing copies or payment history.
+
+With JavaScript, selecting a different account unchecks other accounts for that
+provider in the same selector; other providers remain selected. Unchecking all
+accounts remains possible. Native keyboard activation follows the same rule,
+and a screen-reader status announces replacements. The handler supports initial
+loads and Livewire navigation without duplicate bindings. Without JavaScript,
+identical accounts are still collapsed, but replacing a different account requires
+manually unchecking the old one. Server validation continues to reject multiple
+accounts per provider, including forged/bypassed requests.
+
+After validation errors, an explicitly selected library token takes precedence
+over an identical unchecked saved copy, so the submitted choice is not silently
+changed into another source/version. If invalid old input selected multiple
+identical accounts, those conflicting checked choices remain visible with the
+error until the manager resolves it. Neither rendering nor initialization silently
+normalizes invalid submitted selections. Empty selections and disabled saved
+copies are not automatically enabled by an identical enabled library option.
 
 Unchecking an event copy disables it rather than deleting its identifier or
 payment history. Existing disabled copies survive unchanged saves and can be
@@ -156,6 +177,23 @@ account, event, registration, result, certificate or payment was created or
 rewritten to test this feature.
 
 ## Verification and handoff
+
+November 4 selector follow-up (local): added exact-detail deduplication and scoped,
+one-account-per-provider browser switching. Regression coverage includes unchanged
+save/reopen, replacement with the same payment-method ID, changed account details
+and instructions, leading zeros, null versus empty instructions, disabled copies,
+shared/personal identical entries, restored source tokens and conflicting old
+input. The failed-submit redirect test carries the session cookie like a browser.
+Synthetic real-browser checks cover pointer and keyboard activation, independent
+providers and selectors, repeated script/navigation initialization, form reset,
+restored empty/disabled/library/conflicting selections and script-disabled display.
+No migration, account merge/deletion or real payment is involved. Verification
+passed: **706 backend tests**, 2 skipped (4,580 assertions); **97 focused payment
+tests** (714 assertions); **23 event-form/revision audits** (225 assertions); and
+both real-browser payment tests without skips. Frontend build, Blade compilation,
+targeted Pint and syntax/whitespace checks passed. These are local working-folder
+results; exact-package verification and deployment status are recorded separately
+in the release review's November 4 follow-up section.
 
 Compact library-page follow-up (local): **86 focused payment tests passed
 (641 assertions)**. Added rendered-DOM checks for provider/account headings,
