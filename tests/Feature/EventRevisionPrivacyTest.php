@@ -15,7 +15,8 @@ function privateRevisionFixture(): array
         'interest_type' => 'Marathon', 'type_details' => ['cutoff_time' => '6 hours'],
         'banner_image' => 'events/test.jpg', 'manager_id' => $manager->id, 'review_status' => 'approved',
     ]);
-    $live->categories()->create(['name' => '5K Open', 'distance_km' => 5, 'status' => 'open', 'price_cents' => 0]);
+    $live->categories()->create(['name' => '5K Open', 'distance_km' => 5, 'status' => 'open', 'price_cents' => 0,
+        'slot_limit' => 100, 'checkpoint_map_image' => 'categories/checkpoint-maps/private-revision.png']);
     $live->refreshAutomaticStatus();
     $workflow = app(EventReviewWorkflow::class);
     $draft = $workflow->startRevision($live, $manager, 0);

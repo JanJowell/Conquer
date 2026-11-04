@@ -20,6 +20,7 @@ function reviewReadyEvent(User $manager, array $extra = []): Event
         'review_status' => 'draft', 'status' => 'draft',
     ], $extra));
     $event->categories()->create(['name' => '5K Open', 'distance_km' => 5, 'status' => 'open',
+        'slot_limit' => 100, 'checkpoint_map_image' => 'categories/checkpoint-maps/review-ready.png',
         'price_cents' => 0, 'price_currency' => 'PHP', 'scheduled_start_date' => $event->event_date,
         'scheduled_end_date' => $event->event_date, 'scheduled_start_time' => '06:00', 'scheduled_end_time' => '12:00']);
     $event->refreshAutomaticStatus();
@@ -160,6 +161,9 @@ test('pending setup writes cannot bypass review through category or checkpoint e
 test('legacy events are not falsely approved or unpublished and draft announcements remain private', function () {
     $manager = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
     $legacy = reviewReadyEvent($manager, ['review_status' => null]);
+    $legacy->update(['end_time' => null]);
+    $legacy->categories()->update(['slot_limit' => null, 'checkpoint_map_image' => null]);
+    $legacy->refreshAutomaticStatus();
     expect($legacy->review_status)->toBeNull()->and($legacy->effective_status)->toBe('upcoming')
         ->and($legacy->approved_at)->toBeNull()->and($legacy->reviews()->count())->toBe(0);
     $draft = reviewReadyEvent(User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]));

@@ -187,6 +187,12 @@ test('course editor browser workflow (Google API mocked; no billable requests)',
 
         await t.test('navigation and authentication failures preserve staged data', async () => {
             const applied = await evaluate('field().value');
+            assert.equal(await evaluate(`(() => {
+                const form = document.getElementById('event-form');
+                form.addEventListener('submit', event => event.preventDefault(), {once:true});
+                return form.dispatchEvent(new Event('submit', {bubbles:true,cancelable:true}));
+            })()`), false, 'a confirmation may cancel a clean route submission');
+            assert.equal(await evaluate('__racetechCourseEditor.submitting'), false, 'a cancelled attempt must not suppress unsaved-route warnings');
             assert.equal(await evaluate(`window.confirm = () => false; document.dispatchEvent(new CustomEvent('livewire:navigate', {cancelable:true}))`), false);
             await evaluate('window.gm_authFailure()');
             assert.match(await evaluate('statusText()'), /authentication failed/);
@@ -205,6 +211,7 @@ test('course editor browser workflow (Google API mocked; no billable requests)',
         });
         assert.deepEqual(errors, []);
     } finally {
+        if (client && browser?.exitCode === null) await client.send('Browser.close').catch(() => {});
         client?.close();
         if (browser && browser.exitCode === null) {
             const exited = new Promise((resolve) => browser.once('exit', resolve));

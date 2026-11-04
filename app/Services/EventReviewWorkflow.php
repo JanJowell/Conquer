@@ -149,7 +149,7 @@ class EventReviewWorkflow
 
     private function assertReady(Event $event): void
     {
-        $errors = $event->publicReadinessErrors();
+        $errors = [...$event->publicReadinessErrors(), ...app(EventSubmissionRequirements::class)->errors($event)];
         if ($event->event_date?->isBefore(today()) || $event->registration_deadline?->isBefore(today())
             || Event::statusForDate('upcoming', $event->event_date, $event->start_time, $event->end_time, $event->event_end_date) !== 'upcoming') {
             $errors[] = 'use an upcoming event and an unexpired registration deadline';

@@ -36,6 +36,7 @@ function libraryEvent(User $manager): Event
         'type_details' => ['route_distance_km' => '50', 'surface_type' => 'Road', 'elevation_gain_m' => null,
             'bike_type' => 'Road Bike', 'helmet_required' => true], 'status' => 'draft', 'review_status' => 'draft']);
     Category::create(['event_id' => $event->id, 'name' => '50K Open', 'distance_km' => 50,
+        'checkpoint_map_image' => 'categories/checkpoint-maps/synthetic-library.png',
         'price_cents' => 75000, 'price_currency' => 'PHP', 'status' => 'open', 'slot_limit' => 100]);
 
     return $event;

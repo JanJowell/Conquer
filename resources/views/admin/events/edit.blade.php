@@ -8,7 +8,7 @@
             <div>
                 <p class="text-sm font-medium uppercase tracking-[0.24em] text-[#7a8495]">Event Operations</p>
                 <h1 class="mt-2 text-3xl font-semibold tracking-tight text-[#151b26]">Edit Event</h1>
-                <p class="mt-2 text-sm text-[#6d7685]">Update this private draft, then submit it for Admin review. A revision never changes the public event until approved.</p>
+                <p class="mt-2 text-sm text-[#6d7685]">Update and submit this private setup for Admin review, or save a draft to finish later. A revision never changes the public event until approved.</p>
             </div>
 
             <div class="flex flex-wrap gap-3">
@@ -20,12 +20,6 @@
                 </a>
             </div>
         </div>
-
-        @if ($errors->any())
-            <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                {{ $errors->first() }}
-            </div>
-        @endif
 
         @if (($event->registrations_count ?? 0) > 0 || ($event->race_results_count ?? 0) > 0)
             <div class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800">
@@ -48,7 +42,7 @@
             </a>
         </section>
 
-        <form method="POST" action="{{ route('admin.events.update', $event) }}" enctype="multipart/form-data" class="rounded-3xl border border-[#d9dee7] bg-white p-6 shadow-sm">
+        <form id="event-setup-form" data-event-setup-form method="POST" action="{{ route('admin.events.update', $event) }}" enctype="multipart/form-data" class="rounded-3xl border border-[#d9dee7] bg-white p-6 shadow-sm">
             @csrf
             @method('PUT')
             @include('admin.events.partials.form', ['event' => $event])

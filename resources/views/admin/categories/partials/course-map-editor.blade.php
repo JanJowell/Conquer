@@ -12,7 +12,7 @@
     <input type="hidden" name="{{ $name ?? 'course_map' }}" value="{{ $courseMapJson }}" data-course-map-value>
     <div class="flex flex-wrap items-start justify-between gap-3">
         <div class="min-w-0">
-            <h3 class="text-sm font-semibold text-[#151b26]">Course Map Editor <span class="font-normal text-[#7a8495]">(optional)</span></h3>
+            <h3 class="text-sm font-semibold text-[#151b26]">Course Map Editor <span class="font-normal text-[#7a8495]">{{ ($mapRequirement ?? false) ? '(image alternative)' : '(optional)' }}</span></h3>
             <p class="mt-1 text-xs leading-5 text-[#6d7685]" data-course-map-summary>
                 {{ $courseMapPoints ? $courseMapPoints.' route points and '.$courseMapCheckpoints.' checkpoints. Saved with this category.' : 'No drawn course yet. Your uploaded map image remains available separately.' }}
             </p>

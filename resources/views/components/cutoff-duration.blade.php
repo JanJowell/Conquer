@@ -1,4 +1,4 @@
-@props(['id', 'name', 'value' => null, 'hoursName', 'minutesName', 'hours' => null, 'minutes' => null])
+@props(['id', 'name', 'value' => null, 'hoursName', 'minutesName', 'hours' => null, 'minutes' => null, 'showRequirements' => false])
 @php
     $value = is_scalar($value) ? (string) $value : '';
     $presets = config('conquer.cutoff_duration_presets', []);
@@ -26,11 +26,11 @@
     <div data-duration-custom class="mt-3">
         <div class="grid gap-3 sm:grid-cols-2">
             <div>
-                <label for="{{ $id }}-hours" class="mb-2 block text-sm font-medium text-[#3d4757]">Hours</label>
+                <label for="{{ $id }}-hours" class="mb-2 block text-sm font-medium text-[#3d4757]">Hours @if ($showRequirements)<x-event-field-requirement kind="conditional">Required for Custom</x-event-field-requirement>@endif</label>
                 <input id="{{ $id }}-hours" name="{{ $hoursName }}" data-duration-hours type="number" min="0" max="1000000" step="1" inputmode="numeric" value="{{ $hours }}" class="{{ $classes }}" aria-describedby="{{ $id }}-help">
             </div>
             <div>
-                <label for="{{ $id }}-minutes" class="mb-2 block text-sm font-medium text-[#3d4757]">Minutes</label>
+                <label for="{{ $id }}-minutes" class="mb-2 block text-sm font-medium text-[#3d4757]">Minutes @if ($showRequirements)<x-event-field-requirement kind="conditional">Required for Custom</x-event-field-requirement>@endif</label>
                 <input id="{{ $id }}-minutes" name="{{ $minutesName }}" data-duration-minutes type="number" min="0" max="59" step="1" inputmode="numeric" value="{{ $minutes }}" class="{{ $classes }}" aria-describedby="{{ $id }}-help">
             </div>
         </div>

@@ -1,6 +1,14 @@
+@once
+    <link rel="stylesheet" href="{{ asset('css/event-review-submit.css') }}?v={{ filemtime(public_path('css/event-review-submit.css')) }}">
+@endonce
+@if ($event)
+    <input type="hidden" name="review_version" value="{{ $event->review_version }}">
+@endif
+@include('admin.events.partials.form-errors')
+<p class="mb-5 hidden text-sm text-rose-700" role="alert" data-event-client-errors></p>
 <div class="grid gap-5 md:grid-cols-2">
     <div class="md:col-span-2">
-        <label for="interest_type" class="mb-2 block text-sm font-medium text-[#3d4757]">Event Type</label>
+        <label for="interest_type" class="mb-2 block text-sm font-medium text-[#3d4757]">Event Type <x-event-field-requirement kind="required" /></label>
         <select id="interest_type" name="interest_type"
             class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none transition focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]">
             <option value="">Select event type</option>
@@ -13,13 +21,13 @@
     </div>
 
     <div class="md:col-span-2">
-        <label for="title" class="mb-2 block text-sm font-medium text-[#3d4757]">Event Name</label>
+        <label for="title" class="mb-2 block text-sm font-medium text-[#3d4757]">Event Name <x-event-field-requirement kind="required" /></label>
         <input id="title" name="title" type="text" value="{{ old('title', $event?->title) }}"
             class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none transition focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]">
     </div>
 
     <div class="md:col-span-2">
-        <label for="description" class="mb-2 block text-sm font-medium text-[#3d4757]">Description</label>
+        <label for="description" class="mb-2 block text-sm font-medium text-[#3d4757]">Description <x-event-field-requirement kind="submission" /></label>
         <textarea id="description" name="description" rows="4"
             class="w-full rounded-2xl border border-[#d9dee7] px-4 py-3 text-sm text-[#151b26] outline-none transition focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]">{{ old('description', $event?->description) }}</textarea>
     </div>
@@ -27,36 +35,37 @@
     @include('admin.events.partials.venue')
 
     <div>
-        <label for="event_date" class="mb-2 block text-sm font-medium text-[#3d4757]">Event Start Date</label>
+        <label for="event_date" class="mb-2 block text-sm font-medium text-[#3d4757]">Event Start Date <x-event-field-requirement kind="required" /></label>
         <input id="event_date" name="event_date" type="date" value="{{ old('event_date', $event?->event_date?->format('Y-m-d')) }}"
             class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none transition focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]">
     </div>
 
     <div>
-        <label for="event_end_date" class="mb-2 block text-sm font-medium text-[#3d4757]">Event End Date</label>
+        <label for="event_end_date" class="mb-2 block text-sm font-medium text-[#3d4757]">Event End Date <x-event-field-requirement kind="required" /></label>
         <input id="event_end_date" name="event_end_date" type="date" value="{{ old('event_end_date', $event?->event_end_date?->format('Y-m-d') ?? $event?->event_date?->format('Y-m-d')) }}"
             class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none transition focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]">
         <p class="mt-2 text-xs leading-5 text-[#6d7685]">Use the same date as the start for a one-day event.</p>
     </div>
 
     <div>
-        <label for="registration_deadline" class="mb-2 block text-sm font-medium text-[#3d4757]">Registration Deadline</label>
+        <label for="registration_deadline" class="mb-2 block text-sm font-medium text-[#3d4757]">Registration Deadline <x-event-field-requirement kind="submission" /></label>
         <input id="registration_deadline" name="registration_deadline" type="date" value="{{ old('registration_deadline', $event?->registration_deadline?->format('Y-m-d')) }}"
             class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none transition focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]">
         <p class="mt-2 text-xs leading-5 text-[#6d7685]">Must be on or before the event date.</p>
     </div>
 
     <div>
-        <label for="start_time" class="mb-2 block text-sm font-medium text-[#3d4757]">Event Start Time</label>
+        <label for="start_time" class="mb-2 block text-sm font-medium text-[#3d4757]">Event Start Time <x-event-field-requirement kind="submission" /></label>
         <input id="start_time" name="start_time" type="time" value="{{ old('start_time', $event?->start_time?->format('H:i')) }}"
             class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none transition focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]">
+        <p class="mt-2 text-xs leading-5 text-[#6d7685]">Also needed when an event end time is entered, even when saving a draft.</p>
     </div>
 
     <div>
-        <label for="end_time" class="mb-2 block text-sm font-medium text-[#3d4757]">Event End Time</label>
+        <label for="end_time" class="mb-2 block text-sm font-medium text-[#3d4757]">Event End Time <x-event-field-requirement kind="submission" /></label>
         <input id="end_time" name="end_time" type="time" value="{{ old('end_time', $event?->end_time?->format('H:i')) }}"
             class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none transition focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]">
-        <p class="mt-2 text-xs leading-5 text-[#6d7685]">If set, it must be later than the start time.</p>
+        <p class="mt-2 text-xs leading-5 text-[#6d7685]">Required for submission. The end date and time must be after the start date and time; overnight events can end the next day.</p>
     </div>
 
     @php
@@ -94,9 +103,7 @@
                     <div class="{{ ($definition['type'] ?? null) === 'textarea' ? 'md:col-span-2' : '' }}">
                         <label for="{{ $inputId }}" class="mb-2 block text-sm font-medium text-[#3d4757]">
                             {{ $definition['label'] }}
-                            @if ($definition['required_for_publication'] ?? false)
-                                <span class="text-rose-500" aria-label="required for publication">*</span>
-                            @endif
+                            <x-event-field-requirement :kind="($definition['type'] ?? '') === 'boolean' ? 'setting' : (in_array('required', $definition['rules'] ?? [], true) ? 'required' : (($definition['required_for_publication'] ?? false) ? 'submission' : 'optional'))" />
                         </label>
 
                         @if (($definition['type'] ?? null) === 'duration')
@@ -104,7 +111,7 @@
                                 :hours-name="'type_details['.$eventType.']['.$detailKey.'_hours]'"
                                 :minutes-name="'type_details['.$eventType.']['.$detailKey.'_minutes]'"
                                 :hours="old('type_details.'.$eventType.'.'.$detailKey.'_hours')"
-                                :minutes="old('type_details.'.$eventType.'.'.$detailKey.'_minutes')" />
+                                :minutes="old('type_details.'.$eventType.'.'.$detailKey.'_minutes')" :show-requirements="true" />
                             @error("type_details.{$eventType}.{$detailKey}_hours")
                                 <p class="mt-2 text-xs text-rose-600">{{ $message }}</p>
                             @enderror
@@ -146,7 +153,7 @@
             </div>
         @endforeach
 
-        <p class="mt-4 text-xs leading-5 text-[#6d7685]"><span class="text-rose-500">*</span> Required before the event can become visible for mobile registration.</p>
+        <p class="mt-4 text-xs leading-5 text-[#6d7685]">Requirements apply only to the selected event type. Checkbox settings do not have to be enabled.</p>
     </section>
 
     @include('admin.events.partials.payment-selection')
@@ -181,7 +188,7 @@
         <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
                 <h2 class="text-lg font-semibold tracking-tight text-[#151b26]" data-category-heading>{{ $categoryLabels[$selectedEventType] ?? 'Registration Categories' }}</h2>
-                <p class="mt-1 text-sm leading-6 text-[#6d7685]">Add the race distances and registration fees while setting up the event.</p>
+                <p class="mt-1 text-sm leading-6 text-[#6d7685]">Complete the required fields for each category you add. At least one open category is needed before submission.</p>
             </div>
             <button type="button" data-add-category class="inline-flex h-11 items-center justify-center rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm font-semibold text-[#151b26] transition hover:bg-[#f7f8fa]">
                 Add Category
@@ -230,7 +237,7 @@
 
                     <div class="grid gap-4 md:grid-cols-2">
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Category Type</label>
+                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Category Type <x-event-field-requirement kind="required" /></label>
                             <select name="categories[{{ $index }}][category_type]" data-category-type class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                                 <option value="">Select type</option>
                                 @foreach (($categoryTypes ?? []) as $value => $label)
@@ -240,13 +247,13 @@
                         </div>
 
                         <div data-custom-category-wrapper class="{{ ($categoryRow['category_type'] ?? '') === 'custom' ? '' : 'hidden' }}">
-                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Custom Type</label>
+                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Custom Type <x-event-field-requirement kind="conditional">Required for Custom</x-event-field-requirement></label>
                             <input name="categories[{{ $index }}][custom_category_name]" type="text" value="{{ $categoryRow['custom_category_name'] ?? '' }}" placeholder="Trail, Family, Corporate"
                                 class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                         </div>
 
                         <div data-standard-distance>
-                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Distance</label>
+                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Distance <x-event-field-requirement kind="required" /></label>
                             <div class="grid grid-cols-[minmax(0,1fr)_110px] gap-2">
                                 <select name="categories[{{ $index }}][distance_option]" data-distance-option class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                                     <option value="">Select distance</option>
@@ -262,7 +269,7 @@
                         </div>
 
                         <div data-standard-distance data-custom-distance-wrapper class="{{ ($categoryRow['distance_option'] ?? '') === 'custom' ? '' : 'hidden' }}">
-                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Custom Distance</label>
+                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Custom Distance <x-event-field-requirement kind="conditional">Required for Custom</x-event-field-requirement></label>
                             <input name="categories[{{ $index }}][custom_distance_km]" type="number" step="0.01" min="0.01" value="{{ $categoryRow['custom_distance_km'] ?? '' }}"
                                 class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                         </div>
@@ -280,7 +287,7 @@
                                             $detailRequired = in_array('required', $definition['rules'] ?? [], true);
                                         @endphp
                                         <div class="{{ ($definition['type'] ?? 'number') === 'textarea' ? 'md:col-span-3' : '' }}">
-                                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">{{ $definition['label'] }}</label>
+                                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">{{ $definition['label'] }} <x-event-field-requirement :kind="$detailRequired ? 'required' : (($definition['required_for_publication'] ?? false) ? 'submission' : 'optional')" /></label>
                                             @if (($definition['type'] ?? 'number') === 'textarea')
                                                 <textarea name="categories[{{ $index }}][type_details][{{ $detailKey }}]" rows="3" placeholder="{{ $definition['placeholder'] ?? '' }}" @if ($detailRequired) required @endif
                                                     class="w-full rounded-2xl border border-[#d9dee7] bg-white px-4 py-3 text-sm text-[#151b26] outline-none">{{ $detailValue }}</textarea>
@@ -311,39 +318,39 @@
                         @endforeach
 
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Gun Start Date</label>
+                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Gun Start Date <x-event-field-requirement kind="required" /></label>
                             <input name="categories[{{ $index }}][scheduled_start_date]" type="date" value="{{ $categoryRow['scheduled_start_date'] ?? '' }}" required
                                 class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                         </div>
 
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Gun Start Time</label>
+                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Gun Start Time <x-event-field-requirement kind="required" /></label>
                             <input name="categories[{{ $index }}][scheduled_start_time]" type="time" value="{{ $categoryRow['scheduled_start_time'] ?? '' }}" required
                                 class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                             <p class="mt-2 text-xs text-[#6d7685]">Planned wave time; the Start button records the actual server time.</p>
                         </div>
 
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">End Date</label>
+                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">End Date <x-event-field-requirement kind="required" /></label>
                             <input name="categories[{{ $index }}][scheduled_end_date]" type="date" value="{{ $categoryRow['scheduled_end_date'] ?? '' }}" required
                                 class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                         </div>
 
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">End Time</label>
+                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">End Time <x-event-field-requirement kind="required" /></label>
                             <input name="categories[{{ $index }}][scheduled_end_time]" type="time" value="{{ $categoryRow['scheduled_end_time'] ?? '' }}" required
                                 class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                             <p class="mt-2 text-xs text-[#6d7685]">Must be after the gun start and within the event schedule.</p>
                         </div>
 
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Slot Limit</label>
+                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Slot Limit <x-event-field-requirement kind="submission" /></label>
                             <input name="categories[{{ $index }}][slot_limit]" type="number" min="1" value="{{ $categoryRow['slot_limit'] ?? '' }}"
                                 class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                         </div>
 
                         <div data-group-setting @if($existingCategoryInUse) data-group-setting-locked @endif class="{{ ($categoryRow['category_type'] ?? '') === 'group' ? '' : 'hidden' }}">
-                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Minimum Group Members</label>
+                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Minimum Group Members <x-event-field-requirement kind="conditional">Required for groups</x-event-field-requirement></label>
                             @if ($existingCategoryInUse)
                                 <input type="hidden" name="categories[{{ $index }}][group_min_members]" value="{{ $categoryRow['group_min_members'] ?? '' }}">
                             @endif
@@ -352,7 +359,7 @@
                         </div>
 
                         <div data-group-setting @if($existingCategoryInUse) data-group-setting-locked @endif class="{{ ($categoryRow['category_type'] ?? '') === 'group' ? '' : 'hidden' }}">
-                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Maximum Group Members</label>
+                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Maximum Group Members <x-event-field-requirement kind="conditional">Required for groups</x-event-field-requirement></label>
                             @if ($existingCategoryInUse)
                                 <input type="hidden" name="categories[{{ $index }}][group_max_members]" value="{{ $categoryRow['group_max_members'] ?? '' }}">
                             @endif
@@ -367,14 +374,15 @@
                                 <input name="categories[{{ $index }}][requires_medical_certificate]" type="checkbox" value="1" @checked(filter_var($categoryRow['requires_medical_certificate'] ?? false, FILTER_VALIDATE_BOOLEAN))
                                     class="mt-1 h-4 w-4 rounded border-[#c8cfda] text-[#151b26] focus:ring-[#151b26]">
                                 <span>
-                                    <span class="block text-sm font-semibold text-[#151b26]">Medical Certificate Required</span>
+                                    <span class="block text-sm font-semibold text-[#151b26]">Medical Certificate Required <x-event-field-requirement kind="setting" /></span>
                                     <span class="mt-1 block text-xs leading-5 text-[#6d7685]">Require participants to upload one when registering.</span>
                                 </span>
                             </label>
                         </div>
 
-                        <div class="md:col-span-2 rounded-2xl border border-[#d9dee7] bg-[#fafbfc] p-4">
-                            <label class="block text-sm font-semibold text-[#151b26]">Course / Checkpoint Map <span class="font-normal text-[#7a8495]">(optional)</span></label>
+                        <div class="md:col-span-2 rounded-2xl border border-[#d9dee7] bg-[#fafbfc] p-4" data-category-map-requirement data-saved-map-image="{{ filled($existingCategory?->checkpoint_map_image) ? 'true' : 'false' }}" tabindex="-1" role="group" aria-label="Required course or checkpoint map">
+                            <label for="category-{{ $index }}-map-upload" class="block text-sm font-semibold text-[#151b26]">Course / Checkpoint Map <x-event-field-requirement kind="submission" /></label>
+                            <p class="mt-2 text-xs leading-5 text-[#6d7685]">For submission, upload a map image or review and apply a drawn course below. Either option is enough; a saved map also counts.</p>
                             @if ($existingCategory)
                                 @if ($existingCategory->checkpoint_map_image)
                                     <a href="{{ asset('storage/'.$existingCategory->checkpoint_map_image) }}" target="_blank" rel="noopener" class="mt-3 block overflow-hidden rounded-2xl border border-[#d9dee7] bg-white">
@@ -383,33 +391,34 @@
                                 @else
                                     <p class="mt-2 text-xs text-[#6d7685]">No map is currently uploaded.</p>
                                 @endif
-                                <p class="mt-2 text-xs leading-5 text-[#6d7685]">Use “Open separately” to replace or remove the saved map safely.</p>
-                            @else
-                                <input name="categories[{{ $index }}][checkpoint_map_image_upload]" type="file" accept="image/jpeg,image/png,image/webp"
-                                    class="mt-3 block w-full rounded-xl border border-[#d9dee7] bg-white px-3 py-2 text-sm text-[#3d4757] file:mr-3 file:rounded-lg file:border-0 file:bg-[#eef1f4] file:px-3 file:py-2 file:font-semibold file:text-[#151b26]">
-                                <p class="mt-2 text-xs leading-5 text-[#6d7685]">JPG, PNG, or WebP up to 5 MB. This map belongs only to this category.</p>
+                                <p class="mt-2 text-xs leading-5 text-[#6d7685]">Upload below to replace the saved image, or use “Open separately” to remove it.</p>
                             @endif
+                            <input id="category-{{ $index }}-map-upload" name="categories[{{ $index }}][checkpoint_map_image_upload]" type="file" accept="image/jpeg,image/png,image/webp"
+                                class="mt-3 block w-full rounded-xl border border-[#d9dee7] bg-white px-3 py-2 text-sm text-[#3d4757] file:mr-3 file:rounded-lg file:border-0 file:bg-[#eef1f4] file:px-3 file:py-2 file:font-semibold file:text-[#151b26]">
+                            <p class="mt-2 text-xs leading-5 text-[#6d7685]">JPG, PNG, or WebP up to 5 MB. This map belongs only to this category. Leave empty to keep any saved image.</p>
                         </div>
 
                         @include('admin.categories.partials.course-map-editor', [
                             'name' => 'categories['.$index.'][course_map]',
                             'errorKey' => 'categories.'.$index.'.course_map',
                             'value' => $categoryRow['course_map'] ?? null,
+                            'mapRequirement' => true,
                         ])
 
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Registration Fee</label>
                             <div class="grid grid-cols-[1fr_88px] gap-2">
-                                <input name="categories[{{ $index }}][price_amount]" type="number" step="0.01" min="0" value="{{ $categoryRow['price_amount'] ?? '0.00' }}"
+                                <label for="category-{{ $index }}-price" class="block text-sm font-medium text-[#3d4757]">Registration Fee <x-event-field-requirement /></label>
+                                <label for="category-{{ $index }}-currency" class="block text-sm font-medium text-[#3d4757]">Currency <x-event-field-requirement kind="required" /></label>
+                                <input id="category-{{ $index }}-price" name="categories[{{ $index }}][price_amount]" type="number" step="0.01" min="0" value="{{ $categoryRow['price_amount'] ?? '0.00' }}"
                                     class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
-                                <input name="categories[{{ $index }}][price_currency]" type="text" maxlength="3" value="{{ $categoryRow['price_currency'] ?? 'PHP' }}"
+                                <input id="category-{{ $index }}-currency" name="categories[{{ $index }}][price_currency]" type="text" maxlength="3" value="{{ $categoryRow['price_currency'] ?? 'PHP' }}"
                                     class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-3 text-sm font-semibold uppercase text-[#151b26] outline-none">
                             </div>
                             <p class="mt-2 text-xs text-[#6d7685]">Use 0.00 for free registration.</p>
                         </div>
 
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Status</label>
+                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Status <x-event-field-requirement kind="required" /></label>
                             <select name="categories[{{ $index }}][status]" class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                                 @foreach (['open', 'closed', 'draft'] as $status)
                                     <option value="{{ $status }}" @selected(($categoryRow['status'] ?? 'open') === $status)>{{ str($status)->title() }}</option>
@@ -418,11 +427,11 @@
                         </div>
 
                         <div class="md:col-span-2">
-                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Description</label>
+                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Description <x-event-field-requirement /></label>
                             <textarea name="categories[{{ $index }}][description]" rows="3" class="w-full rounded-2xl border border-[#d9dee7] bg-white px-4 py-3 text-sm text-[#151b26] outline-none">{{ $categoryRow['description'] ?? '' }}</textarea>
                         </div>
                         <div class="md:col-span-2">
-                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Qualification / Eligibility Notes <span class="font-normal text-[#7a8495]">(optional)</span></label>
+                            <label class="mb-2 block text-sm font-medium text-[#3d4757]">Qualification / Eligibility Notes <x-event-field-requirement /></label>
                             <textarea name="categories[{{ $index }}][qualification_notes]" rows="3" maxlength="5000" placeholder="e.g. Must be at least 18 years old and have previous race experience."
                                 class="w-full rounded-2xl border border-[#d9dee7] bg-white px-4 py-3 text-sm text-[#151b26] outline-none">{{ $categoryRow['qualification_notes'] ?? '' }}</textarea>
                             <p class="mt-2 text-xs text-[#6d7685]">Shown to participants before they register for this category.</p>
@@ -443,7 +452,7 @@
 
                 <div class="grid gap-4 md:grid-cols-2">
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Category Type</label>
+                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Category Type <x-event-field-requirement kind="required" /></label>
                         <select name="categories[__INDEX__][category_type]" data-category-type class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                             <option value="">Select type</option>
                             @foreach (($categoryTypes ?? []) as $value => $label)
@@ -452,11 +461,11 @@
                         </select>
                     </div>
                     <div data-custom-category-wrapper class="hidden">
-                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Custom Type</label>
+                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Custom Type <x-event-field-requirement kind="conditional">Required for Custom</x-event-field-requirement></label>
                         <input name="categories[__INDEX__][custom_category_name]" type="text" placeholder="Trail, Family, Corporate" class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                     </div>
                     <div data-standard-distance>
-                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Distance</label>
+                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Distance <x-event-field-requirement kind="required" /></label>
                         <div class="grid grid-cols-[minmax(0,1fr)_110px] gap-2">
                             <select name="categories[__INDEX__][distance_option]" data-distance-option class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                                 <option value="">Select distance</option>
@@ -471,7 +480,7 @@
                         </div>
                     </div>
                     <div data-standard-distance data-custom-distance-wrapper class="hidden">
-                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Custom Distance</label>
+                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Custom Distance <x-event-field-requirement kind="conditional">Required for Custom</x-event-field-requirement></label>
                         <input name="categories[__INDEX__][custom_distance_km]" type="number" step="0.01" min="0.01" class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                     </div>
                     @foreach ($categoryTypeDetailSchemas as $eventType => $detailSchema)
@@ -486,7 +495,7 @@
                                         $detailRequired = in_array('required', $definition['rules'] ?? [], true);
                                     @endphp
                                     <div class="{{ ($definition['type'] ?? 'number') === 'textarea' ? 'md:col-span-3' : '' }}">
-                                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">{{ $definition['label'] }}</label>
+                                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">{{ $definition['label'] }} <x-event-field-requirement :kind="$detailRequired ? 'required' : (($definition['required_for_publication'] ?? false) ? 'submission' : 'optional')" /></label>
                                         @if (($definition['type'] ?? 'number') === 'textarea')
                                             <textarea name="categories[__INDEX__][type_details][{{ $detailKey }}]" rows="3" placeholder="{{ $definition['placeholder'] ?? '' }}" @if ($detailRequired) required @endif
                                                 class="w-full rounded-2xl border border-[#d9dee7] bg-white px-4 py-3 text-sm text-[#151b26] outline-none">{{ $templateDetailValue }}</textarea>
@@ -516,33 +525,33 @@
                         </div>
                     @endforeach
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Gun Start Date</label>
+                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Gun Start Date <x-event-field-requirement kind="required" /></label>
                         <input name="categories[__INDEX__][scheduled_start_date]" type="date" data-category-start-date required class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                     </div>
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Gun Start Time</label>
+                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Gun Start Time <x-event-field-requirement kind="required" /></label>
                         <input name="categories[__INDEX__][scheduled_start_time]" type="time" required class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                         <p class="mt-2 text-xs text-[#6d7685]">Planned wave time; the Start button records the actual server time.</p>
                     </div>
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">End Date</label>
+                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">End Date <x-event-field-requirement kind="required" /></label>
                         <input name="categories[__INDEX__][scheduled_end_date]" type="date" data-category-end-date required class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                     </div>
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">End Time</label>
+                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">End Time <x-event-field-requirement kind="required" /></label>
                         <input name="categories[__INDEX__][scheduled_end_time]" type="time" required class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                         <p class="mt-2 text-xs text-[#6d7685]">Must be after the gun start and within the event schedule.</p>
                     </div>
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Slot Limit</label>
+                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Slot Limit <x-event-field-requirement kind="submission" /></label>
                         <input name="categories[__INDEX__][slot_limit]" type="number" min="1" class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                     </div>
                     <div data-group-setting class="hidden">
-                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Minimum Group Members</label>
+                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Minimum Group Members <x-event-field-requirement kind="conditional">Required for groups</x-event-field-requirement></label>
                         <input name="categories[__INDEX__][group_min_members]" type="number" min="2" max="100" placeholder="At least 2" disabled class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                     </div>
                     <div data-group-setting class="hidden">
-                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Maximum Group Members</label>
+                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Maximum Group Members <x-event-field-requirement kind="conditional">Required for groups</x-event-field-requirement></label>
                         <input name="categories[__INDEX__][group_max_members]" type="number" min="2" max="100" placeholder="2 to 100" disabled class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                         <p class="mt-2 text-xs text-[#6d7685]">Each member receives a separate registration, BIB, result, and certificate.</p>
                     </div>
@@ -552,14 +561,15 @@
                             <input name="categories[__INDEX__][requires_medical_certificate]" type="checkbox" value="1"
                                 class="mt-1 h-4 w-4 rounded border-[#c8cfda] text-[#151b26] focus:ring-[#151b26]">
                             <span>
-                                <span class="block text-sm font-semibold text-[#151b26]">Medical Certificate Required</span>
+                                <span class="block text-sm font-semibold text-[#151b26]">Medical Certificate Required <x-event-field-requirement kind="setting" /></span>
                                 <span class="mt-1 block text-xs leading-5 text-[#6d7685]">Require participants to upload one when registering.</span>
                             </span>
                         </label>
                     </div>
-                    <div class="md:col-span-2 rounded-2xl border border-[#d9dee7] bg-[#fafbfc] p-4">
-                        <label class="block text-sm font-semibold text-[#151b26]">Course / Checkpoint Map <span class="font-normal text-[#7a8495]">(optional)</span></label>
-                        <input name="categories[__INDEX__][checkpoint_map_image_upload]" type="file" accept="image/jpeg,image/png,image/webp"
+                    <div class="md:col-span-2 rounded-2xl border border-[#d9dee7] bg-[#fafbfc] p-4" data-category-map-requirement data-saved-map-image="false" tabindex="-1" role="group" aria-label="Required course or checkpoint map">
+                        <label for="category-__INDEX__-map-upload" class="block text-sm font-semibold text-[#151b26]">Course / Checkpoint Map <x-event-field-requirement kind="submission" /></label>
+                        <p class="mt-2 text-xs leading-5 text-[#6d7685]">For submission, upload a map image or review and apply a drawn course below. Either option is enough; a saved map also counts.</p>
+                        <input id="category-__INDEX__-map-upload" name="categories[__INDEX__][checkpoint_map_image_upload]" type="file" accept="image/jpeg,image/png,image/webp"
                             class="mt-3 block w-full rounded-xl border border-[#d9dee7] bg-white px-3 py-2 text-sm text-[#3d4757] file:mr-3 file:rounded-lg file:border-0 file:bg-[#eef1f4] file:px-3 file:py-2 file:font-semibold file:text-[#151b26]">
                         <p class="mt-2 text-xs leading-5 text-[#6d7685]">JPG, PNG, or WebP up to 5 MB. This map belongs only to this category.</p>
                     </div>
@@ -567,17 +577,19 @@
                         'name' => 'categories[__INDEX__][course_map]',
                         'errorKey' => 'categories.__INDEX__.course_map',
                         'value' => null,
+                        'mapRequirement' => true,
                     ])
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Registration Fee</label>
                         <div class="grid grid-cols-[1fr_88px] gap-2">
-                            <input name="categories[__INDEX__][price_amount]" type="number" step="0.01" min="0" value="0.00" class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
-                            <input name="categories[__INDEX__][price_currency]" type="text" maxlength="3" value="PHP" class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-3 text-sm font-semibold uppercase text-[#151b26] outline-none">
+                            <label for="category-__INDEX__-price" class="block text-sm font-medium text-[#3d4757]">Registration Fee <x-event-field-requirement /></label>
+                            <label for="category-__INDEX__-currency" class="block text-sm font-medium text-[#3d4757]">Currency <x-event-field-requirement kind="required" /></label>
+                            <input id="category-__INDEX__-price" name="categories[__INDEX__][price_amount]" type="number" step="0.01" min="0" value="0.00" class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
+                            <input id="category-__INDEX__-currency" name="categories[__INDEX__][price_currency]" type="text" maxlength="3" value="PHP" class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-3 text-sm font-semibold uppercase text-[#151b26] outline-none">
                         </div>
                         <p class="mt-2 text-xs text-[#6d7685]">Use 0.00 for free registration.</p>
                     </div>
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Status</label>
+                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Status <x-event-field-requirement kind="required" /></label>
                         <select name="categories[__INDEX__][status]" class="h-12 w-full rounded-2xl border border-[#d9dee7] bg-white px-4 text-sm text-[#151b26] outline-none">
                             @foreach (['open', 'closed', 'draft'] as $status)
                                 <option value="{{ $status }}" @selected($status === 'open')>{{ str($status)->title() }}</option>
@@ -585,11 +597,11 @@
                         </select>
                     </div>
                     <div class="md:col-span-2">
-                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Description</label>
+                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Description <x-event-field-requirement /></label>
                         <textarea name="categories[__INDEX__][description]" rows="3" class="w-full rounded-2xl border border-[#d9dee7] bg-white px-4 py-3 text-sm text-[#151b26] outline-none"></textarea>
                     </div>
                     <div class="md:col-span-2">
-                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Qualification / Eligibility Notes <span class="font-normal text-[#7a8495]">(optional)</span></label>
+                        <label class="mb-2 block text-sm font-medium text-[#3d4757]">Qualification / Eligibility Notes <x-event-field-requirement /></label>
                         <textarea name="categories[__INDEX__][qualification_notes]" rows="3" maxlength="5000" placeholder="e.g. Must be at least 18 years old and have previous race experience."
                             class="w-full rounded-2xl border border-[#d9dee7] bg-white px-4 py-3 text-sm text-[#151b26] outline-none"></textarea>
                         <p class="mt-2 text-xs text-[#6d7685]">Shown to participants before they register for this category.</p>
@@ -601,7 +613,7 @@
 
     <div class="md:col-span-2">
         @if ($event)
-            @php($readinessErrors = $event->publicReadinessErrors())
+            @php($readinessErrors = array_merge($event->publicReadinessErrors(), $event->isReviewPublished() ? [] : app(\App\Services\EventSubmissionRequirements::class)->errors($event)))
             <div class="rounded-2xl border border-[#eef1f4] bg-[#f8f9fb] p-4 text-sm leading-6 text-[#5f6b7a]">
                 <span class="font-semibold text-[#151b26]">Status: {{ str($event->effective_status)->replace('_', ' ')->title() }}.</span>
                 The system detects this from the event details, schedule, open categories, and payment setup.
@@ -630,14 +642,14 @@
         @else
             <div class="rounded-2xl border border-[#eef1f4] bg-[#f8f9fb] p-4 text-sm leading-6 text-[#5f6b7a]">
                 <span class="font-semibold text-[#151b26]">Status: Draft.</span>
-                New events start as drafts. After saving, add categories and complete the setup; the system will update the status automatically.
+                New events start as private drafts. Complete the setup, then submit for Admin review. Approval publishes the event.
             </div>
         @endif
     </div>
 
     @if (auth()->user()->isSuperAdmin())
         <div>
-            <label for="manager_id" class="mb-2 block text-sm font-medium text-[#3d4757]">Assigned Event Manager</label>
+            <label for="manager_id" class="mb-2 block text-sm font-medium text-[#3d4757]">Assigned Event Manager <x-event-field-requirement kind="submission" /></label>
             <select id="manager_id" name="manager_id"
                 class="h-12 w-full rounded-2xl border border-[#d9dee7] px-4 text-sm text-[#151b26] outline-none transition focus:border-[#aeb7c3] focus:ring-2 focus:ring-[#eef1f5]">
                 <option value="">Unassigned</option>
@@ -654,12 +666,13 @@
     @endif
 
     <div class="md:col-span-2">
-        <label for="banner_image_upload" class="mb-2 block text-sm font-medium text-[#3d4757]">Banner Image</label>
+        <label for="banner_image_upload" class="mb-2 block text-sm font-medium text-[#3d4757]">Banner Image <x-event-field-requirement kind="submission" /></label>
         <input type="hidden" name="banner_image" value="{{ old('banner_image', $event?->banner_image) }}">
-        <input id="banner_image_upload" name="banner_image_upload" type="file" accept="image/*"
+        <input id="banner_image_upload" name="banner_image_upload" type="file" accept="image/*" data-review-satisfied="{{ filled($event?->banner_image) ? 'true' : 'false' }}"
             class="block w-full rounded-2xl border border-[#d9dee7] bg-white px-4 py-3 text-sm text-[#151b26] file:mr-4 file:rounded-xl file:border-0 file:bg-[#151b26] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white">
         <p class="mt-2 text-xs leading-5 text-[#6d7685]">Upload a JPG, PNG, or WebP banner image up to 4 MB. Recommended size: 1080 x 1080 px.</p>
         @if ($event?->banner_image)
+            <p class="mt-2 text-xs leading-5 text-[#6d7685]">Your saved banner already counts. Choose a new file only if you want to replace it.</p>
             <div class="mt-3 overflow-hidden rounded-2xl border border-[#eef1f4] bg-[#f8f9fb]">
                 <img src="{{ asset('storage/'.$event->banner_image) }}" alt="{{ $event->title }} banner" class="h-40 w-full object-cover">
             </div>
@@ -668,13 +681,16 @@
 </div>
 
 <div class="mt-6 flex flex-wrap gap-3">
-    <button type="submit" class="inline-flex items-center justify-center rounded-2xl bg-[#151b26] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#232b39]">
-        Save Event
+    <button type="submit" name="intent" value="submit" class="inline-flex items-center justify-center rounded-2xl bg-[#151b26] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#232b39]">
+        Submit for Review
     </button>
+    <button type="submit" name="intent" value="draft" formnovalidate class="inline-flex items-center justify-center rounded-2xl border border-[#d9dee7] bg-white px-5 py-3 text-sm font-semibold text-[#151b26] transition hover:bg-[#f7f8fa]">Save Draft</button>
     <a href="{{ route('admin.events.index') }}" class="inline-flex items-center justify-center rounded-2xl border border-[#d9dee7] px-5 py-3 text-sm font-semibold text-[#151b26] transition hover:bg-[#f7f8fa]">
         Cancel
     </a>
 </div>
+
+@include('admin.events.partials.submission-confirmation', ['event' => $event])
 
 <script>
     (() => {
@@ -909,3 +925,6 @@
         refreshNumbers();
     })();
 </script>
+@once
+    <script type="module" src="{{ asset('js/event-review-submit.js') }}?v={{ filemtime(public_path('js/event-review-submit.js')) }}"></script>
+@endonce

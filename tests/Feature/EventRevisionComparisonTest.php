@@ -19,6 +19,7 @@ function comparisonFixture(): array
     ]);
     $live->categories()->create([
         'name' => '5K Open', 'distance_km' => 5, 'status' => 'open', 'price_cents' => 0,
+        'slot_limit' => 100, 'checkpoint_map_image' => 'categories/checkpoint-maps/comparison.png',
         'price_currency' => 'PHP', 'requires_medical_certificate' => false,
     ]);
     $live->paymentMethods()->create([

@@ -395,8 +395,16 @@ if (!state.bound) {
             event.stopImmediatePropagation();
             dirty.message('Your map draft has not been applied. Use This Route or discard the draft before saving.', true);
             dirty.root.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        } else state.submitting = true;
+        }
     }, true);
+    // A confirmation dialog or another form guard may cancel the attempt.
+    // Keep unsaved-route warnings until the form actually proceeds.
+    document.addEventListener('submit', (event) => {
+        if (!event.defaultPrevented) state.submitting = true;
+    });
+    window.addEventListener('pageshow', (event) => {
+        if (event.persisted) state.submitting = false;
+    });
     window.addEventListener('beforeunload', (event) => {
         if (!state.submitting && [...state.controllers.values()].some((editor) => editor.root.isConnected && (editor.dirty || editor.staged))) {
             event.preventDefault();

@@ -1,0 +1,9 @@
+/* Scoped to the event form: admin pages do not load the Vite app stylesheet. */
+[data-event-setup-form] .event-field-invalid {
+    border-color: #e11d48 !important;
+}
+
+[data-event-setup-form][aria-busy="true"] button[name="intent"] {
+    cursor: wait;
+    opacity: 0.6;
+}

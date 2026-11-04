@@ -57,6 +57,23 @@ function something()
 function approveEventSetupForTest(Event $event): Event
 {
     $event = $event->fresh();
+    // These fixtures exercise publication, not incomplete submission rejection.
+    // Complete only the newly required setup before taking the real transitions.
+    if ($event->end_time === null) {
+        $event->update(['end_time' => '23:59']);
+    }
+    foreach ($event->categories()->get() as $category) {
+        $setup = [];
+        if ($category->slot_limit === null) {
+            $setup['slot_limit'] = 100;
+        }
+        if (blank($category->checkpoint_map_image) && blank($category->course_map)) {
+            $setup['checkpoint_map_image'] = 'categories/checkpoint-maps/synthetic-review.png';
+        }
+        if ($setup !== []) {
+            $category->update($setup);
+        }
+    }
     $workflow = app(EventReviewWorkflow::class);
     $event = $workflow->transition($event, $event->manager, 'submit', $event->review_version);
     $reviewer = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);

@@ -15,6 +15,7 @@ use App\Services\EventManagerAvailability;
 use App\Services\EventPaymentSelection;
 use App\Services\EventReviewWorkflow;
 use App\Services\EventRevisionComparison;
+use App\Services\EventSubmissionRequirements;
 use App\Services\EventVenueSelection;
 use App\Services\PhilippineLocations;
 use App\Support\CutoffDuration;
@@ -26,6 +27,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class EventController extends Controller
@@ -130,6 +132,9 @@ class EventController extends Controller
             ->take(8)
             ->get();
         $readinessErrors = $event->publicReadinessErrors();
+        if (! $event->isReviewPublished()) {
+            $readinessErrors = [...$readinessErrors, ...app(EventSubmissionRequirements::class)->errors($event)];
+        }
 
         $event->load(['reviews.actor']);
         $activeRevision = Event::query()->where('revision_of_id', $event->id)
@@ -148,6 +153,7 @@ class EventController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $user = $request->user();
+        $submit = $this->submissionIntent($request);
         $paymentSelection = $this->paymentSelection->prepare($request);
         if ($paymentSelection !== null) {
             $request->merge(['payment_methods' => [], 'payment_methods_submitted' => false]);
@@ -156,7 +162,7 @@ class EventController extends Controller
         $request->merge(['venue' => $venueSelection['label']]);
         $usesSegmentedDistances = $this->usesSegmentedCategoryDistances($request->input('interest_type'));
         $eventStartDate = $request->input('event_date');
-        $eventEndDate = $request->input('event_end_date', $eventStartDate);
+        $eventEndDate = $request->input('event_end_date', $submit ? null : $eventStartDate);
         $request->merge([
             'event_end_date' => $eventEndDate,
             'payment_methods' => $this->filledPaymentMethodRows($request->input('payment_methods', [])),
@@ -217,6 +223,7 @@ class EventController extends Controller
             'categories.*.status' => ['required', 'in:open,closed,draft'],
             ...$this->categoryTypeDetailValidationRules($request->input('interest_type')),
             ...$this->typeDetailValidationRules($request, null),
+            ...$this->submissionValidationRules($request),
         ]);
 
         if ($errors = $this->eventScheduleErrors($validated)) {
@@ -235,6 +242,9 @@ class EventController extends Controller
             return back()->withErrors($errors)->withInput();
         }
 
+        $this->validateSubmissionStart($validated, $submit);
+        $this->validateSubmissionMaps($validated, $submit);
+
         if ($errors = $this->paymentMethodSetupErrors($validated['payment_methods'] ?? [])) {
             return back()->withErrors($errors)->withInput();
         }
@@ -247,13 +257,13 @@ class EventController extends Controller
 
         $validated['status'] = 'draft';
 
-        if ($request->hasFile('banner_image_upload')) {
-            $validated['banner_image'] = $request->file('banner_image_upload')->store('events/banners', 'public');
-        }
-
+        $bannerUpload = $request->file('banner_image_upload');
         unset($validated['banner_image_upload']);
 
-        $event = DB::transaction(function () use ($validated, $categoryRows, $paymentMethodRows, $paymentMethodsSubmitted, $paymentSelection, $venueSelection, $user) {
+        $event = DB::transaction(function () use ($validated, $categoryRows, $paymentMethodRows, $paymentMethodsSubmitted, $paymentSelection, $venueSelection, $user, $bannerUpload, $submit) {
+            if ($bannerUpload) {
+                $validated['banner_image'] = $this->storeSetupUpload($bannerUpload, 'events/banners');
+            }
             $event = Event::create([
                 ...$validated,
                 ...$this->venueSelection->persist($venueSelection, $user),
@@ -270,12 +280,14 @@ class EventController extends Controller
             }
             $event->refreshAutomaticStatus();
 
-            return $event;
+            return $submit ? $this->submitSavedSetup($event, $user) : $event;
         });
 
         return redirect()
             ->route('admin.events.show', $event)
-            ->with('success', 'Draft saved privately. Complete the setup, then submit it for Admin approval and publication.');
+            ->with('success', $submit
+                ? 'Event submitted for Admin review. It is not public until approved.'
+                : 'Draft saved privately. Complete the setup, then submit it for Admin approval and publication.');
     }
 
     public function edit(Event $event): View
@@ -314,6 +326,7 @@ class EventController extends Controller
         abort_unless($this->canAccessEvent($event), 403);
 
         $user = $request->user();
+        $submit = $this->submissionIntent($request, $event);
         $paymentSelection = $this->paymentSelection->prepare($request, $event);
         if ($paymentSelection !== null) {
             $request->merge(['payment_methods' => [], 'payment_methods_submitted' => false]);
@@ -322,7 +335,7 @@ class EventController extends Controller
         $request->merge(['venue' => $venueSelection['label']]);
         $usesSegmentedDistances = $this->usesSegmentedCategoryDistances($request->input('interest_type'));
         $eventStartDate = $request->input('event_date');
-        $eventEndDate = $request->input('event_end_date', $eventStartDate);
+        $eventEndDate = $request->input('event_end_date', $submit ? null : $eventStartDate);
         $request->merge([
             'event_end_date' => $eventEndDate,
             'payment_methods' => $this->filledPaymentMethodRows($request->input('payment_methods', [])),
@@ -386,6 +399,7 @@ class EventController extends Controller
             'categories.*.status' => ['required', 'in:open,closed,draft'],
             ...$this->categoryTypeDetailValidationRules($request->input('interest_type')),
             ...$this->typeDetailValidationRules($request, $event),
+            ...$this->submissionValidationRules($request, $event),
         ]);
 
         if ($errors = $this->eventScheduleErrors($validated)) {
@@ -404,6 +418,9 @@ class EventController extends Controller
             return back()->withErrors($errors)->withInput();
         }
 
+        $this->validateSubmissionStart($validated, $submit);
+        $this->validateSubmissionMaps($validated, $submit, $event);
+
         if ($errors = $this->paymentMethodSetupErrors($validated['payment_methods'] ?? [])) {
             return back()->withErrors($errors)->withInput();
         }
@@ -418,13 +435,13 @@ class EventController extends Controller
         unset($validated['categories'], $validated['payment_methods'], $validated['payment_methods_submitted']);
         $this->normalizeTypeDetails($validated, $request, $event);
 
-        if ($request->hasFile('banner_image_upload')) {
-            $validated['banner_image'] = $request->file('banner_image_upload')->store('events/banners', 'public');
-        }
-
+        $bannerUpload = $request->file('banner_image_upload');
         unset($validated['banner_image_upload']);
 
-        DB::transaction(function () use ($event, $validated, $categoryRows, $paymentMethodRows, $paymentMethodsSubmitted, $paymentSelection, $venueSelection, $user) {
+        $event = DB::transaction(function () use ($event, $validated, $categoryRows, $paymentMethodRows, $paymentMethodsSubmitted, $paymentSelection, $venueSelection, $user, $bannerUpload, $submit) {
+            if ($bannerUpload) {
+                $validated['banner_image'] = $this->storeSetupUpload($bannerUpload, 'events/banners');
+            }
             $event->update([
                 ...$validated,
                 ...$this->venueSelection->persist($venueSelection, $user),
@@ -440,9 +457,13 @@ class EventController extends Controller
                 $this->paymentSelection->sync($event, $paymentSelection, $user);
             }
             $event->refreshAutomaticStatus();
+
+            return $submit ? $this->submitSavedSetup($event, $user) : $event;
         });
 
-        return redirect()->route('admin.events.show', $event)->with('success', 'Draft updated. Submit it for Admin review when ready; saving does not publish it.');
+        return redirect()->route('admin.events.show', $event)->with('success', $submit
+            ? 'Event submitted for Admin review. It is not public until approved.'
+            : 'Draft updated. Submit it for Admin review when ready; saving does not publish it.');
     }
 
     public function destroy(Event $event): RedirectResponse
@@ -481,14 +502,118 @@ class EventController extends Controller
         return config('conquer.event_interest_types', []);
     }
 
+    private function submissionIntent(Request $request, ?Event $event = null): bool
+    {
+        $data = $request->validate(['intent' => ['sometimes', 'required', Rule::in(['draft', 'submit'])]]);
+        // Previously opened forms/integrations retain private draft-only behavior.
+        $submit = ($data['intent'] ?? 'draft') === 'submit';
+        if ($submit) {
+            // Validate the reference date before dependent date comparisons run.
+            $request->validate(['event_date' => ['required', 'date']]);
+        }
+        if ($submit && $event) {
+            $version = $request->validate(['review_version' => ['required', 'integer', 'min:0']]);
+            if ((int) $version['review_version'] !== $event->review_version) {
+                throw ValidationException::withMessages(['review_version' => 'This draft changed. Reload it before submitting for review.']);
+            }
+        }
+        if ($submit) {
+            // Only a saved banner or a validated new upload can satisfy this field.
+            $request->merge(['banner_image' => $event?->banner_image]);
+        }
+
+        return $submit;
+    }
+
+    private function submissionValidationRules(Request $request, ?Event $event = null): array
+    {
+        if ($request->input('intent') !== 'submit') {
+            return [];
+        }
+
+        return [
+            'description' => ['required', 'string'],
+            'event_date' => ['required', 'date', 'after_or_equal:today'],
+            'start_time' => ['required', 'date_format:H:i'],
+            'end_time' => ['required', 'date_format:H:i'],
+            'registration_deadline' => ['required', 'date', 'after_or_equal:today', 'before_or_equal:event_date'],
+            'banner_image_upload' => [blank($event?->banner_image) ? 'required' : 'nullable', 'image', 'max:4096'],
+            'categories' => ['required', 'array', 'min:1', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (is_array($value) && ! collect($value)->contains(fn ($row) => is_array($row) && ($row['status'] ?? null) === 'open')) {
+                    $fail('Add at least one open category before submitting for review.');
+                }
+            }],
+            'categories.*.slot_limit' => ['required', 'integer', 'min:1'],
+        ];
+    }
+
+    private function validateSubmissionMaps(array $data, bool $submit, ?Event $event = null): void
+    {
+        if (! $submit) {
+            return;
+        }
+
+        $saved = $event ? $event->categories()->get()->keyBy('id') : collect();
+        $requirements = app(EventSubmissionRequirements::class);
+        $errors = [];
+        foreach ($data['categories'] ?? [] as $index => $row) {
+            // Existing image/route values come only from this owned event, not
+            // from client-supplied image paths or another event's category ID.
+            $category = $saved->get($row['id'] ?? null);
+            $image = ($row['checkpoint_map_image_upload'] ?? null) instanceof UploadedFile
+                || filled($category?->checkpoint_map_image);
+            $course = array_key_exists('course_map', $row) ? $row['course_map'] : $category?->course_map;
+            if (! $image && ! $requirements->hasDrawnMap($course)) {
+                $errors["categories.{$index}.course_map"] = 'Upload a map image or save a reviewed route for this category.';
+            }
+        }
+        if ($errors !== []) {
+            throw ValidationException::withMessages($errors);
+        }
+    }
+
+    private function validateSubmissionStart(array $data, bool $submit): void
+    {
+        if ($submit && Carbon::parse($data['event_date'].' '.$data['start_time'], config('app.timezone'))->lte(now())) {
+            throw ValidationException::withMessages(['start_time' => 'Choose an upcoming event start before submitting for review.']);
+        }
+    }
+
+    private function submitSavedSetup(Event $event, User $user): Event
+    {
+        $paid = $event->categories()->where('status', 'open')->where('price_cents', '>', 0)->get();
+        if ($paid->isNotEmpty() && ! $event->hasUsablePaymentOptions($paid)) {
+            throw ValidationException::withMessages(['payment_choices' => 'Select at least one enabled payment option for paid open categories.']);
+        }
+
+        return app(EventReviewWorkflow::class)->transition($event, $user, 'submit', $event->review_version);
+    }
+
+    private function storeSetupUpload(UploadedFile $upload, string $directory): string
+    {
+        $disk = Storage::disk('public');
+        $path = $upload->store($directory, 'public');
+        if (! $path) {
+            throw new \RuntimeException('The event image could not be stored.');
+        }
+        // Also covers a later review failure or rollback of the ownership lock.
+        DB::afterRollBack(fn () => $disk->delete($path));
+
+        return $path;
+    }
+
     private function typeDetailValidationRules(Request $request, ?Event $event = null): array
     {
-        if (! $request->has('type_details')) {
+        $submit = $request->input('intent') === 'submit';
+        if (! $request->has('type_details') && ! $submit) {
             return [];
         }
 
         $interestType = $request->input('interest_type');
-        $schema = Event::typeDetailSchema(is_string($interestType) ? $interestType : null);
+        if (! is_string($interestType)) {
+            return [];
+        }
+        $schema = Event::typeDetailSchema($interestType);
         $rules = [
             'type_details' => ['required', 'array'],
             "type_details.{$interestType}" => ['required', 'array'],
@@ -501,6 +626,9 @@ class EventController extends Controller
             }
 
             $fieldRules = $definition['rules'] ?? ['nullable'];
+            if ($submit && ($definition['required_for_publication'] ?? false)) {
+                $fieldRules = ['required', ...array_diff($fieldRules, ['nullable', 'required'])];
+            }
 
             if (($definition['type'] ?? null) === 'select' && isset($definition['options'])) {
                 $fieldRules[] = Rule::in($definition['options']);
@@ -605,13 +733,17 @@ class EventController extends Controller
         ];
     }
 
-    private function usesSegmentedCategoryDistances(?string $eventType): bool
+    private function usesSegmentedCategoryDistances(mixed $eventType): bool
     {
         return in_array($eventType, ['Triathlon', 'Duathlon'], true);
     }
 
-    private function categoryTypeDetailValidationRules(?string $eventType): array
+    private function categoryTypeDetailValidationRules(mixed $eventType): array
     {
+        if (! is_string($eventType)) {
+            return [];
+        }
+
         $schema = config("conquer.event_category_type_details.{$eventType}", []);
 
         if ($schema === []) {
@@ -724,8 +856,10 @@ class EventController extends Controller
         return (float) ($row['price_amount'] ?? 0) > 0;
     }
 
-    private function categoryRowsWithScheduleDates(array $rows, ?string $eventStartDate): array
+    private function categoryRowsWithScheduleDates(array $rows, mixed $eventStartDate): array
     {
+        $eventStartDate = is_string($eventStartDate) ? $eventStartDate : null;
+
         return collect($rows)
             ->map(function (array $row) use ($eventStartDate) {
                 $row['participation_mode'] = ($row['category_type'] ?? null) === 'group'
@@ -755,8 +889,7 @@ class EventController extends Controller
                 $checkpointMapPath = null;
 
                 if (($row['checkpoint_map_image_upload'] ?? null) instanceof UploadedFile) {
-                    $checkpointMapPath = $row['checkpoint_map_image_upload']
-                        ->store('categories/checkpoint-maps', 'public');
+                    $checkpointMapPath = $this->storeSetupUpload($row['checkpoint_map_image_upload'], 'categories/checkpoint-maps');
                     $storedCheckpointMaps[] = $checkpointMapPath;
                 }
 
@@ -870,6 +1003,10 @@ class EventController extends Controller
                 foreach (['scheduled_start_date', 'scheduled_start_time', 'scheduled_end_date', 'scheduled_end_time'] as $scheduleField) {
                     unset($attributes[$scheduleField]);
                 }
+            }
+
+            if (($row['checkpoint_map_image_upload'] ?? null) instanceof UploadedFile) {
+                $attributes['checkpoint_map_image'] = $this->storeSetupUpload($row['checkpoint_map_image_upload'], 'categories/checkpoint-maps');
             }
 
             $category->update($attributes);

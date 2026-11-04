@@ -30,22 +30,22 @@
     <fieldset data-venue-new class="grid gap-4 rounded-2xl bg-[#f7f8fa] p-4 md:grid-cols-3" @disabled(! $newVenue || ! ($venueLocationsAvailable ?? false)) @if (! $newVenue) hidden @endif>
         <legend class="sr-only">Venue</legend>
         <div class="md:col-span-3">
-            <label for="venue_name" class="mb-2 block text-sm font-medium text-[#3d4757]">Venue / Landmark <span class="text-rose-500">*</span></label>
+            <label for="venue_name" class="mb-2 block text-sm font-medium text-[#3d4757]">Venue / Landmark <x-event-field-requirement kind="required" /></label>
             <input id="venue_name" name="venue_name" data-venue-name type="text" maxlength="100" required value="{{ old('venue_name', $currentDetail) }}" placeholder="e.g. Municipal Hall entrance, Mabini Street" class="h-12 {{ $venueFieldClasses }}">
             @error('venue_name') <p class="mt-2 text-xs text-rose-600">{{ $message }}</p> @enderror
         </div>
         <div>
-            <label for="venue_area_code" class="mb-2 block text-sm font-medium text-[#3d4757]">Province / Area <span class="text-rose-500">*</span></label>
+            <label for="venue_area_code" class="mb-2 block text-sm font-medium text-[#3d4757]">Province / Area <x-event-field-requirement kind="required" /></label>
             <select id="venue_area_code" name="venue_area_code" data-venue-area required disabled class="h-12 {{ $venueFieldClasses }}"><option value="">Select province or area</option></select>
             @error('venue_area_code') <p class="mt-2 text-xs text-rose-600">{{ $message }}</p> @enderror
         </div>
         <div>
-            <label for="venue_city_code" class="mb-2 block text-sm font-medium text-[#3d4757]">City / Municipality <span class="text-rose-500">*</span></label>
+            <label for="venue_city_code" class="mb-2 block text-sm font-medium text-[#3d4757]">City / Municipality <x-event-field-requirement kind="required" /></label>
             <select id="venue_city_code" name="venue_city_code" data-venue-city required disabled class="h-12 {{ $venueFieldClasses }}"><option value="">Select province or area first</option></select>
             @error('venue_city_code') <p class="mt-2 text-xs text-rose-600">{{ $message }}</p> @enderror
         </div>
         <div>
-            <label for="venue_barangay_code" class="mb-2 block text-sm font-medium text-[#3d4757]">Barangay <span class="text-rose-500">*</span></label>
+            <label for="venue_barangay_code" class="mb-2 block text-sm font-medium text-[#3d4757]">Barangay <x-event-field-requirement kind="required" /></label>
             <select id="venue_barangay_code" name="venue_barangay_code" data-venue-barangay required disabled class="h-12 {{ $venueFieldClasses }}"><option value="">Select city or municipality first</option></select>
             @error('venue_barangay_code') <p class="mt-2 text-xs text-rose-600">{{ $message }}</p> @enderror
         </div>
