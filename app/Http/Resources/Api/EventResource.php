@@ -15,9 +15,23 @@ class EventResource extends JsonResource
         $registrationDeadlinePassed = $this->registration_deadline
             ? $this->registration_deadline->isBefore(today())
             : false;
-        $hasOpenCategory = $this->relationLoaded('categories')
-            ? $this->categories->isNotEmpty()
-            : $this->categories()->where('status', 'open')->exists();
+        $categories = $this->relationLoaded('categories')
+            ? $this->categories
+            : $this->categories()->where('status', 'open')
+                ->withCount(['registrations' => fn ($query) => $query->where('status', '!=', 'rejected')])
+                ->get();
+        // Availability is a snapshot; registration endpoints still enforce capacity under lock.
+        $categoriesWithCapacity = $categories->filter(function ($category) {
+            if ($category->slot_limit === null) {
+                return true;
+            }
+
+            $registeredCount = $category->registrations_count
+                ?? $category->registrations()->where('status', '!=', 'rejected')->count();
+
+            return $registeredCount < $category->slot_limit;
+        })->keyBy('id');
+        $hasOpenCategoryWithCapacity = $categoriesWithCapacity->contains('status', 'open');
         $currentRegistrations = $this->relationLoaded('currentUserRegistrations')
             ? $this->currentUserRegistrations
             : collect($this->relationLoaded('currentUserRegistration') && $this->currentUserRegistration
@@ -31,7 +45,7 @@ class EventResource extends JsonResource
             ? ParticipantBirthdate::registrationBlockReason($request->user()->birthdate)
             : null;
         $categoryRegistrationStates = $this->relationLoaded('categories')
-            ? $this->categories->map(function ($category) use ($birthdateBlockReason, $currentRegistrations, $eligibilityService) {
+            ? $this->categories->map(function ($category) use ($birthdateBlockReason, $currentRegistrations, $eligibilityService, $categoriesWithCapacity) {
                 $registration = $currentRegistrations->firstWhere('category_id', $category->id);
                 $hasBlockingRegistration = $registration && $registration->status !== 'rejected';
                 $eligibility = $birthdateBlockReason && ! $hasBlockingRegistration
@@ -48,6 +62,14 @@ class EventResource extends JsonResource
                     ]
                     : $eligibilityService->evaluate($category, $currentRegistrations));
 
+                if ($eligibility['allowed'] && ! $categoriesWithCapacity->has($category->id)) {
+                    $eligibility = [
+                        'allowed' => false,
+                        'reason' => 'This category is already full.',
+                        'conflicting_registration' => null,
+                    ];
+                }
+
                 return [
                     'category_id' => $category->id,
                     'is_registered' => $registration !== null,
@@ -61,7 +83,7 @@ class EventResource extends JsonResource
             : collect();
         $canRegister = $status === 'upcoming'
             && ! $registrationDeadlinePassed
-            && $hasOpenCategory
+            && $hasOpenCategoryWithCapacity
             && ($categoryRegistrationStates->isEmpty() || $categoryRegistrationStates->contains('can_register', true));
 
         return [
