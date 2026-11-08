@@ -1,5 +1,10 @@
 # Conquer Mobile API
 
+The separate staff checkpoint selection API is documented in
+[Staff checkpoint list API](staff-checkpoint-list-api.md). It returns approved
+category-owned checkpoint identities read-only; it does not record checkpoint
+visits or change the existing participant/finish-scanner API contracts.
+
 Event venue entry now uses structured address fields in the admin form.
 The public/mobile `venue` key remains a readable string, for example a
 venue name followed by its landmark, barangay, city/municipality and province

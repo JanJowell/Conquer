@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Services\CategoryCourseCheckpointSync;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 class Category extends Model
@@ -84,6 +86,27 @@ class Category extends Model
             'scheduled_end_time' => 'datetime:H:i',
             'started_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(function (Category $category): void {
+            if ($category->wasRecentlyCreated || $category->wasChanged('course_map')) {
+                app(CategoryCourseCheckpointSync::class)->sync($category);
+                $category->unsetRelation('courseCheckpoints');
+                $category->unsetRelation('activeCourseCheckpoints');
+            }
+        });
+    }
+
+    public function courseCheckpoints(): HasMany
+    {
+        return $this->hasMany(CategoryCourseCheckpoint::class);
+    }
+
+    public function activeCourseCheckpoints(): HasMany
+    {
+        return $this->courseCheckpoints()->active()->orderBy('position');
     }
 
     public function event()

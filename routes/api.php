@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\RegistrationFeedbackController;
 use App\Http\Controllers\Api\RegistrationGroupController;
 use App\Http\Controllers\Api\StaffAuthController;
+use App\Http\Controllers\Api\StaffCheckpointListController;
 use App\Http\Controllers\Api\SystemController;
 use App\Http\Controllers\Api\UserActivityController;
 use App\Http\Controllers\Internal\CommunityPostPurgeController;
@@ -94,6 +95,8 @@ Route::middleware(['mobile.auth', 'throttle:mobile-api'])->group(function () {
     Route::post('/community-posts/{post}/restore', [ContentController::class, 'restoreCommunityPost']);
 
     Route::prefix('staff')->group(function () {
+        Route::get('/checkpoint-scanner/context', StaffCheckpointListController::class)
+            ->name('api.staff.checkpoint-scanner.context');
         Route::get('/finish-scanner/context', [FinishScanController::class, 'context']);
         Route::get('/finish-scans', [FinishScanController::class, 'index']);
         Route::post('/finish-scans', [FinishScanController::class, 'store']);
