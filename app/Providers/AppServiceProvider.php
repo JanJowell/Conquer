@@ -3,6 +3,12 @@
 namespace App\Providers;
 
 use App\Http\Responses\RegisterResponse;
+use App\Models\Category;
+use App\Models\CategoryCourseCheckpoint;
+use App\Models\Event;
+use App\Models\Registration;
+use App\Models\User;
+use App\Observers\CheckpointHistoryObserver;
 use App\Support\PasswordPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Notifications\ResetPassword;
@@ -35,6 +41,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        foreach ([Event::class, Category::class, Registration::class,
+            CategoryCourseCheckpoint::class, User::class] as $model) {
+            $model::observe(CheckpointHistoryObserver::class);
+        }
         Paginator::defaultView('pagination.compact');
 
         RateLimiter::for('course-map-images', fn (Request $request) => [

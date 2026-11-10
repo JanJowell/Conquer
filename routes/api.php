@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AchievementController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CertificateController;
+use App\Http\Controllers\Api\CheckpointScanController;
 use App\Http\Controllers\Api\ContentController;
 use App\Http\Controllers\Api\CourseMapImageController;
 use App\Http\Controllers\Api\DeviceTokenController;
@@ -95,6 +96,10 @@ Route::middleware(['mobile.auth', 'throttle:mobile-api'])->group(function () {
     Route::post('/community-posts/{post}/restore', [ContentController::class, 'restoreCommunityPost']);
 
     Route::prefix('staff')->group(function () {
+        Route::get('/checkpoint-scanner/plan', [CheckpointScanController::class, 'plan'])
+            ->name('api.staff.checkpoint-scanner.plan');
+        Route::post('/checkpoint-scans', [CheckpointScanController::class, 'store'])
+            ->name('api.staff.checkpoint-scans.store');
         Route::get('/checkpoint-scanner/context', StaffCheckpointListController::class)
             ->name('api.staff.checkpoint-scanner.context');
         Route::get('/finish-scanner/context', [FinishScanController::class, 'context']);
