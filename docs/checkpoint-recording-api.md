@@ -1,5 +1,11 @@
 # Online checkpoint recording API — local implementation
 
+Local update, 2026-11-12: recording now additionally requires one exact configured
+pilot event/category pair. It remains off by default, with no Admin bypass.
+See [pilot configuration and rollout boundaries](checkpoint-recording-pilot-2026-11-12.md).
+This update has not been deployed. The implementation history below describes
+the original recording contract, not a current deployment status report.
+
 Implemented locally on 2026-11-10. This document describes the new recording
 contract, not a production-enabled feature. No application database migration,
 real participant scan, Railway deployment or APK build has been performed.
@@ -12,6 +18,10 @@ separate; its contract is documented in [staff-checkpoint-list-api.md](staff-che
 
 - `CHECKPOINT_SCANNING_ENABLED` defaults to **false**. Tests enable configuration
   only inside an isolated test application. The real `.env` is unchanged.
+- Both `CHECKPOINT_SCANNING_PILOT_EVENT_ID` and
+  `CHECKPOINT_SCANNING_PILOT_CATEGORY_ID` must also contain the exact positive
+  database IDs. Missing/invalid configuration is unavailable; any other pair
+  is forbidden. There is no all-events mode.
 - The new migration creates two empty tables: `checkpoint_scan_plans` and
   `checkpoint_scans`. It does not backfill or alter existing business records.
   Missing tables return a safe unavailable response; HTTP requests never migrate
@@ -38,7 +48,8 @@ accounts retain their protections.
 
 Only email-verified Admin (`super_admin`) and Event Manager accounts may record.
 Event Managers, including normalized legacy `admin`, must currently be assigned
-to the event. Admin can use any eligible event. The service rechecks the stored
+to the event. Admin retains its assignment exemption, but neither role can
+bypass the configured pilot pair. The service rechecks the stored
 token, expiry, verification, account status, role and assignment while holding
 transactional locks, rather than relying only on the middleware's earlier read.
 
@@ -157,7 +168,9 @@ reset/replacement endpoint or amendment process is included in this version.
 
 An exact retry can acknowledge an already accepted visit after a subsequent
 finish or route edit, but still requires current authorized access to the eligible
-event/category and the matching signed registration. This does not authorize a
+event/category, the currently configured pilot pair and the matching signed
+registration. Removing/changing the pair blocks retries without deleting history.
+This does not authorize a
 new retrospective visit.
 
 Transactions use shared locks for current staff, event and category to protect
@@ -188,13 +201,14 @@ Existing middleware may use its existing authentication-error body instead.
 | --- | --- |
 | 401 | Invalid/expired bearer or `staff_session_changed`: clear staff session and sign in again. |
 | 403 / 423 | Forbidden staff/event, banned/blocked/unverified, suspended: stop; do not substitute another event. |
+| 403 | `checkpoint_pilot_forbidden`: selected event/category is outside the server pilot; stop, with no finish fallback. |
 | 422 | `validation_failed`, `invalid_scan_token`, `selection_mismatch`: show the error; no visit was written. |
 | 409 | `stale_checkpoint_plan`: refresh plan and explicitly reselect before a new attempt. |
 | 409 | `checkpoint_list_not_ready`, `checkpoint_not_available`, `category_not_available`, `event_not_approved`: stop and refresh/review eligible setup. |
 | 409 | `checkpoint_plan_changed`: stop and request administrator review. |
 | 409 | `category_not_started`, `participant_not_checked_in`, `bib_not_assigned`, `participant_already_finished`: show eligibility reason; do not change participant status. |
 | 409 | `checkpoint_already_recorded`, `client_scan_conflict`: show conflict; never create a replacement UUID just to bypass it. |
-| 503 | `checkpoint_recording_disabled`, `checkpoint_recording_unavailable`: leave checkpoint recording disabled. |
+| 503 | `checkpoint_recording_disabled`, `checkpoint_recording_unavailable` (including absent/invalid pilot IDs): leave checkpoint recording disabled. |
 | 429 | Existing throttle: respect retry timing; do not switch endpoints. |
 
 On an ambiguous network timeout, do not report success. Preserve the same attempt

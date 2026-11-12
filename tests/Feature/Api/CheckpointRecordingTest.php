@@ -53,6 +53,9 @@ function recordingFixture(): array
     $registration = Registration::create(['user_id' => $runner->id, 'event_id' => $event->id,
         'category_id' => $category->id, 'bib_number' => '501', 'status' => 'checked_in', 'registered_at' => now()->subDay()]);
 
+    config(['checkpoint_scanning.pilot_event_id' => $event->id,
+        'checkpoint_scanning.pilot_category_id' => $category->id]);
+
     return [$manager, $event->fresh(), $category->fresh(), $registration];
 }
 
@@ -548,6 +551,9 @@ test('category and event selection must refer to the same approved live setup', 
             'description' => 'Synthetic', 'venue' => 'Synthetic', 'event_date' => today(), 'manager_id' => $staff->id]);
         $category->update(['event_id' => $other->id]);
     }
+    // Exercise the existing stored setup checks independently of pilot denial.
+    config(['checkpoint_scanning.pilot_event_id' => $input['event_id'],
+        'checkpoint_scanning.pilot_category_id' => $input['category_id']]);
     $this->postJson('/api/staff/checkpoint-scans', $input, $headers)->assertStatus($status)->assertJsonPath('code', $code);
     expect(CheckpointScan::count())->toBe(0)->and(CheckpointScanPlan::count())->toBe(0);
 })->with([

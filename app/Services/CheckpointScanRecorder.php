@@ -15,10 +15,15 @@ use Illuminate\Support\Facades\DB;
 
 class CheckpointScanRecorder
 {
-    public function __construct(private readonly FinishScanToken $tokens) {}
+    public function __construct(
+        private readonly FinishScanToken $tokens,
+        private readonly CheckpointRecordingPilot $pilot,
+    ) {}
 
     public function plan(User $actor, int $eventId, int $categoryId): array
     {
+        $this->pilot->assertAllowed($eventId, $categoryId);
+
         return DB::transaction(function () use ($actor, $eventId, $categoryId) {
             [, $event, $category] = $this->context($actor, $eventId, $categoryId);
             $plan = $this->currentPlan($event, $category);
@@ -34,6 +39,8 @@ class CheckpointScanRecorder
     /** @return array{scan: CheckpointScan, replayed: bool} */
     public function record(User $actor, array $input): array
     {
+        $this->pilot->assertAllowed((int) ($input['event_id'] ?? 0), (int) ($input['category_id'] ?? 0));
+
         $attempt = fn () => $this->recordLocked($actor, $input);
         try {
             return DB::transaction($attempt, 3);
@@ -123,6 +130,9 @@ class CheckpointScanRecorder
     /** Protect authorization/setup reads without blocking finish-scan FK reads. */
     private function context(User $actor, int $eventId, int $categoryId): array
     {
+        // Recheck on every transactional retry, including uniqueness recovery.
+        $this->pilot->assertAllowed($eventId, $categoryId);
+
         // Shared locks still prevent revocation/setup edits during acceptance.
         // Exclusive parent locks here can deadlock an existing finish writer:
         // it owns the registration and needs shared parent FK locks, while this
