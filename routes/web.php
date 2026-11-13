@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\CertificateController;
+use App\Http\Controllers\Admin\CheckpointHistoryController;
 use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EBadgeController;
@@ -138,6 +139,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/finish-scans', [FinishScanController::class, 'index'])
         ->middleware('role:super_admin,event_manager')
         ->name('finish-scans.index');
+    Route::get('/checkpoint-history', [CheckpointHistoryController::class, 'index'])
+        ->middleware('role:super_admin,event_manager')
+        ->name('checkpoint-history.index');
     Route::post('/results', [EventOperationsController::class, 'storeResult'])
         ->middleware('role:super_admin,event_manager')
         ->name('results.store');
