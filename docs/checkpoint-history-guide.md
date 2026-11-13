@@ -13,11 +13,18 @@ The page is read-only and shows:
   table, and elapsed time from the category's actual start.
 - The recorded staff name, retained even if that staff account is later removed.
 
-Search by recorded participant name or BIB, or filter by event and category.
-Changing the event clears the category selection. Filter choices and search
-persist through pagination. Visits are ordered by newest server timestamp,
-then newest record ID, with 20 visits per page. Refresh keeps filters and returns
-to the newest page; Clear removes filters. Refresh is manual, not automatic.
+Search by recorded participant name or BIB, or filter by event, category and
+checkpoint. Select a category to enable its checkpoint dropdown; **All
+checkpoints** shows every recorded visit for that category. Choices use permanent
+checkpoint IDs and recorded names/order, including renamed or retired checkpoints.
+Only checkpoints with recorded visits appear; a category without any shows
+**No recorded checkpoints**. Choices are not narrowed by the participant/BIB search.
+
+Changing the event clears both category and checkpoint; changing the category
+clears the checkpoint. Filter choices and search persist through pagination.
+Visits are ordered by newest server timestamp, then newest record ID, with 20
+visits per page. Refresh keeps filters and returns to the newest page; Clear
+removes all filters. Refresh is manual, not automatic.
 
 These records show checkpoint passages, not finishes, official results or a
 participant's current location. A missing record alone does not establish a

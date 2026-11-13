@@ -9,7 +9,7 @@
             <h1 class="text-3xl font-semibold tracking-tight text-slate-700">Checkpoint History</h1>
             <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Recorded checkpoint passages, not finishes or official results. A visit does not indicate a participant's current location.</p>
         </div>
-        <a href="{{ route('admin.checkpoint-history.index', array_filter(['event_id' => $eventId, 'category_id' => $categoryId, 'search' => $search], fn ($value) => $value !== null && $value !== '')) }}" class="inline-flex h-11 items-center rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-indigo-700">Refresh</a>
+        <a href="{{ route('admin.checkpoint-history.index', array_filter(['event_id' => $eventId, 'category_id' => $categoryId, 'checkpoint_id' => $checkpointId, 'search' => $search], fn ($value) => $value !== null && $value !== '')) }}" class="inline-flex h-11 items-center rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-indigo-700">Refresh</a>
     </div>
 
     @if($errors->any())
@@ -51,7 +51,24 @@
                 @endforeach
             </select>
         </div>
-        <div class="flex items-end gap-3">
+        <div>
+            @php($categoryCheckpoints = $checkpoints->where('category_id', $categoryId))
+            <label for="history-checkpoint" class="mb-2 block text-sm font-medium text-slate-700">Checkpoint</label>
+            <select id="history-checkpoint" name="checkpoint_id" @disabled($categoryId === null || $categoryCheckpoints->isEmpty()) class="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-700 focus:outline-2 focus:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60">
+                <option value="">{{ $categoryId === null ? 'Select a category first' : ($categoryCheckpoints->isEmpty() ? 'No recorded checkpoints' : 'All checkpoints') }}</option>
+                @foreach($categories as $category)
+                    @php($recordedCheckpoints = $checkpoints->where('category_id', $category->id))
+                    @if($recordedCheckpoints->isNotEmpty())
+                        <optgroup label="{{ $category->name }}" data-history-category="{{ $category->id }}" @disabled($categoryId !== $category->id) @if($categoryId !== $category->id) hidden @endif>
+                            @foreach($recordedCheckpoints as $checkpoint)
+                                <option value="{{ $checkpoint->checkpoint_id }}" @selected($checkpointId === (int) $checkpoint->checkpoint_id)>{{ $checkpoint->checkpoint_position }}. {{ $checkpoint->checkpoint_label }}</option>
+                            @endforeach
+                        </optgroup>
+                    @endif
+                @endforeach
+            </select>
+        </div>
+        <div class="flex items-end gap-3 md:col-span-2 xl:col-span-4">
             <button type="submit" class="h-11 rounded-xl bg-indigo-600 px-5 text-sm font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Filter</button>
             <a href="{{ route('admin.checkpoint-history.index') }}" class="inline-flex h-11 items-center rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-600">Clear</a>
         </div>

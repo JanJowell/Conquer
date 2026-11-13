@@ -21,12 +21,14 @@ class CheckpointHistoryController extends Controller
 
         $filters = $request->validate([
             'event_id' => ['nullable', 'integer', 'min:1'],
-            'category_id' => ['nullable', 'integer', 'min:1'],
+            'category_id' => ['nullable', 'required_with:checkpoint_id', 'integer', 'min:1'],
+            'checkpoint_id' => ['nullable', 'integer', 'min:1'],
             'search' => ['nullable', 'string', 'max:100'],
             'page' => ['nullable', 'integer', 'min:1'],
         ]);
         $eventId = filled($filters['event_id'] ?? null) ? (int) $filters['event_id'] : null;
         $categoryId = filled($filters['category_id'] ?? null) ? (int) $filters['category_id'] : null;
+        $checkpointId = filled($filters['checkpoint_id'] ?? null) ? (int) $filters['checkpoint_id'] : null;
         $search = trim($filters['search'] ?? '');
 
         $visibleEvents = Event::query()->visibleToStaff($user)->whereNull('revision_of_id');
@@ -53,9 +55,24 @@ class CheckpointHistoryController extends Controller
                 $join->on('categories.id', '=', 'checkpoint_scans.category_id')
                     ->on('categories.event_id', '=', 'checkpoint_scans.event_id');
             })
-            ->whereIn('checkpoint_scans.event_id', clone $visibleEventIds)
+            ->whereIn('checkpoint_scans.event_id', clone $visibleEventIds);
+
+        // Filter choices use recorded identities/names, not today's active course.
+        // Preload only authorized choices so category changes need no API request.
+        $checkpoints = $historyAvailable ? (clone $query)
+            ->select(['checkpoint_scans.checkpoint_id', 'checkpoint_scans.category_id',
+                'checkpoint_scans.checkpoint_position', 'checkpoint_scans.checkpoint_label'])
+            ->distinct()->orderBy('checkpoint_scans.category_id')->orderBy('checkpoint_scans.checkpoint_position')
+            ->orderBy('checkpoint_scans.checkpoint_id')->get()->unique('checkpoint_id')->values() : collect();
+        if ($checkpointId !== null && $historyAvailable) {
+            abort_unless($checkpoints->contains(fn ($checkpoint) => (int) $checkpoint->checkpoint_id === $checkpointId
+                && (int) $checkpoint->category_id === $categoryId), 404);
+        }
+
+        $query
             ->when($eventId !== null, fn ($query) => $query->where('checkpoint_scans.event_id', $eventId))
             ->when($categoryId !== null, fn ($query) => $query->where('checkpoint_scans.category_id', $categoryId))
+            ->when($checkpointId !== null, fn ($query) => $query->where('checkpoint_scans.checkpoint_id', $checkpointId))
             ->when($search !== '', fn ($query) => $query->where(fn ($inner) => $inner
                 ->where('checkpoint_scans.participant_name', 'like', '%'.$search.'%')
                 ->orWhere('checkpoint_scans.bib_number', 'like', '%'.$search.'%')))
@@ -69,10 +86,10 @@ class CheckpointHistoryController extends Controller
             'path' => route('admin.checkpoint-history.index'),
         ]);
         $scans->appends(array_filter([
-            'event_id' => $eventId, 'category_id' => $categoryId, 'search' => $search,
+            'event_id' => $eventId, 'category_id' => $categoryId, 'checkpoint_id' => $checkpointId, 'search' => $search,
         ], fn ($value) => $value !== null && $value !== ''));
 
-        return response()->view('admin.checkpoint-history.index', compact('scans', 'events', 'categories', 'eventId', 'categoryId', 'search', 'historyAvailable'), $historyAvailable ? 200 : 503)
+        return response()->view('admin.checkpoint-history.index', compact('scans', 'events', 'categories', 'checkpoints', 'eventId', 'categoryId', 'checkpointId', 'search', 'historyAvailable'), $historyAvailable ? 200 : 503)
             ->header('Cache-Control', 'private, no-store, max-age=0')
             ->header('Pragma', 'no-cache');
     }

@@ -54,6 +54,19 @@ function checkpointHistoryFixture(User $manager, string $label = 'Alpha', int $c
     return compact('event', 'category', 'checkpoint', 'plan', 'scans', 'registrations');
 }
 
+function checkpointHistoryAdditionalVisit(array $fixture, int $position = 2, string $label = 'Second checkpoint'): array
+{
+    $checkpoint = $fixture['category']->courseCheckpoints()->create(['position' => $position, 'label' => $label,
+        'latitude' => 14.6, 'longitude' => 121.1]);
+    $scan = CheckpointScan::create([
+        ...$fixture['scans']->first()->only((new CheckpointScan)->getFillable()),
+        'checkpoint_id' => $checkpoint->id, 'checkpoint_label' => $label, 'checkpoint_position' => $position,
+        'client_scan_id' => (string) Str::uuid(), 'request_fingerprint' => hash('sha256', (string) Str::uuid()),
+    ]);
+
+    return compact('checkpoint', 'scan');
+}
+
 test('checkpoint history requires an authenticated administrative account', function () {
     $this->get(route('admin.checkpoint-history.index'))->assertRedirect(route('login'));
 });
@@ -178,11 +191,12 @@ test('history paginates with stable newest first ordering and preserves only sup
     $fixture = checkpointHistoryFixture($manager, count: 22);
     $ids = $fixture['scans']->reverse()->pluck('id')->values();
     $filters = ['event_id' => $fixture['event']->id, 'category_id' => $fixture['category']->id,
-        'search' => 'Recorded runner', 'unsupported' => 'must-not-be-linked'];
+        'checkpoint_id' => $fixture['checkpoint']->id, 'search' => 'Recorded runner', 'unsupported' => 'must-not-be-linked'];
     $this->actingAs($manager)->get(route('admin.checkpoint-history.index', $filters))->assertOk()
         ->assertViewHas('scans', fn ($page) => $page->total() === 22 && $page->pluck('id')->all() === $ids->take(20)->all()
             && str_contains($page->nextPageUrl(), 'event_id='.$fixture['event']->id)
             && str_contains($page->nextPageUrl(), 'category_id='.$fixture['category']->id)
+            && str_contains($page->nextPageUrl(), 'checkpoint_id='.$fixture['checkpoint']->id)
             && str_contains($page->nextPageUrl(), 'search=Recorded%20runner')
             && ! str_contains($page->nextPageUrl(), 'unsupported'));
     $this->get(route('admin.checkpoint-history.index', [...$filters, 'page' => 2]))->assertOk()
@@ -243,6 +257,9 @@ test('malformed history filters fail validation without exposing records', funct
 })->with([
     [['event_id' => -1], 'event_id'], [['event_id' => 'invalid'], 'event_id'], [['event_id' => ['1']], 'event_id'],
     [['category_id' => 0], 'category_id'], [['category_id' => ['1']], 'category_id'],
+    [['checkpoint_id' => -1], 'checkpoint_id'], [['checkpoint_id' => 'invalid'], 'checkpoint_id'],
+    [['checkpoint_id' => ['1']], 'checkpoint_id'], [['checkpoint_id' => 1.5], 'checkpoint_id'],
+    [['checkpoint_id' => 1], 'category_id'], [['category_id' => '', 'checkpoint_id' => 1], 'category_id'],
     [['search' => ['bad']], 'search'], [['search' => str_repeat('x', 101)], 'search'],
     [['page' => 0], 'page'], [['page' => ['2']], 'page'],
 ]);
@@ -256,6 +273,8 @@ test('history is GET only and viewing never changes checkpoint or business recor
         $before[$table] = DB::table($table)->get()->toJson();
     }
     $this->actingAs($manager)->get(route('admin.checkpoint-history.index'))->assertOk();
+    $this->get(route('admin.checkpoint-history.index', ['event_id' => $fixture['event']->id,
+        'category_id' => $fixture['category']->id, 'checkpoint_id' => $fixture['checkpoint']->id]))->assertOk();
     foreach ($before as $table => $rows) {
         expect(DB::table($table)->get()->toJson(), $table)->toBe($rows);
     }
@@ -281,4 +300,127 @@ test('missing history schema shows an unavailable notice instead of a server err
         ->assertSee('Checkpoint history is not available in this environment yet.')
         ->assertSee('No records have been changed.')->assertDontSee('0 recorded visits')
         ->assertDontSee('No checkpoint visits match these filters.')->assertViewHas('historyAvailable', false);
+})->with(['checkpoint_scans', 'checkpoint_scan_plans']);
+
+test('checkpoint filtering uses permanent identities even when another category has the same recorded label', function (string $role) {
+    $manager = User::factory()->create(['role' => $role === 'super_admin' ? 'event_manager' : $role]);
+    $viewer = $role === 'super_admin' ? User::factory()->create(['role' => $role]) : $manager;
+    $own = checkpointHistoryFixture($manager);
+    $second = checkpointHistoryAdditionalVisit($own, label: 'Checkpoint 2');
+    $other = checkpointHistoryFixture($manager, 'Other', overrides: ['checkpoint_label' => 'Checkpoint 2']);
+    $filters = ['event_id' => $own['event']->id, 'category_id' => $own['category']->id,
+        'checkpoint_id' => $second['checkpoint']->id];
+    $this->actingAs($viewer)->get(route('admin.checkpoint-history.index', $filters))->assertOk()
+        ->assertViewHas('scans', fn ($page) => $page->total() === 1 && $page->first()->id === $second['scan']->id)
+        ->assertViewHas('checkpointId', $second['checkpoint']->id)
+        ->assertSee('value="'.$second['checkpoint']->id.'" selected', false)
+        ->assertSee(route('admin.checkpoint-history.index', $filters))
+        ->assertDontSee('Recorded runner Other 1');
+    $this->get(route('admin.checkpoint-history.index', [...$filters, 'search' => '001']))->assertOk()
+        ->assertViewHas('scans', fn ($page) => $page->total() === 1);
+    $this->get(route('admin.checkpoint-history.index', [...$filters, 'search' => 'Other']))->assertOk()
+        ->assertViewHas('scans', fn ($page) => $page->total() === 0)
+        ->assertViewHas('checkpoints', fn ($points) => $points->contains('checkpoint_id', $second['checkpoint']->id));
+    // Existing category-only filtering stays supported without requiring an event.
+    $this->get(route('admin.checkpoint-history.index', ['category_id' => $own['category']->id,
+        'checkpoint_id' => $second['checkpoint']->id]))->assertOk()
+        ->assertViewHas('scans', fn ($page) => $page->total() === 1);
+})->with(['super_admin', 'event_manager', 'admin']);
+
+test('all checkpoints remain the default and recorded choices are deduplicated ordered and independent of searches', function () {
+    $manager = User::factory()->create(['role' => 'event_manager']);
+    $fixture = checkpointHistoryFixture($manager, count: 3);
+    $third = checkpointHistoryAdditionalVisit($fixture, 3, 'Third checkpoint');
+    $second = checkpointHistoryAdditionalVisit($fixture);
+    $filters = ['category_id' => $fixture['category']->id];
+    $this->actingAs($manager)->get(route('admin.checkpoint-history.index', $filters))->assertOk()
+        ->assertSee('All checkpoints')->assertViewHas('checkpointId', null)
+        ->assertViewHas('scans', fn ($page) => $page->total() === 5)
+        ->assertViewHas('checkpoints', fn ($points) => $points->pluck('checkpoint_id')->all() === [
+            $fixture['checkpoint']->id, $second['checkpoint']->id, $third['checkpoint']->id,
+        ]);
+    $this->get(route('admin.checkpoint-history.index', [...$filters, 'search' => 'not recorded']))->assertOk()
+        ->assertViewHas('scans', fn ($page) => $page->total() === 0)
+        ->assertViewHas('checkpoints', fn ($points) => $points->count() === 3);
+});
+
+test('checkpoint choices never expose visits from unassigned or revision events and forged choices are rejected', function () {
+    $manager = User::factory()->create(['role' => 'event_manager']);
+    $own = checkpointHistoryFixture($manager, 'Own');
+    $foreign = checkpointHistoryFixture(User::factory()->create(['role' => 'event_manager']), 'Foreign');
+    $revision = checkpointHistoryFixture($manager, 'Revision');
+    $revision['event']->forceFill(['revision_of_id' => $own['event']->id])->save();
+    $this->actingAs($manager)->get(route('admin.checkpoint-history.index', ['category_id' => $own['category']->id]))->assertOk()
+        ->assertViewHas('checkpoints', fn ($points) => $points->pluck('checkpoint_id')->all() === [$own['checkpoint']->id])
+        ->assertDontSee('Foreign checkpoint')->assertDontSee('Revision checkpoint');
+    foreach ([$foreign['checkpoint']->id, $revision['checkpoint']->id, 999999] as $checkpointId) {
+        $this->get(route('admin.checkpoint-history.index', ['category_id' => $own['category']->id,
+            'checkpoint_id' => $checkpointId]))->assertNotFound();
+    }
+    $this->get(route('admin.checkpoint-history.index', ['category_id' => $foreign['category']->id,
+        'checkpoint_id' => $foreign['checkpoint']->id]))->assertNotFound();
+});
+
+test('a checkpoint from a different visible category or event is rejected for admins and managers', function (string $role) {
+    $manager = User::factory()->create(['role' => 'event_manager']);
+    $viewer = $role === 'super_admin' ? User::factory()->create(['role' => $role]) : $manager;
+    $own = checkpointHistoryFixture($manager);
+    $other = checkpointHistoryFixture($manager, 'Other');
+    $this->actingAs($viewer)->get(route('admin.checkpoint-history.index', ['event_id' => $own['event']->id,
+        'category_id' => $own['category']->id, 'checkpoint_id' => $other['checkpoint']->id]))->assertNotFound();
+    $sibling = Category::create(['event_id' => $own['event']->id, 'name' => 'Sibling category',
+        'distance_km' => 5, 'status' => 'open']);
+    // Different categories within the same assigned event cannot share a filter identity.
+    $this->get(route('admin.checkpoint-history.index', ['event_id' => $own['event']->id,
+        'category_id' => $sibling->id, 'checkpoint_id' => $own['checkpoint']->id]))->assertNotFound();
+})->with(['super_admin', 'event_manager']);
+
+test('retired or renamed checkpoints remain filterable by recorded names and order after the event ends', function () {
+    $manager = User::factory()->create(['role' => 'event_manager']);
+    $fixture = checkpointHistoryFixture($manager);
+    $fixture['checkpoint']->update(['label' => 'Renamed current checkpoint', 'position' => null, 'retired_at' => now()]);
+    $fixture['event']->update(['status' => 'completed', 'event_date' => today()->subDays(2), 'event_end_date' => today()->subDay()]);
+    $this->actingAs($manager)->get(route('admin.checkpoint-history.index', ['category_id' => $fixture['category']->id,
+        'checkpoint_id' => $fixture['checkpoint']->id]))->assertOk()
+        ->assertSee('1. Alpha checkpoint')->assertDontSee('Renamed current checkpoint')
+        ->assertViewHas('checkpoints', fn ($points) => $points->sole()->checkpoint_label === 'Alpha checkpoint'
+            && $points->sole()->checkpoint_position === 1)
+        ->assertViewHas('scans', fn ($page) => $page->total() === 1);
+});
+
+test('checkpoint selectors show explicit disabled states before category selection or without recorded visits', function () {
+    $manager = User::factory()->create(['role' => 'event_manager']);
+    $fixture = checkpointHistoryFixture($manager, count: 0);
+    $this->actingAs($manager)->get(route('admin.checkpoint-history.index'))->assertOk()
+        ->assertSee('name="checkpoint_id" disabled', false)->assertSee('Select a category first')
+        ->assertViewHas('checkpoints', fn ($points) => $points->isEmpty());
+    $this->get(route('admin.checkpoint-history.index', ['category_id' => $fixture['category']->id]))->assertOk()
+        ->assertSee('name="checkpoint_id" disabled', false)->assertSee('No recorded checkpoints')
+        ->assertViewHas('scans', fn ($page) => $page->total() === 0);
+});
+
+test('assignment changes remove access to bookmarked checkpoint filters immediately', function () {
+    $previous = User::factory()->create(['role' => 'event_manager']);
+    $current = User::factory()->create(['role' => 'event_manager']);
+    $fixture = checkpointHistoryFixture($previous);
+    $filters = ['category_id' => $fixture['category']->id, 'checkpoint_id' => $fixture['checkpoint']->id];
+    $fixture['event']->update(['manager_id' => $current->id]);
+    $this->actingAs($previous)->get(route('admin.checkpoint-history.index', $filters))->assertNotFound();
+    $this->get(route('admin.checkpoint-history.index'))->assertOk()
+        ->assertViewHas('checkpoints', fn ($points) => $points->isEmpty());
+    $this->actingAs($current)->get(route('admin.checkpoint-history.index', $filters))->assertOk()
+        ->assertViewHas('scans', fn ($page) => $page->total() === 1);
+});
+
+test('a bookmarked checkpoint filter still shows the explicit unavailable notice when history schema is missing', function (string $table) {
+    $manager = User::factory()->create(['role' => 'event_manager']);
+    $fixture = checkpointHistoryFixture($manager);
+    expect(DB::connection()->getDriverName())->toBe('sqlite')->and(config('database.connections.sqlite.database'))->toBe(':memory:');
+    // Keep populated FK relationships valid while simulating a missing table.
+    // SQLite cannot toggle foreign_keys inside RefreshDatabase's transaction.
+    Schema::rename($table, 'test_unavailable_'.$table);
+    $this->actingAs($manager)->get(route('admin.checkpoint-history.index', ['category_id' => $fixture['category']->id,
+        'checkpoint_id' => $fixture['checkpoint']->id]))->assertStatus(503)->assertViewHas('historyAvailable', false)
+        ->assertViewHas('checkpoints', fn ($points) => $points->isEmpty())
+        ->assertSee('Checkpoint history is not available in this environment yet.');
 })->with(['checkpoint_scans', 'checkpoint_scan_plans']);
