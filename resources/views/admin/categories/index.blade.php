@@ -113,7 +113,10 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-5">
-                                    @if ($category->started_at)
+                                    @if ($category->event?->isCancelled())
+                                        <span class="inline-flex rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-600">Cancelled</span>
+                                        <p class="mt-2 text-xs text-slate-400">Previous start and scan history is preserved.</p>
+                                    @elseif ($category->started_at)
                                         <span class="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-500">In Progress</span>
                                         <p class="mt-2 text-xs text-slate-400">Scheduled gun start {{ $scheduledStartAt?->format('M j, Y g:i A') ?: 'time unavailable' }}</p>
                                         <p class="mt-1 text-xs text-slate-400">Cutoff/end {{ $category->scheduledEndAt()?->format('M j, Y g:i A') ?: 'time unavailable' }}</p>

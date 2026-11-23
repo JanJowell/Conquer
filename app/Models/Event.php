@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\EventReactivation;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -46,12 +47,22 @@ class Event extends Model
             'review_version' => 'integer',
             'submitted_at' => 'datetime',
             'approved_at' => 'datetime',
+            'archived_at' => 'datetime',
+            'auto_archive_exempt_at' => 'datetime',
+            'first_published_at' => 'datetime',
+            'auto_archive_restored_at' => 'datetime',
+            'cancelled_at' => 'datetime',
         ];
     }
 
     protected static function booted(): void
     {
         static::saving(function (Event $event) {
+            if ($event->isCancelled()) {
+                $event->status = 'cancelled';
+
+                return;
+            }
             if (! $event->isReviewPublished()) {
                 $event->status = 'draft';
             }
@@ -76,6 +87,9 @@ class Event extends Model
         mixed $endTime = null,
         mixed $eventEndDate = null
     ): ?string {
+        if ($status === 'cancelled') {
+            return 'cancelled';
+        }
         if ($status === 'draft') {
             return 'draft';
         }
@@ -125,6 +139,9 @@ class Event extends Model
 
     public function automaticStatus(array $overrides = [], bool $hasBannerUpload = false): string
     {
+        if ($this->isCancelled()) {
+            return 'cancelled';
+        }
         if (! $this->isReviewPublished()) {
             return 'draft';
         }
@@ -371,7 +388,7 @@ class Event extends Model
             ->where('is_auto_generated', true)
             ->first();
 
-        $isPublished = $this->isReviewPublished() && $this->publicReadinessErrors() === [];
+        $isPublished = ! $this->isCancelled() && $this->isReviewPublished() && $this->publicReadinessErrors() === [];
         $publishedAt = $isPublished
             ? ($announcement?->published_at ?? now())
             : null;
@@ -459,9 +476,21 @@ class Event extends Model
         return ! $this->revision_of_id && in_array($this->review_status, [null, 'approved'], true);
     }
 
+    public function isCancelled(): bool
+    {
+        return $this->cancelled_at !== null || $this->getRawOriginal('status') === 'cancelled';
+    }
+
     public function canEditSetup(User $user): bool
     {
-        return $user->managesAssignedEventsOnly() && $user->canManageEvent($this)
+        $parent = $this->revision_of_id ? $this->revisionOf : null;
+        $parentAllowsEditing = $this->isReactivationDraft()
+            ? ($parent && app(EventReactivation::class)->eligible($parent)
+                && app(EventReactivation::class)->matchesCancellation($this, $parent))
+            : ! $parent?->isCancelled();
+
+        return ! $this->isCancelled() && $parentAllowsEditing
+            && $user->managesAssignedEventsOnly() && $user->canManageEvent($this)
             && (in_array($this->review_status, ['draft', 'changes_requested'], true)
                 || ($this->review_status === null && $this->effective_status === 'draft'));
     }
@@ -483,6 +512,21 @@ class Event extends Model
         return $this->hasMany(self::class, 'revision_of_id');
     }
 
+    public function revisionOf()
+    {
+        return $this->belongsTo(self::class, 'revision_of_id');
+    }
+
+    public function revisionRequest()
+    {
+        return $this->hasOne(EventRevision::class, 'draft_event_id');
+    }
+
+    public function isReactivationDraft(): bool
+    {
+        return $this->revision_of_id && $this->revisionRequest?->purpose === 'reactivation';
+    }
+
     public function activeRevision()
     {
         return $this->hasOne(self::class, 'revision_of_id')
@@ -491,6 +535,19 @@ class Event extends Model
 
     public function reviewLabel(): string
     {
+        if ($this->isCancelled()) {
+            return 'Cancelled';
+        }
+        if ($this->isReactivationDraft()) {
+            return match ($this->review_status) {
+                'pending_review' => 'Reactivation Pending Review',
+                'changes_requested' => 'Reactivation Changes Requested',
+                'approved' => 'Reactivation Approved',
+                'discarded' => 'Discarded Reactivation',
+                default => 'Reactivation Draft',
+            };
+        }
+
         return match ($this->review_status) {
             null => 'Existing event (pre-review workflow)',
             'pending_review' => 'Pending Review',

@@ -38,6 +38,15 @@ class EventReviewController extends Controller
         return to_route('admin.events.edit', $draft)->with('success', 'Private revision opened. The current published event remains unchanged until Admin approval.');
     }
 
+    public function reactivation(Request $request, Event $event, EventReviewWorkflow $workflow): RedirectResponse
+    {
+        $data = $request->validate(['review_version' => ['required', 'integer', 'min:0'],
+            'reactivation_reason' => ['required', 'string', 'max:1000'], 'confirmation' => ['required', 'accepted']]);
+        $draft = $workflow->startRevision($event, $request->user(), (int) $data['review_version'], $data['reactivation_reason']);
+
+        return to_route('admin.events.edit', $draft)->with('success', 'Private reactivation draft opened. Update its future schedule and submit it for Admin review. The original event remains Cancelled until approval.');
+    }
+
     public function history(Request $request, Event $event, EventRevisionComparison $comparison): View
     {
         $user = $request->user();

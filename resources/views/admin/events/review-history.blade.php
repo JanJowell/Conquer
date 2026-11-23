@@ -19,6 +19,15 @@
                 <p class="mt-3 whitespace-pre-line rounded-xl bg-amber-50 p-3 text-sm text-amber-900">{{ $entry['review']->reason }}</p>
             @endif
             @if ($entry['comparison'])
+                @if ($entry['review']->submission_snapshot['reactivation'] ?? null)
+                    @php($cancellation = $entry['review']->submission_snapshot['reactivation'])
+                    <div class="mt-3 rounded-xl bg-rose-50 p-3 text-sm text-rose-800">
+                        <p class="font-semibold">Preserved cancellation history</p>
+                        <p>Cancelled: {{ \Illuminate\Support\Carbon::parse($cancellation['cancelled_at'])->timezone(config('app.timezone'))->format('M j, Y g:i A') }} · Admin ID {{ $cancellation['cancelled_by_user_id'] ?? 'Former account' }}</p>
+                        <p>{{ $cancellation['cancellation_reason'] }}</p>
+                        <p class="mt-2"><strong>Reactivation requested:</strong> {{ $cancellation['request_reason'] }}</p>
+                    </div>
+                @endif
                 <details class="mt-4">
                     <summary class="cursor-pointer font-medium text-indigo-600">View saved submission</summary>
                     @include('admin.events.partials.revision-comparison', ['revisionComparison' => $entry['comparison'], 'historicalComparison' => true])

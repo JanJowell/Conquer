@@ -10,6 +10,7 @@ class EventRevision extends Model
 
     protected function casts(): array
     {
-        return ['category_map' => 'array', 'payment_method_map' => 'array', 'checkpoint_map' => 'array', 'applied_at' => 'datetime'];
+        return ['category_map' => 'array', 'payment_method_map' => 'array', 'checkpoint_map' => 'array',
+            'cancellation_snapshot' => 'array', 'applied_at' => 'datetime'];
     }
 }

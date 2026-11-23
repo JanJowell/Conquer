@@ -48,6 +48,7 @@
                             (int) $raceCategory->race_results_count,
                         );
                         [$resultsStatusLabel, $resultsStatusClasses] = match ($resultsDisplayStatus) {
+                            \App\Models\Category::RESULTS_STATUS_CANCELLED => ['Cancelled', 'border-rose-200 bg-rose-50 text-rose-700'],
                             \App\Models\Category::RESULTS_STATUS_IN_PROGRESS => ['In Progress', 'border-emerald-200 bg-emerald-50 text-emerald-700'],
                             \App\Models\Category::RESULTS_STATUS_PENDING => ['Ended / Results Pending', 'border-amber-200 bg-amber-50 text-amber-700'],
                             \App\Models\Category::RESULTS_STATUS_COMPLETED => ['Completed', 'border-sky-200 bg-sky-50 text-sky-700'],
@@ -69,6 +70,8 @@
                             @if ($raceCategory->started_at)
                                 <p class="text-sm font-semibold text-[#151b26]">{{ $raceCategory->started_at->format('M j, Y g:i:s A') }}</p>
                                 <p class="mt-1 text-xs text-[#6d7685]">Started by {{ $raceCategory->startedBy?->name ?: 'administrator' }}</p>
+                            @elseif ($raceCategory->event?->isCancelled())
+                                <p class="text-xs text-rose-600">Event cancelled. New race operations are closed.</p>
                             @elseif ($raceCategory->status === 'draft')
                                 <p class="text-xs text-[#6d7685]">Open or close this category before starting it.</p>
                             @elseif (! $scheduledStartAt)
@@ -96,7 +99,7 @@
                         </div>
                     </div>
                 @empty
-                    <div class="px-5 py-8 text-center text-sm text-[#6d7685]">Checked-in categories will appear here. You can also start a category from its management page.</div>
+                    <div class="px-5 py-8 text-center text-sm text-[#6d7685]">Checked-in categories from unarchived events will appear here. Archived event results remain available below.</div>
                 @endforelse
             </div>
         </section>

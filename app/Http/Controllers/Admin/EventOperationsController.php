@@ -397,6 +397,8 @@ class EventOperationsController extends Controller
             ->withQueryString();
 
         $raceCategories = Category::query()
+            // Archiving hides operational start rows, not official result history.
+            ->whereHas('event', fn ($query) => $query->whereNull('archived_at'))
             ->with(['event', 'startedBy'])
             ->withCount([
                 'registrations as checked_in_count' => fn ($query) => $query->whereIn('status', ['checked_in', 'completed']),

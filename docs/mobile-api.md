@@ -11,6 +11,31 @@ venue name followed by its landmark, barangay, city/municipality and province
 or non-province area. Existing venue text is preserved until deliberately
 replaced. No coordinates or map pin are inferred from this address.
 
+## Archived events in mobile discovery
+
+`GET /api/events` excludes events whose `archived_at` is set. This applies to
+Browse, Search, interest/status filters and recommendations, for guests and
+signed-in users alike. Query parameters cannot opt back into archived results.
+Restoring an event makes it eligible for discovery again under the existing
+publication/readiness and filtering rules. Clients must refresh their event
+list; this does not remotely erase an already displayed or cached card.
+
+This is discovery filtering, not deletion or a new access-control boundary.
+`GET /api/events/{event}` keeps its existing public contract so historical links
+remain usable. My Activity, results, payment history, feedback, certificates and
+authorized staff/scanner endpoints retain their existing ownership, login,
+publication and operational checks. No archive field or new status is added to
+mobile resource payloads. Before the archive metadata migration is applied,
+the existing discovery list remains usable without an unknown-column error.
+
+Automatic 30-day archiving is a separate, opt-in implementation, disabled by
+default and not activated or deployed; see the
+[automatic archiving policy and release notes](automatic-event-archiving-2026-11-18.md).
+Public website, announcements, community and leaderboard discovery are outside
+the mobile archive filtering change.
+This behavior is verified locally, not deployed or phone-verified; see
+[implementation and verification notes](mobile-event-archive-visibility-2026-11-18.md).
+
 ## Feedback and e-certificates
 
 First certificate issuance requires a completed registration, an official result,

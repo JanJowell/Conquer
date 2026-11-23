@@ -64,8 +64,12 @@ class RegistrationReadiness
         $gearKey = collect(['required_gear', 'mandatory_gear'])
             ->first(fn (string $key) => filled($categoryDetails[$key] ?? null));
 
+        $cancelled = $registration->event?->isCancelled() ?? false;
+
         return [
-            'overall_status' => $this->overallStatus(
+            'event_cancelled' => $cancelled,
+            'cancellation_reason' => $cancelled ? $registration->event->cancellation_reason : null,
+            'overall_status' => $cancelled ? 'cancelled' : $this->overallStatus(
                 $registrationStatus,
                 $groupReady,
                 $paymentWaiting,
@@ -73,160 +77,162 @@ class RegistrationReadiness
                 $bibAssigned,
                 $result !== null
             ),
-            'next_action' => $this->nextAction(
-                $registration,
-                $isRejected,
-                $groupReady,
-                $isApproved,
-                $isCheckedIn,
-                $paymentComplete,
-                $paymentWaiting,
-                $waiverComplete,
-                $medicalCertificateComplete,
-                $firstAidComplete,
-                $bibAssigned,
-                $raceKitReleased,
-                $result !== null,
-                $awaitingCertificateFeedback
-            ),
-            'is_ready_for_event_day' => $readyForEventDay,
+            'next_action' => $cancelled
+                ? $this->action('event_cancelled', 'Event cancelled', 'New payments and race operations are closed. Contact the organizer about existing payments. Previous records remain available.', 'blocked')
+                : $this->nextAction(
+                    $registration,
+                    $isRejected,
+                    $groupReady,
+                    $isApproved,
+                    $isCheckedIn,
+                    $paymentComplete,
+                    $paymentWaiting,
+                    $waiverComplete,
+                    $medicalCertificateComplete,
+                    $firstAidComplete,
+                    $bibAssigned,
+                    $raceKitReleased,
+                    $result !== null,
+                    $awaitingCertificateFeedback
+                ),
+            'is_ready_for_event_day' => ! $cancelled && $readyForEventDay,
             'steps' => [
-                'group' => [
-                    'required' => $groupRequired,
-                    'completed' => $groupReady,
-                    'status' => ! $groupRequired ? 'not_required' : ($groupReady ? 'complete' : 'action_required'),
-                    'member_count' => $groupMemberCount,
-                    'minimum_members' => $groupRequired ? $groupMinimum : null,
+                    'group' => [
+                        'required' => $groupRequired,
+                        'completed' => $groupReady,
+                        'status' => ! $groupRequired ? 'not_required' : ($groupReady ? 'complete' : 'action_required'),
+                        'member_count' => $groupMemberCount,
+                        'minimum_members' => $groupRequired ? $groupMinimum : null,
+                    ],
+                    'approval' => [
+                        'required' => true,
+                        'completed' => $isApproved,
+                        'status' => $isRejected ? 'failed' : ($isApproved ? 'complete' : 'pending'),
+                    ],
+                    'payment' => [
+                        'required' => $paymentRequired,
+                        'completed' => $paymentComplete,
+                        'status' => ! $paymentRequired
+                            ? 'not_required'
+                            : ($paymentComplete ? 'complete' : ($paymentWaiting ? 'pending' : 'action_required')),
+                    ],
+                    'bib' => [
+                        'required' => true,
+                        'completed' => $bibAssigned,
+                        'status' => $bibAssigned ? 'complete' : 'pending',
+                    ],
+                    'waiver' => [
+                        'required' => true,
+                        'completed' => $waiverComplete,
+                        'status' => $waiverComplete ? 'complete' : 'action_required',
+                    ],
+                    'first_aid_kit' => [
+                        'required' => true,
+                        'completed' => $firstAidComplete,
+                        'status' => $firstAidComplete ? 'complete' : 'action_required',
+                    ],
+                    'medical_certificate' => [
+                        'required' => $medicalCertificateRequired,
+                        'completed' => $medicalCertificateComplete,
+                        'status' => ! $medicalCertificateRequired
+                            ? 'not_required'
+                            : ($medicalCertificateComplete ? 'complete' : 'action_required'),
+                    ],
+                    'check_in' => [
+                        'required' => true,
+                        'completed' => $isCheckedIn,
+                        'status' => $isCheckedIn ? 'complete' : ($readyForEventDay ? 'upcoming' : 'blocked'),
+                    ],
+                    'race_kit' => [
+                        'required' => true,
+                        'completed' => $raceKitReleased,
+                        'status' => $raceKitReleased ? 'complete' : ($isCheckedIn ? 'pending' : 'upcoming'),
+                    ],
+                    'result' => [
+                        'required' => false,
+                        'completed' => $result !== null,
+                        'status' => $result ? 'available' : ($isCheckedIn ? 'pending' : 'upcoming'),
+                    ],
+                    'e_badge' => [
+                        'required' => false,
+                        'completed' => $issuedBadges->isNotEmpty(),
+                        'status' => $issuedBadges->isNotEmpty() ? 'available' : 'not_available',
+                    ],
+                    'certificate' => [
+                        'required' => $result !== null,
+                        'completed' => $certificate?->isValid() ?? false,
+                        'status' => ! $result
+                            ? 'upcoming'
+                            : ($certificate?->isValid() ? 'available' : ($certificate ? 'revoked' : ($awaitingCertificateFeedback ? 'waiting_for_feedback' : 'pending'))),
+                    ],
+                    'feedback' => [
+                        'required' => $awaitingCertificateFeedback,
+                        'completed' => $feedback !== null,
+                        'status' => ! $result
+                            ? 'upcoming'
+                            : ($feedback ? 'complete' : ($awaitingCertificateFeedback ? 'action_required' : 'optional')),
+                    ],
                 ],
-                'approval' => [
-                    'required' => true,
-                    'completed' => $isApproved,
-                    'status' => $isRejected ? 'failed' : ($isApproved ? 'complete' : 'pending'),
-                ],
-                'payment' => [
-                    'required' => $paymentRequired,
-                    'completed' => $paymentComplete,
-                    'status' => ! $paymentRequired
-                        ? 'not_required'
-                        : ($paymentComplete ? 'complete' : ($paymentWaiting ? 'pending' : 'action_required')),
-                ],
-                'bib' => [
-                    'required' => true,
-                    'completed' => $bibAssigned,
-                    'status' => $bibAssigned ? 'complete' : 'pending',
-                ],
-                'waiver' => [
-                    'required' => true,
-                    'completed' => $waiverComplete,
-                    'status' => $waiverComplete ? 'complete' : 'action_required',
-                ],
-                'first_aid_kit' => [
-                    'required' => true,
-                    'completed' => $firstAidComplete,
-                    'status' => $firstAidComplete ? 'complete' : 'action_required',
-                ],
-                'medical_certificate' => [
-                    'required' => $medicalCertificateRequired,
-                    'completed' => $medicalCertificateComplete,
-                    'status' => ! $medicalCertificateRequired
-                        ? 'not_required'
-                        : ($medicalCertificateComplete ? 'complete' : 'action_required'),
-                ],
-                'check_in' => [
-                    'required' => true,
-                    'completed' => $isCheckedIn,
-                    'status' => $isCheckedIn ? 'complete' : ($readyForEventDay ? 'upcoming' : 'blocked'),
-                ],
-                'race_kit' => [
-                    'required' => true,
-                    'completed' => $raceKitReleased,
-                    'status' => $raceKitReleased ? 'complete' : ($isCheckedIn ? 'pending' : 'upcoming'),
-                ],
-                'result' => [
-                    'required' => false,
-                    'completed' => $result !== null,
-                    'status' => $result ? 'available' : ($isCheckedIn ? 'pending' : 'upcoming'),
-                ],
-                'e_badge' => [
-                    'required' => false,
-                    'completed' => $issuedBadges->isNotEmpty(),
-                    'status' => $issuedBadges->isNotEmpty() ? 'available' : 'not_available',
-                ],
-                'certificate' => [
-                    'required' => $result !== null,
-                    'completed' => $certificate?->isValid() ?? false,
-                    'status' => ! $result
-                        ? 'upcoming'
-                        : ($certificate?->isValid() ? 'available' : ($certificate ? 'revoked' : ($awaitingCertificateFeedback ? 'waiting_for_feedback' : 'pending'))),
-                ],
-                'feedback' => [
-                    'required' => $awaitingCertificateFeedback,
-                    'completed' => $feedback !== null,
-                    'status' => ! $result
-                        ? 'upcoming'
-                        : ($feedback ? 'complete' : ($awaitingCertificateFeedback ? 'action_required' : 'optional')),
-                ],
-            ],
             'requirements' => [
-                'qualification_notes' => $category?->qualification_notes,
-                'gear_label' => $gearKey ? ($gearKey === 'required_gear' ? 'Required Gear' : 'Mandatory Gear') : null,
-                'gear' => $gearKey ? $categoryDetails[$gearKey] : null,
-            ],
+                    'qualification_notes' => $category?->qualification_notes,
+                    'gear_label' => $gearKey ? ($gearKey === 'required_gear' ? 'Required Gear' : 'Mandatory Gear') : null,
+                    'gear' => $gearKey ? $categoryDetails[$gearKey] : null,
+                ],
             'schedule' => [
-                'scheduled_start_date' => optional($category?->scheduled_start_date ?? $registration->event?->event_date)->format('Y-m-d'),
-                'scheduled_start_time' => optional($category?->scheduled_start_time)->format('H:i'),
-                'scheduled_end_date' => optional($category?->scheduled_end_date ?? $category?->scheduled_start_date ?? $registration->event?->event_date)->format('Y-m-d'),
-                'scheduled_end_time' => optional($category?->scheduled_end_time)->format('H:i'),
-                'scheduled_start_at' => optional($category?->scheduledStartAt())->toIso8601String(),
-                'scheduled_end_at' => optional($category?->scheduledEndAt())->toIso8601String(),
-            ],
+                    'scheduled_start_date' => optional($category?->scheduled_start_date ?? $registration->event?->event_date)->format('Y-m-d'),
+                    'scheduled_start_time' => optional($category?->scheduled_start_time)->format('H:i'),
+                    'scheduled_end_date' => optional($category?->scheduled_end_date ?? $category?->scheduled_start_date ?? $registration->event?->event_date)->format('Y-m-d'),
+                    'scheduled_end_time' => optional($category?->scheduled_end_time)->format('H:i'),
+                    'scheduled_start_at' => optional($category?->scheduledStartAt())->toIso8601String(),
+                    'scheduled_end_at' => optional($category?->scheduledEndAt())->toIso8601String(),
+                ],
             'result' => $result ? [
-                'id' => $result->id,
-                'finish_time' => $result->finish_time,
-                'rank_overall' => $result->rank_overall,
-                'rank_category' => $result->rank_category,
-                'remarks' => $result->remarks,
-            ] : null,
+                    'id' => $result->id,
+                    'finish_time' => $result->finish_time,
+                    'rank_overall' => $result->rank_overall,
+                    'rank_category' => $result->rank_category,
+                    'remarks' => $result->remarks,
+                ] : null,
             'feedback' => [
-                'required' => $awaitingCertificateFeedback,
-                'required_after_completion' => $certificate === null,
-                'has_submitted' => $feedback !== null,
-                'can_submit' => $result !== null && $feedback === null,
-                'can_edit' => $feedback?->canEdit() ?? false,
-                'edit_window_days' => RegistrationFeedback::EDIT_WINDOW_DAYS,
-                'editable_until' => optional($feedback?->editableUntil())?->toISOString(),
-            ],
+                    'required' => $awaitingCertificateFeedback,
+                    'required_after_completion' => $certificate === null,
+                    'has_submitted' => $feedback !== null,
+                    'can_submit' => $result !== null && $feedback === null,
+                    'can_edit' => $feedback?->canEdit() ?? false,
+                    'edit_window_days' => RegistrationFeedback::EDIT_WINDOW_DAYS,
+                    'editable_until' => optional($feedback?->editableUntil())?->toISOString(),
+                ],
             'e_badges' => [
-                'available' => $issuedBadges->isNotEmpty(),
-                'count' => $issuedBadges->count(),
-                'items' => $issuedBadges->map(fn ($issuedBadge) => [
-                    'id' => $issuedBadge->id,
-                    'badge_id' => $issuedBadge->e_badge_id,
-                    'title' => $issuedBadge->badge?->title,
-                    'image_url' => $issuedBadge->badge?->image_path
-                        ? asset('storage/'.$issuedBadge->badge->image_path)
-                        : null,
-                    'issued_at' => optional($issuedBadge->issued_at)?->toISOString(),
-                ])->values()->all(),
-            ],
+                    'available' => $issuedBadges->isNotEmpty(),
+                    'count' => $issuedBadges->count(),
+                    'items' => $issuedBadges->map(fn ($issuedBadge) => [
+                        'id' => $issuedBadge->id,
+                        'badge_id' => $issuedBadge->e_badge_id,
+                        'title' => $issuedBadge->badge?->title,
+                        'image_url' => $issuedBadge->badge?->image_path
+                            ? asset('storage/'.$issuedBadge->badge->image_path)
+                            : null,
+                        'issued_at' => optional($issuedBadge->issued_at)?->toISOString(),
+                    ])->values()->all(),
+                ],
             'certificate' => $certificate ? [
-                'id' => $certificate->id,
-                'certificate_number' => $certificate->certificate_number,
-                'status' => $certificate->isValid() ? 'valid' : 'revoked',
-                'available' => $certificate->isValid(),
-                'issued_at' => optional($certificate->issued_at)?->toISOString(),
-                'revoked_at' => optional($certificate->revoked_at)?->toISOString(),
-                'verification_url' => route('certificates.verify', $certificate->verification_token),
-                'download_url' => $certificate->isValid()
-                    ? route('certificates.download', $certificate->verification_token)
-                    : null,
-            ] : [
-                'available' => false,
-                'status' => ! $result ? 'waiting_for_result' : ($awaitingCertificateFeedback ? 'waiting_for_feedback' : 'pending'),
-                'message' => $awaitingCertificateFeedback
-                    ? 'Submit feedback to unlock your e-certificate. Any valid rating is accepted; written comments are optional.'
-                    : (! $result ? 'Your official result must be recorded before your certificate is available.' : 'Your e-certificate is being prepared.'),
-            ],
+                    'id' => $certificate->id,
+                    'certificate_number' => $certificate->certificate_number,
+                    'status' => $certificate->isValid() ? 'valid' : 'revoked',
+                    'available' => $certificate->isValid(),
+                    'issued_at' => optional($certificate->issued_at)?->toISOString(),
+                    'revoked_at' => optional($certificate->revoked_at)?->toISOString(),
+                    'verification_url' => route('certificates.verify', $certificate->verification_token),
+                    'download_url' => $certificate->isValid()
+                        ? route('certificates.download', $certificate->verification_token)
+                        : null,
+                ] : [
+                    'available' => false,
+                    'status' => ! $result ? 'waiting_for_result' : ($awaitingCertificateFeedback ? 'waiting_for_feedback' : 'pending'),
+                    'message' => $awaitingCertificateFeedback
+                        ? 'Submit feedback to unlock your e-certificate. Any valid rating is accepted; written comments are optional.'
+                        : (! $result ? 'Your official result must be recorded before your certificate is available.' : 'Your e-certificate is being prepared.'),
+                ],
         ];
     }
 

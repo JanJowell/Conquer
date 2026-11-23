@@ -15,6 +15,17 @@ class CheckpointRecordingPilot
             throw new CheckpointScanException('Checkpoint recording is disabled.', 'checkpoint_recording_disabled', 503);
         }
 
+        // This gate controls rollout only. The recorder still validates staff,
+        // event assignment, reviewed setup and participant eligibility under lock.
+        $scope = $this->config->get('checkpoint_scanning.scope', 'pilot');
+        if ($scope === 'eligible') {
+            return;
+        }
+        if ($scope !== 'pilot') {
+            throw new CheckpointScanException('Checkpoint recording scope is not configured correctly.',
+                'checkpoint_recording_unavailable', 503);
+        }
+
         $pilotEvent = $this->positiveId($this->config->get('checkpoint_scanning.pilot_event_id'));
         $pilotCategory = $this->positiveId($this->config->get('checkpoint_scanning.pilot_category_id'));
         if ($pilotEvent === null || $pilotCategory === null) {

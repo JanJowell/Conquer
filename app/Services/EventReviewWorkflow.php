@@ -8,6 +8,7 @@ use App\Models\EventRevision;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -16,14 +17,27 @@ class EventReviewWorkflow
     public function transition(Event $event, User $actor, string $action, int $version, ?string $reason = null): Event
     {
         return DB::transaction(function () use ($event, $actor, $action, $version, $reason) {
+            $parentId = Event::whereKey($event->id)->value('revision_of_id');
+            $parent = $parentId ? Event::query()->lockForUpdate()->findOrFail($parentId) : null;
             $event = Event::query()->lockForUpdate()->findOrFail($event->id);
-            abort_unless($event->review_version === $version, 409, 'This submission changed. Refresh before reviewing it.');
-            $from = $event->review_status;
+            if ($parent) {
+                $event->setRelation('revisionOf', $parent);
+            }
+            $reactivation = $event->isReactivationDraft();
             if (in_array($action, ['submit', 'withdraw', 'discard'], true)) {
                 abort_unless($actor->managesAssignedEventsOnly() && $actor->canManageEvent($event), 403);
             } else {
                 abort_unless($actor->isSuperAdmin(), 403);
             }
+            if ($reactivation && in_array($action, ['submit', 'approve'], true)) {
+                $policy = app(EventReactivation::class);
+                $policy->assertEligible($parent);
+                abort_unless($policy->matchesCancellation($event, $parent), 409, 'The cancellation changed. Prepare a new reactivation request.');
+            } elseif (! $reactivation) {
+                abort_if(($parent ?? $event)->isCancelled(), 409, 'Use the explicit reactivation request for an eligible cancelled event.');
+            }
+            abort_unless($event->review_version === $version, 409, 'This submission changed. Refresh before reviewing it.');
+            $from = $event->review_status;
 
             if ($action === 'submit') {
                 abort_unless($event->canEditSetup($actor), 409, 'Only an editable draft can be submitted.');
@@ -34,7 +48,11 @@ class EventReviewWorkflow
                 abort_unless($from === 'pending_review', 409, 'Only a pending submission can be withdrawn.');
                 $event->forceFill(['review_status' => 'draft', 'submitted_at' => null, 'submitted_setup_hash' => null]);
             } elseif ($action === 'discard') {
-                abort_unless($event->revision_of_id && $event->canEditSetup($actor), 409, 'Only an editable revision can be discarded.');
+                // Invalid/archived reactivation requests must still be dismissible;
+                // this never changes or reopens the cancelled parent.
+                abort_unless($event->revision_of_id && ($reactivation
+                    ? in_array($from, ['draft', 'changes_requested'], true) : $event->canEditSetup($actor)), 409,
+                    'Only a draft revision can be discarded.');
                 $event->forceFill(['review_status' => 'discarded', 'submitted_setup_hash' => null]);
             } elseif ($action === 'return') {
                 abort_unless($from === 'pending_review', 409, 'Only a pending submission can be returned.');
@@ -49,6 +67,10 @@ class EventReviewWorkflow
                 $this->assertReady($event);
                 if ($event->revision_of_id) {
                     $published = $this->applyRevision($event, $actor);
+                } elseif ($event->first_published_at === null && Schema::hasColumn('events', 'first_published_at')) {
+                    // Original approval is the first publication. Revision approvals
+                    // update approved_at separately and must never reset this clock.
+                    $event->forceFill(['first_published_at' => now()]);
                 }
                 $event->forceFill(['review_status' => 'approved', 'approved_at' => now(),
                     'approved_by' => $actor->id, 'review_reason' => null]);
@@ -64,21 +86,36 @@ class EventReviewWorkflow
         });
     }
 
-    public function startRevision(Event $event, User $actor, int $version): Event
+    public function startRevision(Event $event, User $actor, int $version, ?string $reactivationReason = null): Event
     {
-        return DB::transaction(function () use ($event, $actor, $version) {
+        return DB::transaction(function () use ($event, $actor, $version, $reactivationReason) {
             $event = Event::query()->lockForUpdate()->findOrFail($event->id);
             abort_unless($actor->managesAssignedEventsOnly() && $actor->canManageEvent($event), 403);
             abort_unless($event->review_version === $version, 409, 'Refresh the event before starting a revision.');
-            abort_unless($event->isReviewPublished() && $event->effective_status === 'upcoming', 409,
-                'Reviewed revisions are available for published upcoming events only.');
+            $reactivation = $reactivationReason !== null;
+            if ($reactivation) {
+                app(EventReactivation::class)->assertEligible($event);
+                if (blank(trim($reactivationReason)) || mb_strlen($reactivationReason) > 1000) {
+                    throw ValidationException::withMessages(['reactivation' => 'Explain why this unused event should be reactivated (up to 1000 characters).']);
+                }
+            } else {
+                abort_unless($event->isReviewPublished() && $event->effective_status === 'upcoming', 409,
+                    'Reviewed revisions are available for published upcoming events only.');
+            }
             $existing = Event::query()->where('revision_of_id', $event->id)
-                ->whereIn('review_status', ['draft', 'changes_requested', 'pending_review'])->first();
+                ->whereIn('review_status', ['draft', 'changes_requested', 'pending_review'])
+                ->when($reactivation, fn ($query) => $query->whereHas('revisionRequest', fn ($request) => $request->where('purpose', 'reactivation')))
+                ->first();
             if ($existing) {
                 return $existing;
             }
             $draft = $event->replicate();
+            if (Schema::hasColumns('events', ['first_published_at', 'auto_archive_restored_at'])) {
+                $draft->forceFill(['first_published_at' => null, 'auto_archive_restored_at' => null]);
+            }
             $draft->forceFill(['slug' => 'revision-'.Str::uuid(), 'review_status' => 'draft', 'status' => 'draft',
+                'cancelled_at' => null, 'cancelled_by_user_id' => null, 'cancellation_reason' => null,
+                'archived_at' => null, 'archived_by_user_id' => null, 'auto_archive_exempt_at' => null,
                 'revision_of_id' => $event->id, 'review_version' => 0, 'submitted_at' => null,
                 'approved_at' => null, 'approved_by' => null, 'review_reason' => null, 'submitted_setup_hash' => null]);
             $draft->save();
@@ -96,10 +133,13 @@ class EventReviewWorkflow
                     $maps[$relation][(string) $item->id] = $copy->id;
                 }
             }
-            EventRevision::create(['event_id' => $event->id, 'draft_event_id' => $draft->id,
+            $metadata = $reactivation ? ['purpose' => 'reactivation', 'cancellation_snapshot' => [
+                ...app(EventReactivation::class)->snapshot($event), 'request_reason' => trim($reactivationReason),
+            ]] : [];
+            EventRevision::create([...$metadata, 'event_id' => $event->id, 'draft_event_id' => $draft->id,
                 'base_setup_hash' => $this->setupHash($event), 'category_map' => $maps['categories'],
                 'payment_method_map' => $maps['paymentMethods'], 'checkpoint_map' => $maps['checkpoints']]);
-            $this->audit($draft, $actor, 'revision_created', null);
+            $this->audit($draft, $actor, $reactivation ? 'reactivation_requested' : 'revision_created', null, $reactivationReason);
 
             return $draft;
         });
@@ -173,7 +213,12 @@ class EventReviewWorkflow
     {
         $revision = EventRevision::query()->where('draft_event_id', $draft->id)->lockForUpdate()->firstOrFail();
         $live = Event::query()->lockForUpdate()->findOrFail($revision->event_id);
-        abort_unless(! $revision->applied_at && $live->isReviewPublished() && $live->effective_status === 'upcoming', 409,
+        $reactivation = $revision->purpose === 'reactivation';
+        if ($reactivation) {
+            app(EventReactivation::class)->assertEligible($live);
+            abort_unless(app(EventReactivation::class)->matchesCancellation($draft, $live), 409, 'The cancellation changed. Prepare a new reactivation request.');
+        }
+        abort_unless(! $revision->applied_at && $live->isReviewPublished() && ($reactivation || $live->effective_status === 'upcoming'), 409,
             'The published event can no longer accept this revision.');
         abort_unless(hash_equals($revision->base_setup_hash, $this->setupHash($live)), 409,
             'The published setup changed since this revision began. Start a fresh revision.');
@@ -221,11 +266,22 @@ class EventReviewWorkflow
         }
         $from = $live->review_status;
         $this->copySetup($draft, $live);
-        $live->forceFill(['review_status' => 'approved', 'approved_at' => now(), 'approved_by' => $actor->id,
-            'review_reason' => null, 'review_version' => $live->review_version + 1])->save();
+        $approval = ['review_status' => 'approved', 'approved_at' => now(), 'approved_by' => $actor->id,
+            'review_reason' => null, 'review_version' => $live->review_version + 1];
+        if ($reactivation) {
+            // The cancellation remains effective while all setup is copied.
+            // Clear only its active flags atomically after every approval check;
+            // the immutable revision snapshot retains the full cancellation.
+            DB::table('events')->where('id', $live->id)->update([...$approval, 'status' => 'upcoming',
+                'cancelled_at' => null, 'cancelled_by_user_id' => null, 'cancellation_reason' => null, 'updated_at' => now()]);
+            $live->refresh();
+        } else {
+            $live->forceFill($approval)->save();
+        }
         $live->refreshAutomaticStatus();
         $revision->update(['applied_at' => now()]);
-        $this->audit($live, $actor, 'revision_published', $from);
+        $this->audit($live, $actor, $reactivation ? 'reactivation_approved' : 'revision_published', $from,
+            $reactivation ? $revision->cancellation_snapshot['request_reason'] : null);
 
         return $live;
     }
@@ -270,6 +326,9 @@ class EventReviewWorkflow
                 'published_setup' => $revision ? $this->snapshot(Event::findOrFail($revision->event_id)) : null,
                 'maps' => $revision ? ['categories' => $revision->category_map, 'paymentMethods' => $revision->payment_method_map,
                     'checkpoints' => $revision->checkpoint_map] : []];
+            if ($revision?->purpose === 'reactivation') {
+                $snapshot['reactivation'] = $revision->cancellation_snapshot;
+            }
         }
         $event->reviews()->create(['actor_id' => $actor->id, 'action' => $action, 'from_status' => $from,
             'to_status' => $event->review_status, 'review_version' => $event->review_version,

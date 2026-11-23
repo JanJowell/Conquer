@@ -21,6 +21,12 @@
             </div>
         </div>
 
+        @if ($event->isReactivationDraft())
+            <div class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800">
+                Reactivation draft: the original stays Cancelled until Admin approval. Set a future event and category schedule, an unexpired registration deadline and all required details before submitting. Admin will recheck that no participant, payment or race history exists.
+            </div>
+        @endif
+
         @if (($event->registrations_count ?? 0) > 0 || ($event->race_results_count ?? 0) > 0)
             <div class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800">
                 This event already has {{ number_format($event->registrations_count ?? 0) }} registrations and {{ number_format($event->race_results_count ?? 0) }} results. Be careful when changing schedule or registration deadline.

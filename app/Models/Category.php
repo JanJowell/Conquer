@@ -33,6 +33,8 @@ class Category extends Model
 
     public const RESULTS_STATUS_COMPLETED = 'completed';
 
+    public const RESULTS_STATUS_CANCELLED = 'cancelled';
+
     public const PAYMENT_METHODS = [
         'GCash' => 'GCash',
         'Maya' => 'Maya',
@@ -202,6 +204,9 @@ class Category extends Model
         ?int $provisionalScansCount = null,
         ?int $raceResultsCount = null
     ): string {
+        if ($this->event?->isCancelled()) {
+            return self::RESULTS_STATUS_CANCELLED;
+        }
         if (! $this->started_at) {
             return self::RESULTS_STATUS_NOT_STARTED;
         }

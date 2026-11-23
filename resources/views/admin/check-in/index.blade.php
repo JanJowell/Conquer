@@ -67,7 +67,7 @@
                     <tbody class="text-sm text-slate-600">
                         @forelse ($participants as $participant)
                             @php
-                                $eventCompleted = $participant->event?->effective_status === 'completed';
+                                $eventCompleted = in_array($participant->event?->effective_status, ['completed', 'cancelled'], true);
                                 $emergencyContact = trim(collect([
                                     $participant->user?->emergency_contact_name,
                                     $participant->user?->emergency_contact_number,
@@ -124,7 +124,7 @@
                                             <span class="inline-flex h-10 items-center rounded-full bg-slate-100 px-4 text-sm font-semibold text-slate-500">
                                                 Closed
                                             </span>
-                                            <span class="text-xs text-slate-400">Event completed</span>
+                                            <span class="text-xs text-slate-400">Event {{ $participant->event?->effective_status }}</span>
                                         </div>
                                     @elseif ($participant->status === 'checked_in')
                                         <div class="inline-flex flex-col items-end gap-2">

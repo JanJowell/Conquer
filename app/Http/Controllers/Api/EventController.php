@@ -16,6 +16,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -39,6 +40,9 @@ class EventController extends Controller
                 ->withCount(['registrations' => fn ($registrationQuery) => $registrationQuery->where('status', '!=', 'rejected')]),
             'categories.event.paymentMethods',
         ])
+            // Discovery only: keep detail/history and staff/scanner queries intact.
+            // Preserve the existing list during rollout before archive metadata exists.
+            ->when(Schema::hasColumn('events', 'archived_at'), fn ($query) => $query->whereNull('events.archived_at'))
             ->withCount(['registrations' => fn ($query) => $query->where('status', '!=', 'rejected')])
             ->withAggregate(
                 ['registrations as participants_count' => fn ($query) => $query->where('status', '!=', 'rejected')],
@@ -122,7 +126,7 @@ class EventController extends Controller
             'count'
         );
 
-        if (! in_array($event->effective_status, ['upcoming', 'ongoing', 'completed'], true)) {
+        if (! in_array($event->effective_status, ['upcoming', 'ongoing', 'completed', 'cancelled'], true)) {
             return response()->json([
                 'message' => 'Event is not available in the mobile app yet.',
             ], 404);

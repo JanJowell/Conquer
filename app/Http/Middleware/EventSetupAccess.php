@@ -22,7 +22,14 @@ class EventSetupAccess
         }
 
         return DB::transaction(function () use ($request, $next, $eventId, $item) {
+            $parentId = Event::whereKey($eventId)->value('revision_of_id');
+            if ($parentId) {
+                $parent = Event::query()->whereKey($parentId)->sharedLock()->firstOrFail();
+            }
             $event = Event::query()->lockForUpdate()->findOrFail($eventId);
+            if ($parentId) {
+                $event->setRelation('revisionOf', $parent);
+            }
             abort_unless($event->canEditSetup($request->user()), 403,
                 'Setup is locked. Withdraw a submission or open a reviewed revision of a published event.');
             if ($item instanceof Event) {

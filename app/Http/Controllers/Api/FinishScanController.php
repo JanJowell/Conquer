@@ -28,6 +28,7 @@ class FinishScanController extends Controller
         }
 
         $events = Event::query()
+            ->where('status', '!=', 'cancelled')
             ->when($staff->managesAssignedEventsOnly(), fn ($query) => $query->where('manager_id', $staff->id))
             ->whereHas('categories', fn ($query) => $query->whereHas('registrations', fn ($registrations) => $registrations->whereIn('status', ['checked_in', 'completed'])))
             ->with(['categories' => function ($query) {
@@ -142,6 +143,11 @@ class FinishScanController extends Controller
                     ->with(['user', 'event', 'category', 'finishScan', 'raceResult'])
                     ->lockForUpdate()
                     ->findOrFail($registration->id);
+
+                if ($locked->event?->isCancelled()
+                    && ! ($clientScanId && $locked->finishScan && hash_equals((string) $locked->finishScan->client_scan_id, $clientScanId))) {
+                    return ['error' => $this->errorPayload('This event has been cancelled. New finish scans are closed.', 'event_cancelled'), 'status' => 409];
+                }
 
                 if ($locked->finishScan) {
                     if ($clientScanId && hash_equals((string) $locked->finishScan->client_scan_id, $clientScanId)) {

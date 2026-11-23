@@ -7,7 +7,7 @@
     </h2>
     <div id="event-review-confirmation-description" class="mt-3 space-y-3 text-sm leading-6 text-[#6d7685]">
         <p>{{ $isReviewRevision ? 'Your proposed changes will be sent to Admin for review.' : 'Your event will be sent to Admin for review.' }} Editing will be locked while it is pending unless you withdraw the submission.</p>
-        <p>{{ $isReviewRevision ? 'The currently published event will stay unchanged until Admin approves these changes.' : 'The event will only be published after Admin approval.' }}</p>
+        <p>{{ $event?->isReactivationDraft() ? 'The original event stays Cancelled and closed until Admin approves reactivation.' : ($isReviewRevision ? 'The currently published event will stay unchanged until Admin approves these changes.' : 'The event will only be published after Admin approval.') }}</p>
     </div>
     <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
         <button type="button" data-event-review-cancel autofocus

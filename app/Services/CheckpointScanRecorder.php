@@ -53,7 +53,7 @@ class CheckpointScanRecorder
 
     private function recordLocked(User $actor, array $input): array
     {
-        [$staff, $event, $category] = $this->context($actor, (int) $input['event_id'], (int) $input['category_id']);
+        [$staff, $event, $category] = $this->context($actor, (int) $input['event_id'], (int) $input['category_id'], true);
         $resolved = $this->tokens->resolve($input['token']);
         if (! $resolved) {
             $this->fail('The BIB QR code is invalid or has been altered.', 'invalid_scan_token', 422);
@@ -79,6 +79,9 @@ class CheckpointScanRecorder
             // An authorized exact retry acknowledges history, even after a finish
             // or a later route edit. It never revalidates history as a new visit.
             return ['scan' => $existing, 'replayed' => true];
+        }
+        if ($event->isCancelled()) {
+            $this->fail('This event has been cancelled. New checkpoint visits are closed.', 'event_cancelled');
         }
         $plan = $this->currentPlan($event, $category);
         if (! hash_equals($plan['fingerprint'], $input['plan_fingerprint'])) {
@@ -128,7 +131,7 @@ class CheckpointScanRecorder
     }
 
     /** Protect authorization/setup reads without blocking finish-scan FK reads. */
-    private function context(User $actor, int $eventId, int $categoryId): array
+    private function context(User $actor, int $eventId, int $categoryId, bool $historicalRetry = false): array
     {
         // Recheck on every transactional retry, including uniqueness recovery.
         $this->pilot->assertAllowed($eventId, $categoryId);
@@ -152,7 +155,10 @@ class CheckpointScanRecorder
         if (! $event || ($staff->managesAssignedEventsOnly() && (int) $event->manager_id !== $staff->id)) {
             $this->fail('You are not authorized to scan this event.', 'forbidden_event', 403);
         }
-        if ($event->review_status !== 'approved' || $event->revision_of_id !== null || ! in_array($event->getRawOriginal('status'), ['upcoming', 'ongoing', 'completed'], true)) {
+        if ($event->isCancelled() && ! $historicalRetry) {
+            $this->fail('This event has been cancelled. Checkpoint recording is closed.', 'event_cancelled');
+        }
+        if ($event->review_status !== 'approved' || $event->revision_of_id !== null || ! in_array($event->getRawOriginal('status'), ['upcoming', 'ongoing', 'completed', ...($historicalRetry ? ['cancelled'] : [])], true)) {
             $this->fail('Only an explicitly approved live event can record checkpoint visits.', 'event_not_approved');
         }
         $category = Category::query()->whereKey($categoryId)->where('event_id', $event->id)->sharedLock()->first();

@@ -9,7 +9,9 @@ use App\Models\FinishScan;
 use App\Models\RaceResult;
 use App\Models\Registration;
 use App\Models\User;
+use App\Services\EventCleanup;
 use App\Services\FinishScanToken;
+use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\QueryException;
@@ -20,9 +22,11 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Tests\Support\CheckpointResponseFault;
 
 beforeEach(function () {
-    config(['checkpoint_scanning.enabled' => true]);
+    // Exercise the full safety contract in normal, non-pilot recording scope.
+    config(['checkpoint_scanning.enabled' => true, 'checkpoint_scanning.scope' => 'eligible']);
     Http::preventStrayRequests();
 });
 
@@ -711,4 +715,168 @@ test('server elapsed time and response offsets remain correct in the Philippine 
     } finally {
         date_default_timezone_set($originalTimezone);
     }
+});
+
+/** Hash synthetic rows, including history, without exposing their contents on failure. */
+function checkpointRetrySafetyState(): array
+{
+    $state = [];
+    foreach (Schema::getTableListing(schemaQualified: false) as $table) {
+        $rows = DB::table($table)->get()->map(fn ($row) => json_encode($row, JSON_THROW_ON_ERROR))->sort()->values();
+        $state[$table] = hash('sha256', $rows->toJson());
+    }
+    ksort($state);
+
+    return $state;
+}
+
+function checkpointRetrySafetyGuard(): void
+{
+    // These fault injections are only intended for disposable in-memory data.
+    expect(app()->environment())->toBe('testing')
+        ->and(DB::connection()->getDriverName())->toBe('sqlite')
+        ->and(DB::connection()->getDatabaseName())->toBe(':memory:');
+}
+
+function checkpointRetrySafetyFault(string $stage): CheckpointResponseFault
+{
+    checkpointRetrySafetyGuard();
+    $fault = new CheckpointResponseFault($stage);
+    app()->instance(CheckpointResponseFault::class, $fault);
+    app(Kernel::class)->pushMiddleware(CheckpointResponseFault::class);
+
+    return $fault;
+}
+
+test('an uncertain response before or after acceptance can be retried without a second visit', function (string $stage) {
+    $fault = checkpointRetrySafetyFault($stage);
+    [$staff, $event, $category, $registration] = recordingFixture();
+    [$headers, $input] = recordingRequest($staff, $event, $category, $registration);
+    $unrelated = checkpointRetrySafetyState();
+    unset($unrelated['checkpoint_scans'], $unrelated['checkpoint_scan_plans']);
+    $transactionLevel = DB::transactionLevel();
+
+    $this->postJson('/api/staff/checkpoint-scans', $input, $headers)->assertStatus(503)->assertJsonMissingPath('data');
+    expect($fault->triggered)->toBeTrue()->and(DB::transactionLevel())->toBe($transactionLevel)
+        ->and(CheckpointScan::count())->toBe($stage === 'after' ? 1 : 0)
+        ->and(CheckpointScanPlan::count())->toBe($stage === 'after' ? 1 : 0);
+    $receipt = $fault->discardedReceipt;
+    if ($stage === 'after') {
+        $this->postJson('/api/staff/checkpoint-scans', [...$input, 'client_scan_id' => (string) Str::uuid()], $headers)
+            ->assertStatus(409)->assertJsonPath('code', 'checkpoint_already_recorded')->assertJsonMissingPath('data');
+    }
+
+    $history = null;
+    for ($retry = 0; $retry < 3; $retry++) {
+        $this->travel(2)->minutes();
+        $response = $this->postJson('/api/staff/checkpoint-scans', $input, $headers);
+        if ($stage === 'before' && $retry === 0) {
+            $receipt = $response->assertCreated()->assertJsonPath('idempotent_replay', false)->json('data');
+        } else {
+            $response->assertOk()->assertJsonPath('idempotent_replay', true)->assertJsonPath('data', $receipt);
+        }
+        expect(CheckpointScan::count())->toBe(1)->and(CheckpointScanPlan::count())->toBe(1)
+            ->and($registration->fresh()->status)->toBe('checked_in');
+        $current = checkpointRetrySafetyState();
+        if ($history !== null) {
+            expect($current)->toBe($history);
+        }
+        $history = $current;
+    }
+    unset($history['checkpoint_scans'], $history['checkpoint_scan_plans']);
+    expect($history)->toBe($unrelated);
+    Http::assertNothingSent();
+})->with(['before', 'after']);
+
+test('a lost receipt remains recoverable after checkpoint access is denied and restored', function (string $restriction, int $status, ?string $code) {
+    if (in_array($restriction, ['pilot_missing', 'pilot_changed'], true)) {
+        config(['checkpoint_scanning.scope' => 'pilot']);
+    }
+    $fault = checkpointRetrySafetyFault('after');
+    [$staff, $event, $category, $registration] = recordingFixture();
+    [$headers, $input] = recordingRequest($staff, $event, $category, $registration);
+    $otherManager = User::factory()->create(['role' => User::ROLE_EVENT_MANAGER]);
+    $this->postJson('/api/staff/checkpoint-scans', $input, $headers)->assertStatus(503)->assertJsonMissingPath('data');
+    expect($fault->triggered)->toBeTrue()->and(CheckpointScan::count())->toBe(1);
+    $receipt = $fault->discardedReceipt;
+    $history = CheckpointScan::sole()->getRawOriginal();
+    $plan = CheckpointScanPlan::sole()->getRawOriginal();
+
+    match ($restriction) {
+        'disabled' => config(['checkpoint_scanning.enabled' => false]),
+        'pilot_missing' => config(['checkpoint_scanning.pilot_category_id' => null]),
+        'pilot_changed' => config(['checkpoint_scanning.pilot_category_id' => $category->id + 999]),
+        'expired_login' => $staff->update(['api_token_expires_at' => now()->subMinute()]),
+        'assignment' => $event->update(['manager_id' => $otherManager->id]),
+    };
+    $beforeDenial = checkpointRetrySafetyState();
+    $response = $this->postJson('/api/staff/checkpoint-scans', $input, $headers)->assertStatus($status)->assertJsonMissingPath('data');
+    if ($code !== null) {
+        $response->assertJsonPath('code', $code);
+    }
+    expect(checkpointRetrySafetyState())->toBe($beforeDenial);
+
+    config(['checkpoint_scanning.enabled' => true, 'checkpoint_scanning.pilot_category_id' => $category->id]);
+    if ($restriction === 'expired_login') {
+        $headers = recordingHeaders($staff->fresh()); // Same staff identity, a new valid bearer token.
+    } elseif ($restriction === 'assignment') {
+        $event->update(['manager_id' => $staff->id]);
+    }
+    $this->travel(2)->minutes();
+    $beforeRetry = checkpointRetrySafetyState();
+    $this->postJson('/api/staff/checkpoint-scans', $input, $headers)->assertOk()
+        ->assertJsonPath('idempotent_replay', true)->assertJsonPath('data', $receipt);
+    expect(checkpointRetrySafetyState())->toBe($beforeRetry)
+        ->and(CheckpointScan::sole()->getRawOriginal())->toBe($history)
+        ->and(CheckpointScanPlan::sole()->getRawOriginal())->toBe($plan);
+    Http::assertNothingSent();
+})->with([
+    ['disabled', 503, 'checkpoint_recording_disabled'],
+    ['pilot_missing', 503, 'checkpoint_recording_unavailable'],
+    ['pilot_changed', 403, 'checkpoint_pilot_forbidden'],
+    ['expired_login', 401, null],
+    ['assignment', 403, 'forbidden_event'],
+]);
+
+test('a rolled-back checkpoint failure leaves the original request safe to retry', function () {
+    checkpointRetrySafetyGuard();
+    [$staff, $event, $category, $registration] = recordingFixture();
+    [$headers, $input] = recordingRequest($staff, $event, $category, $registration);
+    $before = checkpointRetrySafetyState();
+    $attempts = 0;
+    CheckpointScan::creating(function () use (&$attempts) {
+        if (++$attempts === 1) {
+            throw new RuntimeException('Synthetic pre-commit failure.');
+        }
+    });
+    $this->postJson('/api/staff/checkpoint-scans', $input, $headers)->assertStatus(500);
+    expect(checkpointRetrySafetyState())->toBe($before)
+        ->and(CheckpointScan::count())->toBe(0)->and(CheckpointScanPlan::count())->toBe(0);
+    $receipt = $this->postJson('/api/staff/checkpoint-scans', $input, $headers)->assertCreated()->json('data');
+    $after = checkpointRetrySafetyState();
+    $this->postJson('/api/staff/checkpoint-scans', $input, $headers)->assertOk()
+        ->assertJsonPath('idempotent_replay', true)->assertJsonPath('data', $receipt);
+    expect($attempts)->toBe(2)->and(CheckpointScan::count())->toBe(1)->and(CheckpointScanPlan::count())->toBe(1)
+        ->and(checkpointRetrySafetyState())->toBe($after);
+    Http::assertNothingSent();
+});
+
+test('management archiving preserves recording plans exact retries and checkpoint evidence', function () {
+    [$staff, $event, $category, $registration] = recordingFixture();
+    [$headers, $input] = recordingRequest($staff, $event, $category, $registration);
+    $receipt = $this->postJson('/api/staff/checkpoint-scans', $input, $headers)->assertCreated()->json('data');
+    $history = CheckpointScan::sole()->getRawOriginal();
+    $plan = CheckpointScanPlan::sole()->getRawOriginal();
+    $this->travelTo(Carbon::parse($event->event_date->toDateString().' 13:00:00', config('app.timezone')));
+    $headers = recordingHeaders($staff);
+    $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+    $cleanup = app(EventCleanup::class);
+    $cleanup->perform($event, $admin, 'archive', $cleanup->fingerprint($event->fresh()));
+    $this->getJson(recordingPlanUrl($event, $category), $headers)->assertOk()
+        ->assertJsonPath('data.plan_fingerprint', $input['plan_fingerprint']);
+    $this->postJson('/api/staff/checkpoint-scans', $input, $headers)->assertOk()
+        ->assertJsonPath('idempotent_replay', true)->assertJsonPath('data', $receipt);
+    expect(CheckpointScan::sole()->getRawOriginal())->toBe($history)
+        ->and(CheckpointScanPlan::sole()->getRawOriginal())->toBe($plan)
+        ->and($registration->fresh()->status)->toBe('checked_in');
 });

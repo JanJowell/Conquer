@@ -15,7 +15,7 @@ use Illuminate\Support\Str;
 
 beforeEach(function () {
     $this->travelTo(now()->setDate(2026, 11, 12)->setTime(9, 0));
-    config(['checkpoint_scanning.enabled' => true, 'checkpoint_scanning.pilot_event_id' => null,
+    config(['checkpoint_scanning.enabled' => true, 'checkpoint_scanning.scope' => 'pilot', 'checkpoint_scanning.pilot_event_id' => null,
         'checkpoint_scanning.pilot_category_id' => null]);
     Http::preventStrayRequests();
 });
@@ -70,7 +70,7 @@ function checkpointPilotInput(array $fixture): array
 
 test('pilot configuration defaults remain off and unselected', function () {
     $defaults = require base_path('config/checkpoint_scanning.php');
-    expect($defaults['enabled'])->toBeFalse()->and($defaults['pilot_event_id'])->toBeNull()
+    expect($defaults['enabled'])->toBeFalse()->and($defaults['scope'])->toBe('pilot')->and($defaults['pilot_event_id'])->toBeNull()
         ->and($defaults['pilot_category_id'])->toBeNull();
 });
 
@@ -226,7 +226,86 @@ test('request payload cannot configure the pilot or override the server category
     $input = checkpointPilotInput($fixture);
     config(['checkpoint_scanning.pilot_event_id' => null, 'checkpoint_scanning.pilot_category_id' => null]);
     $this->postJson('/api/staff/checkpoint-scans', [...$input, 'pilot_event_id' => $input['event_id'],
-        'pilot_category_id' => $input['category_id'], 'checkpoint_scanning' => ['enabled' => true]], $fixture['headers'])
+        'pilot_category_id' => $input['category_id'], 'scope' => 'eligible',
+        'checkpoint_scanning' => ['enabled' => true, 'scope' => 'eligible']], $fixture['headers'])
         ->assertStatus(503)->assertJsonPath('code', 'checkpoint_recording_unavailable');
     expect(CheckpointScan::count())->toBe(0)->and(CheckpointScanPlan::count())->toBe(0);
+});
+
+test('eligible scope records two assigned events without changing the configured pilot pair', function (string $role) {
+    $first = checkpointPilotFixture(User::factory()->create(['role' => $role]));
+    checkpointPilotSelect($first);
+    $second = checkpointPilotFixture($first['staff']);
+    $first['headers'] = $second['headers']; // The same synthetic staff login is used for both selections.
+    config(['checkpoint_scanning.scope' => 'eligible']);
+
+    foreach ([$first, $second] as $fixture) {
+        $input = checkpointPilotInput($fixture);
+        $receipt = $this->postJson('/api/staff/checkpoint-scans', $input, $fixture['headers'])
+            ->assertCreated()->assertJsonPath('data.event_id', $fixture['event']->id)
+            ->assertJsonPath('data.category_id', $fixture['category']->id)->json('data');
+        $this->postJson('/api/staff/checkpoint-scans', $input, $fixture['headers'])->assertOk()
+            ->assertJsonPath('idempotent_replay', true)->assertJsonPath('data', $receipt);
+        $this->postJson('/api/staff/checkpoint-scans', [...$input, 'client_scan_id' => (string) Str::uuid()], $fixture['headers'])
+            ->assertConflict()->assertJsonPath('code', 'checkpoint_already_recorded');
+        expect($fixture['registration']->fresh()->status)->toBe('checked_in');
+    }
+    expect(config('checkpoint_scanning.pilot_event_id'))->toBe($first['event']->id)
+        ->and(config('checkpoint_scanning.pilot_category_id'))->toBe($first['category']->id)
+        ->and(CheckpointScan::count())->toBe(2)->and(CheckpointScanPlan::count())->toBe(2)
+        ->and(DB::table('finish_scans')->count())->toBe(0)->and(DB::table('race_results')->count())->toBe(0)
+        ->and(DB::table('certificates')->count())->toBe(0);
+    Http::assertNothingSent();
+})->with([User::ROLE_EVENT_MANAGER, User::ROLE_SUPER_ADMIN]);
+
+test('eligible scope records another ready category in the same event without pilot IDs', function () {
+    $fixture = checkpointPilotFixture();
+    $second = $fixture['event']->categories()->create(['name' => 'Synthetic second category', 'distance_km' => 2,
+        'status' => 'open', 'course_map' => $fixture['category']->course_map, 'started_at' => now()->subMinutes(20)]);
+    $registration = Registration::create(['user_id' => User::factory()->create(['role' => User::ROLE_RUNNER])->id,
+        'event_id' => $fixture['event']->id, 'category_id' => $second->id, 'bib_number' => 'TEST-SECOND',
+        'status' => 'checked_in', 'registered_at' => now()]);
+    config(['checkpoint_scanning.scope' => 'eligible']);
+    foreach ([$fixture, [...$fixture, 'category' => $second->fresh(), 'registration' => $registration]] as $selection) {
+        $this->postJson('/api/staff/checkpoint-scans', checkpointPilotInput($selection), $selection['headers'])->assertCreated();
+    }
+    expect(config('checkpoint_scanning.pilot_event_id'))->toBeNull()
+        ->and(config('checkpoint_scanning.pilot_category_id'))->toBeNull()
+        ->and(CheckpointScan::count())->toBe(2)->and(CheckpointScanPlan::count())->toBe(2);
+});
+
+test('eligible scope preserves stored visits when rolled back to the pilot and restores exact retry access', function () {
+    $fixture = checkpointPilotFixture();
+    config(['checkpoint_scanning.scope' => 'eligible', 'checkpoint_scanning.pilot_event_id' => $fixture['event']->id + 99,
+        'checkpoint_scanning.pilot_category_id' => $fixture['category']->id + 99]);
+    $input = checkpointPilotInput($fixture);
+    $receipt = $this->postJson('/api/staff/checkpoint-scans', $input, $fixture['headers'])->assertCreated()->json('data');
+    $history = CheckpointScan::sole()->getRawOriginal();
+    $plan = CheckpointScanPlan::sole()->getRawOriginal();
+    foreach (['pilot' => [403, 'checkpoint_pilot_forbidden'], 'unknown' => [503, 'checkpoint_recording_unavailable']] as $scope => [$status, $code]) {
+        config(['checkpoint_scanning.scope' => $scope]);
+        $this->getJson(checkpointPilotUrl($fixture), $fixture['headers'])->assertStatus($status)->assertJsonPath('code', $code);
+        $this->postJson('/api/staff/checkpoint-scans', $input, $fixture['headers'])->assertStatus($status)
+            ->assertJsonPath('code', $code)->assertJsonMissingPath('data');
+    }
+    config(['checkpoint_scanning.scope' => 'eligible']);
+    $this->postJson('/api/staff/checkpoint-scans', $input, $fixture['headers'])->assertOk()
+        ->assertJsonPath('idempotent_replay', true)->assertJsonPath('data', $receipt);
+    expect(CheckpointScan::sole()->getRawOriginal())->toBe($history)
+        ->and(CheckpointScanPlan::sole()->getRawOriginal())->toBe($plan);
+});
+
+test('transactional uniqueness recovery rechecks eligible scope after a rollout shutdown', function () {
+    $fixture = checkpointPilotFixture();
+    config(['checkpoint_scanning.scope' => 'eligible']);
+    $input = checkpointPilotInput($fixture);
+    $attempts = 0;
+    CheckpointScan::creating(function () use (&$attempts) {
+        $attempts++;
+        config(['checkpoint_scanning.enabled' => false]);
+        throw new UniqueConstraintViolationException('sqlite', 'synthetic eligible collision', [], new RuntimeException('Synthetic retry'));
+    });
+    $this->postJson('/api/staff/checkpoint-scans', $input, $fixture['headers'])->assertStatus(503)
+        ->assertJsonPath('code', 'checkpoint_recording_disabled');
+    expect($attempts)->toBe(1)->and(CheckpointScan::count())->toBe(0)->and(CheckpointScanPlan::count())->toBe(0);
 });

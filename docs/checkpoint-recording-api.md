@@ -1,10 +1,11 @@
 # Online checkpoint recording API — local implementation
 
-Local update, 2026-11-12: recording now additionally requires one exact configured
-pilot event/category pair. It remains off by default, with no Admin bypass.
-See [pilot configuration and rollout boundaries](checkpoint-recording-pilot-2026-11-12.md).
-This update has not been deployed. The implementation history below describes
-the original recording contract, not a current deployment status report.
+Local update, 2026-11-19: an explicit `CHECKPOINT_SCANNING_SCOPE=eligible` now
+supports eligible categories beyond the pilot without changing configured IDs.
+The default remains `pilot`, with the global recording switch off by default.
+All authorization and eligibility checks remain mandatory. See the
+[current scope and release status](checkpoint-recording-eligible-scope-2026-11-19.md).
+The implementation history below is not a current production status report.
 
 Implemented locally on 2026-11-10. This document describes the new recording
 contract, not a production-enabled feature. No application database migration,
@@ -18,10 +19,12 @@ separate; its contract is documented in [staff-checkpoint-list-api.md](staff-che
 
 - `CHECKPOINT_SCANNING_ENABLED` defaults to **false**. Tests enable configuration
   only inside an isolated test application. The real `.env` is unchanged.
-- Both `CHECKPOINT_SCANNING_PILOT_EVENT_ID` and
-  `CHECKPOINT_SCANNING_PILOT_CATEGORY_ID` must also contain the exact positive
-  database IDs. Missing/invalid configuration is unavailable; any other pair
-  is forbidden. There is no all-events mode.
+- `CHECKPOINT_SCANNING_SCOPE=pilot` (the default) additionally requires both
+  `CHECKPOINT_SCANNING_PILOT_EVENT_ID` and `CHECKPOINT_SCANNING_PILOT_CATEGORY_ID`
+  to contain the exact positive database IDs. Missing/invalid pilot configuration
+  is unavailable; any other pair is forbidden. `scope=eligible` does not consult
+  those IDs; the normal staff/setup/participant checks still apply. Unknown
+  scopes are unavailable rather than silently opening recording.
 - The new migration creates two empty tables: `checkpoint_scan_plans` and
   `checkpoint_scans`. It does not backfill or alter existing business records.
   Missing tables return a safe unavailable response; HTTP requests never migrate
@@ -49,7 +52,7 @@ accounts retain their protections.
 Only email-verified Admin (`super_admin`) and Event Manager accounts may record.
 Event Managers, including normalized legacy `admin`, must currently be assigned
 to the event. Admin retains its assignment exemption, but neither role can
-bypass the configured pilot pair. The service rechecks the stored
+bypass the configured pilot pair while in pilot scope. The service rechecks the stored
 token, expiry, verification, account status, role and assignment while holding
 transactional locks, rather than relying only on the middleware's earlier read.
 
@@ -251,3 +254,9 @@ production scanner's camera/recording button, queue checkpoint captures, migrate
 an application database, or enable production recording. The scanner integration
 and computer-only contract checks are now complete locally. A reviewed
 release/migration and dedicated device smoke test remain before operational use.
+
+The paragraph above describes the original recording-API implementation. The
+November 13 [Checkpoint History follow-up](checkpoint-history.md) adds a local,
+read-only web history page; it does not itself deploy or change recording access.
+The separate [production pilot record](checkpoint-pilot-enablement-2026-11-13.md)
+documents the already enabled limited pilot and its observed phone scans.

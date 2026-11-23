@@ -59,6 +59,11 @@
 @endphp
 
 <div class="mx-auto max-w-[1400px] space-y-6">
+    @if ($event->archived_at)
+        <p class="rounded-2xl bg-slate-100 p-4 text-sm text-slate-600" role="status">Archived from the default management list. Event status, participant activity, and history remain available.
+            <a class="font-semibold underline" href="{{ route('admin.events.index', ['archive' => 'archived']) }}">View archived events</a>
+        </p>
+    @endif
     @include('admin.events.partials.review')
     @if ($event->banner_image)
         <section class="overflow-hidden rounded-[1.75rem] bg-white shadow-[0_8px_24px_rgba(148,163,184,0.12)]">

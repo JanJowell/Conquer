@@ -1,6 +1,6 @@
 @extends('admin.layouts.app')
 
-@section('title', 'My Events')
+@section('title', $archiveFilter === 'archived' ? 'Archived Events' : 'Events')
 
 @section('content')
 @php
@@ -9,20 +9,26 @@
 @endphp
 
 <div class="mx-auto max-w-[1400px] space-y-6">
+    @if ($cleanupAvailable)
+        @include('admin.events.partials.tabs')
+    @endif
+
     <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
             <p class="text-xs font-semibold uppercase tracking-wide text-indigo-400">Event Operations</p>
 
             <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-700">
-                {{ 'My Events' }}
+                {{ $archiveFilter === 'archived' ? 'Archived Events' : 'Events' }}
             </h1>
 
             <p class="mt-2 max-w-2xl text-sm text-slate-500">
-                Manage event details, monitor registrations, and keep each race day setup current.
+                {{ $archiveFilter === 'archived'
+                    ? 'Review archived events and access their preserved records.'
+                    : 'Manage event details, monitor registrations, and keep each race day setup current.' }}
             </p>
         </div>
 
-        @if ($canCreateEvents)
+        @if ($canCreateEvents && $archiveFilter === 'active')
             <a
                 href="{{ route('admin.events.create') }}"
                 class="inline-flex items-center justify-center rounded-full bg-indigo-400 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-500"
@@ -33,8 +39,17 @@
         @endif
     </div>
 
-    <form method="GET" class="grid gap-3 rounded-[1.75rem] bg-white p-4 shadow-[0_8px_24px_rgba(148,163,184,0.12)] md:grid-cols-[minmax(0,1fr)_180px_180px_auto] md:items-end">
-        <div>
+    @if (! $cleanupAvailable && auth()->user()->isSuperAdmin())
+        <p class="rounded-2xl bg-amber-50 p-4 text-sm text-slate-600" role="status">Event cleanup is unavailable until its database migration is applied. Existing events and review tools remain available.</p>
+    @endif
+
+    <form method="GET" action="{{ route('admin.events.index') }}" data-event-list-filters @class([
+        'grid gap-3 rounded-[1.75rem] bg-white p-4 shadow-[0_8px_24px_rgba(148,163,184,0.12)] md:items-end',
+        'md:grid-cols-[minmax(0,1fr)_180px_180px_auto]' => $archiveFilter === 'active',
+        'md:grid-cols-3' => $archiveFilter === 'archived',
+    ])>
+        <input type="hidden" name="archive" value="{{ $archiveFilter }}">
+        <div @class(['md:col-span-2' => $archiveFilter === 'archived'])>
             <label for="search" class="mb-1.5 block text-sm font-medium text-slate-600">Search</label>
             <input id="search" name="search" value="{{ request('search') }}" type="text" placeholder="Event title, type, venue"
                 class="h-11 w-full rounded-2xl border-0 bg-slate-50 px-4 text-sm text-slate-700 placeholder:text-slate-300 outline-none focus:outline-none focus:ring-2 focus:ring-indigo-200">
@@ -49,30 +64,32 @@
                 @endforeach
             </select>
         </div>
-        <div>
-            <label for="status" class="mb-1.5 block text-sm font-medium text-slate-600">Status</label>
-            <select id="status" name="status"
-                class="h-11 w-full rounded-2xl border-0 bg-slate-50 px-4 text-sm text-slate-700 outline-none focus:outline-none focus:ring-2 focus:ring-indigo-200">
-                <option value="">All statuses</option>
-                @foreach (['draft', 'upcoming', 'ongoing', 'completed'] as $status)
-                    <option value="{{ $status }}" @selected(request('status') === $status)>{{ str($status)->replace('_', ' ')->title() }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div>
-            <label for="review_status" class="mb-1.5 block text-sm font-medium text-slate-600">Approval</label>
-            <select id="review_status" name="review_status" class="h-11 w-full rounded-2xl border-0 bg-slate-50 px-4 text-sm text-slate-700">
-                <option value="">All review states</option>
-                @foreach (['draft' => 'Draft', 'pending_review' => 'Pending Review', 'changes_requested' => 'Changes Requested', 'approved' => 'Approved'] as $value => $label)
-                    <option value="{{ $value }}" @selected(request('review_status') === $value)>{{ $label }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="flex items-end gap-2">
+        @if ($archiveFilter === 'active')
+            <div>
+                <label for="status" class="mb-1.5 block text-sm font-medium text-slate-600">Status</label>
+                <select id="status" name="status"
+                    class="h-11 w-full rounded-2xl border-0 bg-slate-50 px-4 text-sm text-slate-700 outline-none focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                    <option value="">All statuses</option>
+                    @foreach (['draft', 'upcoming', 'ongoing', 'completed', 'cancelled'] as $status)
+                        <option value="{{ $status }}" @selected(request('status') === $status)>{{ str($status)->replace('_', ' ')->title() }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label for="review_status" class="mb-1.5 block text-sm font-medium text-slate-600">Approval</label>
+                <select id="review_status" name="review_status" class="h-11 w-full rounded-2xl border-0 bg-slate-50 px-4 text-sm text-slate-700">
+                    <option value="">All review states</option>
+                    @foreach (['draft' => 'Draft', 'pending_review' => 'Pending Review', 'changes_requested' => 'Changes Requested', 'approved' => 'Approved'] as $value => $label)
+                        <option value="{{ $value }}" @selected(request('review_status') === $value)>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+        @endif
+        <div class="flex items-end gap-2 md:col-span-full">
             <button type="submit" class="h-11 rounded-full bg-indigo-400 px-5 text-sm font-semibold text-white transition hover:bg-indigo-500">
                 Filter
             </button>
-            <a href="{{ route('admin.events.index') }}" class="inline-flex h-11 items-center justify-center rounded-full bg-slate-50 px-5 text-sm font-semibold text-slate-500 transition hover:bg-slate-100">
+            <a href="{{ route('admin.events.index', ['archive' => $archiveFilter]) }}" aria-label="Clear event filters" class="inline-flex h-11 items-center justify-center rounded-full bg-slate-50 px-5 text-sm font-semibold text-slate-500 transition hover:bg-slate-100">
                 Clear
             </a>
         </div>
@@ -99,6 +116,9 @@
                         <tr class="align-top transition hover:bg-[#f7f8fc]">
                             <td class="px-6 py-4">
                                 <p class="font-semibold text-slate-700">{{ $event->title }}</p>
+                                @if ($event->archived_at)
+                                    <span class="mt-1 inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">Archived</span>
+                                @endif
                                 <p class="mt-1 text-xs text-indigo-600">{{ $event->reviewLabel() }}{{ $event->revision_of_id ? ' · Revision' : '' }}</p>
                                 @if ($event->activeRevision)
                                     <a href="{{ route('admin.events.show', $event->activeRevision) }}" class="mt-2 block text-xs font-semibold text-indigo-600 underline">{{ $event->activeRevision->review_status === 'pending_review' ? 'Revision awaiting review' : $event->activeRevision->reviewLabel() }} — published event unchanged</a>
@@ -127,7 +147,8 @@
                                     'bg-sky-50 text-sky-500' => $event->effective_status === 'upcoming',
                                     'bg-emerald-50 text-emerald-500' => $event->effective_status === 'ongoing',
                                     'bg-indigo-50 text-indigo-400' => $event->effective_status === 'completed',
-                                    'bg-amber-50 text-amber-500' => ! in_array($event->effective_status, ['draft', 'upcoming', 'ongoing', 'completed'], true),
+                                    'bg-rose-50 text-rose-600' => $event->effective_status === 'cancelled',
+                                    'bg-amber-50 text-amber-500' => ! in_array($event->effective_status, ['draft', 'upcoming', 'ongoing', 'completed', 'cancelled'], true),
                                 ])>
                                     {{ str($event->effective_status)->replace('_', ' ')->title() }}
                                 </span>
@@ -136,9 +157,20 @@
                                 <div class="flex flex-wrap justify-end gap-2">
                                     <x-admin.icon-action label="View event" icon="fa-eye" data-open-event-modal="view-event-{{ $event->id }}" />
                                     <x-admin.icon-action :href="route('admin.events.show', $event)" label="Review and details" icon="fa-clipboard-check" />
+                                    @if (auth()->user()->isSuperAdmin() && $cancellationAvailable && $cancellation->canCancel($event))
+                                        <x-admin.icon-action label="Cancel event" icon="fa-ban" tone="danger" data-event-cleanup-open="event-cancel-{{ $event->id }}" />
+                                    @endif
                                     @if ($event->canEditSetup(auth()->user()))
                                         <x-admin.icon-action label="Edit event" icon="fa-pen" data-open-event-modal="edit-event-{{ $event->id }}" />
                                         <x-admin.icon-action label="Delete event" icon="fa-trash" tone="danger" data-open-event-modal="delete-event-{{ $event->id }}" />
+                                    @endif
+                                    @if ($cleanupAction = $cleanupActions->get($event->id))
+                                        <x-admin.icon-action
+                                            :label="match ($cleanupAction) { 'delete' => 'Delete empty draft', 'archive' => 'Archive event', 'restore' => 'Restore event' }"
+                                            :icon="match ($cleanupAction) { 'delete' => 'fa-trash', 'archive' => 'fa-box-archive', 'restore' => 'fa-rotate-left' }"
+                                            :tone="$cleanupAction === 'delete' ? 'danger' : 'neutral'"
+                                            data-event-cleanup-open="event-cleanup-{{ $event->id }}"
+                                        />
                                     @endif
                                 </div>
                             </td>
@@ -146,7 +178,7 @@
                     @empty
                         <tr>
                             <td colspan="9" class="px-6 py-12 text-center text-sm text-slate-500">
-                                No events found for the current filters.
+                                {{ $archiveFilter === 'archived' ? 'No archived events found for the current filters.' : 'No events found for the current filters.' }}
                             </td>
                         </tr>
                     @endforelse
@@ -161,12 +193,19 @@
 </div>
 
 @foreach($events as $event)
+    @if (auth()->user()->isSuperAdmin() && $cancellationAvailable && $cancellation->canCancel($event))
+        @include('admin.events.partials.cancellation-confirmation')
+    @endif
+    @if ($cleanupAction = $cleanupActions->get($event->id))
+        @include('admin.events.partials.cleanup-confirmation', ['cleanupAction' => $cleanupAction])
+    @endif
     @php
         $eventStatusClasses = match ($event->effective_status) {
             'draft' => 'bg-slate-100 text-slate-500',
             'upcoming' => 'bg-sky-50 text-sky-500',
             'ongoing' => 'bg-emerald-50 text-emerald-500',
             'completed' => 'bg-indigo-50 text-indigo-400',
+            'cancelled' => 'bg-rose-50 text-rose-600',
             default => 'bg-amber-50 text-amber-500',
         };
     @endphp
@@ -484,6 +523,10 @@
         </div>
     @endif
 @endforeach
+
+@if (auth()->user()->isSuperAdmin() && ($cleanupAvailable || $cancellationAvailable))
+    <script src="{{ asset('js/event-cleanup.js') }}" defer></script>
+@endif
 
 <script>
     (function () {

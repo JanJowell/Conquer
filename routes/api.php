@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\StaffCheckpointListController;
 use App\Http\Controllers\Api\SystemController;
 use App\Http\Controllers\Api\UserActivityController;
 use App\Http\Controllers\Internal\CommunityPostPurgeController;
+use App\Http\Middleware\EventOperationalAccess;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/health', [SystemController::class, 'health']);
@@ -69,15 +70,15 @@ Route::middleware(['mobile.auth', 'throttle:mobile-api'])->group(function () {
     Route::post('/device-tokens', [DeviceTokenController::class, 'store']);
     Route::delete('/device-tokens', [DeviceTokenController::class, 'destroy']);
     Route::post('/events/{event}/register/{category}', [EventController::class, 'register'])
-        ->middleware('throttle:group-join');
+        ->middleware(['throttle:group-join', EventOperationalAccess::class]);
     Route::get('/registration-groups/{registrationGroup}', [RegistrationGroupController::class, 'show']);
     Route::post('/registration-groups/{registrationGroup}/invitation-code', [RegistrationGroupController::class, 'rotateInvitationCode']);
     Route::post('/registration-groups/{registrationGroup}/lock', [RegistrationGroupController::class, 'lock']);
     Route::delete('/registration-groups/{registrationGroup}/membership', [RegistrationGroupController::class, 'leave']);
     Route::delete('/registration-groups/{registrationGroup}/members/{registration}', [RegistrationGroupController::class, 'removeMember']);
     Route::get('/registrations/{registration}/payments', [PaymentController::class, 'history']);
-    Route::post('/registrations/{registration}/paymongo-checkout', [PaymentController::class, 'createPayMongoCheckout']);
-    Route::post('/registrations/{registration}/payment-proof', [PaymentController::class, 'submitProof']);
+    Route::post('/registrations/{registration}/paymongo-checkout', [PaymentController::class, 'createPayMongoCheckout'])->middleware(EventOperationalAccess::class);
+    Route::post('/registrations/{registration}/payment-proof', [PaymentController::class, 'submitProof'])->middleware(EventOperationalAccess::class);
     Route::get('/registrations/{registration}/feedback', [RegistrationFeedbackController::class, 'show']);
     Route::put('/registrations/{registration}/feedback', [RegistrationFeedbackController::class, 'upsert']);
     Route::get('/community-posts/feed', [ContentController::class, 'communityFeed']);
@@ -104,6 +105,6 @@ Route::middleware(['mobile.auth', 'throttle:mobile-api'])->group(function () {
             ->name('api.staff.checkpoint-scanner.context');
         Route::get('/finish-scanner/context', [FinishScanController::class, 'context']);
         Route::get('/finish-scans', [FinishScanController::class, 'index']);
-        Route::post('/finish-scans', [FinishScanController::class, 'store']);
+        Route::post('/finish-scans', [FinishScanController::class, 'store'])->middleware(EventOperationalAccess::class.':finish');
     });
 });

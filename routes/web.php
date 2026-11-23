@@ -7,6 +7,8 @@ use App\Http\Controllers\Admin\CheckpointHistoryController;
 use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EBadgeController;
+use App\Http\Controllers\Admin\EventCancellationController;
+use App\Http\Controllers\Admin\EventCleanupController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\EventOperationsController;
 use App\Http\Controllers\Admin\EventReviewController;
@@ -23,6 +25,7 @@ use App\Http\Controllers\Auth\CancelTwoFactorLoginController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\CertificateController as PublicCertificateController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Middleware\EventOperationalAccess;
 use App\Http\Middleware\EventSetupAccess;
 use App\Models\Announcement;
 use App\Models\Event;
@@ -30,7 +33,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     $events = Event::whereNull('revision_of_id')->where(fn ($query) => $query->whereNull('review_status')->orWhere('review_status', 'approved'))
-        ->latest()->get()->filter(fn (Event $event) => $event->effective_status !== 'draft')->take(3);
+        ->latest()->get()->filter(fn (Event $event) => ! in_array($event->effective_status, ['draft', 'cancelled'], true))->take(3);
     $announcements = Announcement::active()->with('event')->latest()->take(5)->get();
 
     return view('welcome', compact('events', 'announcements'));
@@ -106,7 +109,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         ->middleware('role:super_admin,event_manager')
         ->name('participants.export');
     Route::patch('/participants/{registration}', [EventOperationsController::class, 'updateParticipant'])
-        ->middleware('role:super_admin,event_manager')
+        ->middleware(['role:super_admin,event_manager', EventOperationalAccess::class])
         ->name('participants.update');
     Route::get('/payments', [PaymentController::class, 'index'])
         ->middleware('role:super_admin,event_manager')
@@ -128,7 +131,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         ->middleware('role:super_admin,event_manager')
         ->name('check-in.index');
     Route::patch('/check-in/{registration}', [EventOperationsController::class, 'updateCheckIn'])
-        ->middleware('role:super_admin,event_manager')
+        ->middleware(['role:super_admin,event_manager', EventOperationalAccess::class])
         ->name('check-in.update');
     Route::get('/check-in/{registration}/finish-qr', [FinishScanController::class, 'qr'])
         ->middleware('role:super_admin,event_manager')
@@ -143,13 +146,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         ->middleware('role:super_admin,event_manager')
         ->name('checkpoint-history.index');
     Route::post('/results', [EventOperationsController::class, 'storeResult'])
-        ->middleware('role:super_admin,event_manager')
+        ->middleware(['role:super_admin,event_manager', EventOperationalAccess::class.':result'])
         ->name('results.store');
     Route::post('/results/categories/{category}/publish-scans', [EventOperationsController::class, 'publishProvisionalResults'])
         ->middleware('role:super_admin,event_manager')
         ->name('results.publish-scans');
     Route::patch('/results/{result}', [EventOperationsController::class, 'updateResult'])
-        ->middleware('role:super_admin,event_manager')
+        ->middleware(['role:super_admin,event_manager', EventOperationalAccess::class.':result-edit'])
         ->name('results.update');
     Route::get('/e-certificates', [CertificateController::class, 'index'])
         ->middleware('role:super_admin,event_manager')
@@ -202,6 +205,15 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/events', [EventController::class, 'index'])
         ->middleware('role:super_admin,event_manager')
         ->name('events.index');
+    // Cleanup is an Admin operation, not an exemption to manager-only editing.
+    Route::delete('/events/{event}/cleanup', [EventCleanupController::class, 'destroy'])
+        ->middleware('role:super_admin')->name('events.cleanup.destroy');
+    Route::post('/events/{event}/archive', [EventCleanupController::class, 'archive'])
+        ->middleware('role:super_admin')->name('events.archive');
+    Route::post('/events/{event}/restore', [EventCleanupController::class, 'restore'])
+        ->middleware('role:super_admin')->name('events.restore');
+    Route::post('/events/{event}/cancel', EventCancellationController::class)
+        ->middleware('role:super_admin')->name('events.cancel');
     Route::resource('events', EventController::class)
         ->except(['index', 'show'])
         ->middleware(['role:event_manager', EventSetupAccess::class]);
@@ -210,13 +222,15 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         ->middleware('role:super_admin,event_manager')->name('events.review');
     Route::post('/events/{event}/revisions', [EventReviewController::class, 'revision'])
         ->middleware('role:event_manager')->name('events.revision');
+    Route::post('/events/{event}/reactivation', [EventReviewController::class, 'reactivation'])
+        ->middleware('role:event_manager')->name('events.reactivation');
     Route::get('/events/{event}/review-history', [EventReviewController::class, 'history'])
         ->middleware('role:super_admin,event_manager')->name('events.review-history');
     Route::get('/events/{event}', [EventController::class, 'show'])
         ->middleware('role:super_admin,event_manager')
         ->name('events.show');
     Route::post('/categories/{category}/start', [CategoryController::class, 'start'])
-        ->middleware('role:super_admin,event_manager')
+        ->middleware(['role:super_admin,event_manager', EventOperationalAccess::class])
         ->name('categories.start');
     Route::resource('categories', CategoryController::class)
         ->middleware('role:super_admin,event_manager')

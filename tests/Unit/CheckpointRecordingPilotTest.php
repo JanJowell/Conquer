@@ -74,3 +74,39 @@ test('largest representable positive IDs are compared without float or overflow 
     $config->set('checkpoint_scanning.pilot_event_id', (string) PHP_INT_MAX.'0');
     expect(checkpointPilotFailure($config, PHP_INT_MAX, PHP_INT_MAX)->errorCode)->toBe('checkpoint_recording_unavailable');
 });
+
+test('eligible scope accepts different selections without consulting pilot IDs', function (mixed $event, mixed $category) {
+    $config = new Repository(['checkpoint_scanning' => ['enabled' => true, 'scope' => 'eligible',
+        'pilot_event_id' => $event, 'pilot_category_id' => $category]]);
+    $policy = new CheckpointRecordingPilot($config);
+    $policy->assertAllowed(17, 29);
+    $policy->assertAllowed(18, 30);
+    expect($config->get('checkpoint_scanning.pilot_event_id'))->toBe($event)
+        ->and($config->get('checkpoint_scanning.pilot_category_id'))->toBe($category);
+})->with([[null, null], [17, 29], ['invalid', '*']]);
+
+test('eligible scope still requires the master switch to be explicitly true', function (mixed $enabled) {
+    $config = new Repository(['checkpoint_scanning' => ['enabled' => $enabled, 'scope' => 'eligible']]);
+    expect(checkpointPilotFailure($config)->errorCode)->toBe('checkpoint_recording_disabled');
+})->with([[false], [null], ['true'], [1]]);
+
+test('unknown rollout scopes fail closed instead of opening recording', function (mixed $scope) {
+    $config = new Repository(['checkpoint_scanning' => ['enabled' => true, 'scope' => $scope,
+        'pilot_event_id' => 17, 'pilot_category_id' => 29]]);
+    $failure = checkpointPilotFailure($config);
+    expect($failure->status)->toBe(503)->and($failure->errorCode)->toBe('checkpoint_recording_unavailable');
+})->with([[null], [''], ['all'], ['ELIGIBLE'], ['eligible '], [true], [1], [[]]]);
+
+test('a resolved rollout policy immediately respects scope changes and shutdown', function () {
+    $config = new Repository(['checkpoint_scanning' => ['enabled' => true, 'scope' => 'eligible',
+        'pilot_event_id' => 17, 'pilot_category_id' => 29]]);
+    $policy = new CheckpointRecordingPilot($config);
+    $policy->assertAllowed(18, 30);
+    $config->set('checkpoint_scanning.scope', 'pilot');
+    expect(fn () => $policy->assertAllowed(18, 30))->toThrow(CheckpointScanException::class);
+    $policy->assertAllowed(17, 29);
+    $config->set('checkpoint_scanning.scope', 'eligible');
+    $policy->assertAllowed(18, 30);
+    $config->set('checkpoint_scanning.enabled', false);
+    expect(fn () => $policy->assertAllowed(18, 30))->toThrow(CheckpointScanException::class);
+});

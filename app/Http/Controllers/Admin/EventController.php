@@ -11,8 +11,11 @@ use App\Models\EventPaymentMethod;
 use App\Models\SavedPaymentOption;
 use App\Models\User;
 use App\Rules\CategoryCourseMap;
+use App\Services\EventCancellation;
+use App\Services\EventCleanup;
 use App\Services\EventManagerAvailability;
 use App\Services\EventPaymentSelection;
+use App\Services\EventReactivation;
 use App\Services\EventReviewWorkflow;
 use App\Services\EventRevisionComparison;
 use App\Services\EventSubmissionRequirements;
@@ -44,24 +47,35 @@ class EventController extends Controller
         $user = auth()->user();
         $interestTypes = $this->eventInterestTypes();
 
+        $request->validate(['archive' => ['nullable', Rule::in(['active', 'archived', 'all'])]]);
+        // Keep old "all" bookmarks usable, but the two sections never mix lists.
+        $archiveFilter = $request->input('archive') === 'archived' ? 'archived' : 'active';
+        $cleanup = app(EventCleanup::class);
+        $cancellation = app(EventCancellation::class);
+        $cancellationAvailable = $cancellation->available();
+        $cleanupAvailable = $cleanup->available();
+
         $this->completePastUpcomingEvents($user);
 
         $events = Event::query()
             ->whereNull('revision_of_id')
             ->visibleToStaff($user)
+            ->when($cleanupAvailable, fn ($query) => $archiveFilter === 'archived'
+                ? $query->whereNotNull('archived_at') : $query->whereNull('archived_at'))
+            ->when(! $cleanupAvailable && $archiveFilter === 'archived', fn ($query) => $query->whereRaw('1 = 0'))
             ->with(['manager', 'activeRevision' => fn ($query) => $query->visibleToStaff($user)])
             ->withCount(['categories', 'registrations', 'raceResults'])
             ->when($user->managesAssignedEventsOnly(), function ($query) use ($user) {
                 $query->where('manager_id', $user->id);
             })
-            ->when($request->filled('review_status'), fn ($query) => $query->where(fn ($inner) => $inner
+            ->when($archiveFilter === 'active' && $request->filled('review_status'), fn ($query) => $query->where(fn ($inner) => $inner
                 ->where('review_status', $request->string('review_status')->value())
                 ->orWhereHas('activeRevision', fn ($revision) => $revision->visibleToStaff($user)
                     ->where('review_status', $request->string('review_status')->value()))))
-            ->when($request->filled('status') && $request->string('status')->value() === 'draft', function ($query) {
+            ->when($archiveFilter === 'active' && $request->filled('status') && $request->string('status')->value() === 'draft', function ($query) {
                 $query->where('status', 'draft');
             })
-            ->when($request->filled('status') && $request->string('status')->value() !== 'draft', function ($query) {
+            ->when($archiveFilter === 'active' && $request->filled('status') && $request->string('status')->value() !== 'draft', function ($query) {
                 $query->where('status', '!=', 'draft');
             })
             ->when($request->filled('interest_type'), function ($query) use ($request) {
@@ -79,15 +93,21 @@ class EventController extends Controller
             ->latest('created_at')
             ->latest('id')
             ->paginate(10)
-            ->withQueryString();
+            ->withQueryString()
+            ->appends(['archive' => $archiveFilter])
+            ->appends($archiveFilter === 'archived' ? ['status' => null, 'review_status' => null] : []);
 
-        if ($request->filled('status') && $request->string('status')->value() !== 'draft') {
+        if ($archiveFilter === 'active' && $request->filled('status') && $request->string('status')->value() !== 'draft') {
             $events->setCollection($events->getCollection()
                 ->filter(fn (Event $event) => $event->effective_status === $request->string('status')->value())
                 ->values());
         }
 
-        return view('admin.events.index', compact('events', 'interestTypes'));
+        $cleanupActions = $user->isSuperAdmin() && $cleanupAvailable
+            ? $events->getCollection()->mapWithKeys(fn (Event $event) => [$event->id => $cleanup->actionFor($event)])
+            : collect();
+
+        return view('admin.events.index', compact('events', 'interestTypes', 'cleanupAvailable', 'cleanupActions', 'archiveFilter', 'cleanup', 'cancellation', 'cancellationAvailable'));
     }
 
     public function create(): View
@@ -139,7 +159,9 @@ class EventController extends Controller
         $event->load(['reviews.actor']);
         $activeRevision = Event::query()->where('revision_of_id', $event->id)
             ->visibleToStaff(auth()->user())
-            ->whereIn('review_status', ['draft', 'changes_requested', 'pending_review'])->first();
+            ->when($event->isCancelled() && app(EventReactivation::class)->available(),
+                fn ($query) => $query->whereHas('revisionRequest', fn ($request) => $request->where('purpose', 'reactivation')))
+            ->whereIn('review_status', ['draft', 'changes_requested', 'pending_review'])->latest('id')->first();
         $revisionComparison = $event->revision_of_id
             ? app(EventRevisionComparison::class)->build($event) : null;
         $revisionHistory = Event::where('revision_of_id', $event->id)
@@ -1201,6 +1223,7 @@ class EventController extends Controller
         return Event::query()
             ->whereIn('manager_id', $managerIds)
             ->whereNull('revision_of_id')
+            ->where('status', '!=', 'cancelled')
             ->when($exceptEventId, fn ($query) => $query->whereKeyNot($exceptEventId))
             ->orderBy('event_date')
             ->orderBy('start_time')

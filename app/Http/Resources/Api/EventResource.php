@@ -45,7 +45,7 @@ class EventResource extends JsonResource
             ? ParticipantBirthdate::registrationBlockReason($request->user()->birthdate)
             : null;
         $categoryRegistrationStates = $this->relationLoaded('categories')
-            ? $this->categories->map(function ($category) use ($birthdateBlockReason, $currentRegistrations, $eligibilityService, $categoriesWithCapacity) {
+            ? $this->categories->map(function ($category) use ($status, $birthdateBlockReason, $currentRegistrations, $eligibilityService, $categoriesWithCapacity) {
                 $registration = $currentRegistrations->firstWhere('category_id', $category->id);
                 $hasBlockingRegistration = $registration && $registration->status !== 'rejected';
                 $eligibility = $birthdateBlockReason && ! $hasBlockingRegistration
@@ -68,6 +68,9 @@ class EventResource extends JsonResource
                         'reason' => 'This category is already full.',
                         'conflicting_registration' => null,
                     ];
+                }
+                if ($status === 'cancelled') {
+                    $eligibility = ['allowed' => false, 'reason' => 'This event has been cancelled.', 'conflicting_registration' => null];
                 }
 
                 return [
@@ -99,9 +102,12 @@ class EventResource extends JsonResource
             'end_time' => optional($this->end_time)->format('H:i'),
             'registration_deadline' => optional($this->registration_deadline)->format('Y-m-d'),
             'status' => $status,
+            'is_cancelled' => $status === 'cancelled',
+            'cancelled_at' => $this->cancelled_at?->toIso8601String(),
+            'cancellation_reason' => $this->cancellation_reason,
             'can_register' => $canRegister,
             'registration_deadline_passed' => $registrationDeadlinePassed,
-            'registration_block_reason' => $birthdateBlockReason,
+            'registration_block_reason' => $status === 'cancelled' ? 'This event has been cancelled.' : $birthdateBlockReason,
             'banner_url' => $this->banner_image ? asset('storage/'.$this->banner_image) : null,
             'organized_by' => $this->organized_by,
             'interest_type' => $this->interest_type,
@@ -109,7 +115,7 @@ class EventResource extends JsonResource
             'type_details' => $this->type_details,
             'type_detail_items' => $this->formattedTypeDetails(),
             'payment_options' => EventPaymentMethodResource::collection(
-                $this->relationLoaded('paymentMethods')
+                $status !== 'cancelled' && $this->relationLoaded('paymentMethods')
                     ? $this->paymentMethods->where('is_enabled', true)->values()
                     : collect()
             ),

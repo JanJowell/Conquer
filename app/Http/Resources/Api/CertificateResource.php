@@ -23,6 +23,10 @@ class CertificateResource extends JsonResource
             'event' => $this->whenLoaded('event', fn () => [
                 'id' => $this->event?->id,
                 'title' => $this->event?->title,
+                'status' => $this->event?->effective_status,
+                'is_cancelled' => $this->event?->isCancelled() ?? false,
+                'cancelled_at' => $this->event?->cancelled_at?->toIso8601String(),
+                'cancellation_reason' => $this->event?->cancellation_reason,
             ]),
             'category' => $this->whenLoaded('category', fn () => [
                 'id' => $this->category?->id,

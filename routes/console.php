@@ -17,3 +17,7 @@ Schedule::command('users:prune-unverified --days=7')
 Schedule::command('community-posts:request-purge --days=30')
     ->dailyAt('03:30')
     ->withoutOverlapping();
+Schedule::command('events:archive-completed')
+    ->dailyAt('04:00')
+    ->withoutOverlapping()
+    ->when(fn () => config('event_archiving.enabled') === true);
